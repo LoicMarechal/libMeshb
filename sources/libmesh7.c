@@ -1039,11 +1039,11 @@ extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int
     char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL, *FilPos, **SolTab1, **SolTab2;
     char *StrTab[5] = { "", "%f", "%lf", "%d", "%lld" };
     int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], UsrTyp[ GmfMaxTyp ];
-    int NmbBlk, SizTab[5] = {0,4,8,4,8}, err, ret, typ, SolTabTyp = 0;
+    int NmbBlk, NmbArg, SizTab[5] = {0,4,8,4,8}, err, ret, typ, SolTabTyp = 0;
     long long NmbLin, *FilPtrI64, *UsrPtrI64, BegIdx, EndIdx=0;
     float *FilPtrR32, *UsrPtrR32;
     double *FilPtrR64, *UsrPtrR64;
-    void (*UsrPrc)(long long, long long, void *) = NULL, *UsrArg;
+    void (*UsrPrc)(long long, long long, void *) = NULL, *UsrArg, *ArgTab[ MaxArg ];
     size_t UsrLen[ GmfMaxTyp ], SolTypSiz;
     va_list VarArg;
     GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
@@ -1361,11 +1361,11 @@ extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(long long) MshIdx, TYPF77(int
     char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL, *FilPos;
     char *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" };
     int i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], UsrTyp[ GmfMaxTyp ];
-    int NmbBlk, NmbLin, b, SizTab[5] = {0,4,8,4,8}, err, ret;
+    int NmbBlk, NmbArg, NmbLin, b, SizTab[5] = {0,4,8,4,8}, err, ret;
     long long *FilPtrI64, *UsrPtrI64, BegIdx, EndIdx=0;
     float *FilPtrR32, *UsrPtrR32;
     double *FilPtrR64, *UsrPtrR64;
-    void (*UsrPrc)(long long, long long, void *) = NULL, *UsrArg;
+    void (*UsrPrc)(long long, long long, void *) = NULL, *UsrArg, *ArgTab[ MaxArg ];
     size_t UsrLen[ GmfMaxTyp ];
     va_list VarArg;
     GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
