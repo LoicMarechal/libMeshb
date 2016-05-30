@@ -2,14 +2,14 @@
 
 #-----------------------------------------------------------#
 #															#
-#							LIBMESH7						#
+#							libMeshb7						#
 #															#
 #-----------------------------------------------------------#
 #															#
 #	Description:		multi-system makefile (gmake only)	#
 #	Author:				Loic MARECHAL						#
 #	Creation date:		dec 08 2015							#
-#	Last modification:	dec 08 2015							#
+#	Last modification:	may 30 2016							#
 #															#
 #-----------------------------------------------------------#
 
@@ -68,7 +68,4 @@ clean:
 # Build a dated archive including sources, patterns and makefile
 
 tar: $(DIRS)
-	tar czf $(ARCHDIR)/libmesh7.`date +"%Y.%m.%d"`.tgz sources tests Makefile
-
-zip: $(DIRS)
-	archive_lm7.sh
+	tar czf $(ARCHDIR)/libmeshb7.`date +"%Y.%m.%d"`.tgz sources tests Makefile
