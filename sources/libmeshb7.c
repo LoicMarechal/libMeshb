@@ -9,7 +9,7 @@
 /*    Description:        handle .meshb file format I/O     */
 /*    Author:             Loic MARECHAL                     */
 /*    Creation date:      dec 08 2015                       */
-/*    Last modification:  may 23 2016                       */
+/*    Last modification:  may 30 2016                       */
 /*                                                          */
 /*----------------------------------------------------------*/
 
@@ -60,7 +60,7 @@
 #include <unistd.h>
 #include <aio.h>
 #include <errno.h>
-#include "libmesh7.h"
+#include "libmeshb7.h"
 
 
 /*----------------------------------------------------------*/

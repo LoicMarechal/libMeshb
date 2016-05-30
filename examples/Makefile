@@ -1,25 +1,34 @@
 CC = /usr/local/bin/gcc
 FC = /usr/local/bin/gfortran
+INCDIR = ../sources
 
-examples: test_libmesh7 test_libmesh7_f77 test_sol test_libmesh7_block_f77
+examples: test_libmeshb test_libmeshb_f77 test_libmeshb_sol test_libmeshb_block_f77 test_libmeshb_block test_libmeshb_block_f77
 
-test_sol: test_sol.c libmesh7.c libmesh7.h
-	$(CC) -O test_sol.c libmesh7.c -lm -o $@
+test_libmeshb_sol: test_libmeshb_sol.c libmeshb7.c libmeshb7.h
+	$(CC) -O -I $(INCDIR) test_libmeshb_sol.c libmeshb7.c -lm -o $@
 
-test_libmesh7: test_libmesh7.c libmesh7.c libmesh7.h
-	$(CC) -O test_libmesh7.c libmesh7.c -lm -o $@
+test_libmeshb: test_libmeshb.c libmeshb7.c libmeshb7.h
+	$(CC) -O -I $(INCDIR) test_libmeshb.c libmeshb7.c -lm -o $@
 
-test_libmesh7_f77: test_libmesh7.f libmesh7.c libmesh7.h libmesh7.ins
-	$(CC) -O -c libmesh7.c -DF77API
-	$(FC) -O -fimplicit-none -c test_libmesh7.f
-	$(FC) test_libmesh7.o libmesh7.o -lm -o $@
-	rm test_libmesh7.o libmesh7.o
+test_libmeshb_block: test_libmeshb_block.c libmeshb7.c libmeshb7.h
+	$(CC) -O -I $(INCDIR) test_libmeshb_block.c libmeshb7.c -lm -o $@
 
-test_libmesh7_block_f77: test_libmesh7_block.f libmesh7.c libmesh7.h libmesh7.ins
-	$(CC) -O -c libmesh7.c -DF77API
-	$(FC) -O -fimplicit-none -c test_libmesh7_block.f
-	$(FC) test_libmesh7_block.o libmesh7.o -lm -o $@
-	rm test_libmesh7_block.o libmesh7.o
+test_libmeshb_f77: test_libmeshb.f libmeshb7.c libmeshb7.h libmeshb7.ins
+	$(CC) -O -I $(INCDIR) -c libmeshb7.c -DF77API
+	$(FC) -O -I $(INCDIR) -fimplicit-none -c test_libmeshb.f
+	$(FC) test_libmeshb.o libmeshb7.o -lm -o $@
+	rm test_libmeshb.o
+
+test_libmeshb_block_f77: test_libmeshb_block.f libmeshb7.c libmeshb7.h libmeshb7.ins
+	$(CC) -O -I $(INCDIR) -c libmeshb7.c -DF77API
+	$(FC) -O -I $(INCDIR) -fimplicit-none -c test_libmeshb_block.f
+	$(FC) test_libmeshb_block.o libmeshb7.o -lm -o $@
+	rm test_libmeshb_block.o
+
+test_libmeshb_block_pipeline_f77: test_libmeshb_block_pipeline.f libmeshb7.c libmeshb7.h libmeshb7.ins
+	$(CC) -O -I $(INCDIR) -c libmeshb7.c -DF77API
+	$(FC) -O -I $(INCDIR) -fimplicit-none -c test_libmeshb_block.f
+	$(FC) test_libmeshb_block_pipeline.o libmeshb7.o -lm -o $@
 
 clean:
-	rm *.o test_libmesh7 test_libmesh7_f77 test_sol test_libmesh7_block_f77
+	rm *.o test_libmeshb test_libmeshb_f77 test_libmeshb_sol test_libmeshb_block_f77 test_libmeshb_block test_libmeshb_block_f77
