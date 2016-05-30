@@ -1,7 +1,7 @@
 
-c     libmesh7 example : transform a quadrilateral mesh into a triangular one
+c     libmeshb example : transform a quadrilateral mesh into a triangular one
 
-      include 'libmesh7.ins'
+      include 'libmeshb7.ins'
 
       external qad2tri
 
