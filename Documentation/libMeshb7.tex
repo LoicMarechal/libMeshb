@@ -20,7 +20,7 @@
 \huge An easy way to access files\\ in Gamma Mesh Format
 \HRule \\
 \medskip
-{\Huge \bfseries The LM7 library} \\
+{\Huge \bfseries The libMeshb library} \\
 \HRule
 \end{center}
 
@@ -36,8 +36,8 @@
 
 \begin{flushright}
 \Large Lo\"ic MAR\'ECHAL / INRIA, Gamma Project\\
-\Large February 2016 \\
-\normalsize Document v1.4
+\Large May 2016 \\
+\normalsize Document v1.5
 \end{flushright}
 
 \end{titlepage}
@@ -61,11 +61,11 @@
 \section{Introduction}
 
 \subsection{What is the Gamma Mesh Format ?}
-The Gamma Mesh Format (GMF) and the associated library libmesh7 (LM7) provide programers of simulation and meshing softwares with an easy way to store their meshes and physical solutions.
+The Gamma Mesh Format (GMF) and the associated library \emph{libMeshb} provide programers of simulation and meshing softwares with an easy way to store their meshes and physical solutions.
 
 The GMF features more than 50 kinds of data types, ranging from vertex to polyhedron or normal vectors to matricial solution fields.
 
-The LM7 provides a convenient way to move data between those files, via keyword tags, and the user's own structures.
+The \emph{libMeshb} provides a convenient way to move data between those files, via keyword tags, and the user's own structures.
 
 
 \subsection{An evolutive keyword based format}
@@ -75,11 +75,11 @@ It means that older files can be accessed by newer version of the library and vi
 
 
 \subsection{A comprehensive C library}
-The LM7 provides programmers with a comprehensive set of commands and keywords covering most common operations on many different kinds of mesh or physical solution related data.
+The \emph{libMeshb} provides programmers with a comprehensive set of commands and keywords covering most common operations on many different kinds of mesh or physical solution related data.
 
-Reading, writing and querying files is easily done by calling a couple of commands which are provided in an ANSI C file (libmesh7.c) and a header file (libmesh7.h). All is needed is compiling those files along with the calling software.
+Reading, writing and querying files is easily done by calling a couple of commands which are provided in an ANSI C file ``libmeshb7.c'' and a header file ``libmeshb7.h''. All is needed is compiling those files along with the calling software.
 
-Fortran APIs are also available: "libmesh7.ins" for F77 and F90.
+Fortran APIs are also available: ``libmeshb7.ins'' for F77 and F90.
 
 
 \subsection{ASCII vs. Binary}
@@ -96,9 +96,9 @@ Binary files have a slightly smaller footprint than their ascii counterparts (ty
 
 
 \subsubsection{About performance}
-Great care has been taken on performance issues when creating the LM7. When dealing with binary files, reading and writing throughputs will only be limited by the speed of the physical media where those files are located. Speed ranging from 20 MB/s to 60 MB/s can be achieved with hard drives and 10 MB/s or 100 MB/s with fast ethernet and gigabit ethernet networks, respectively.
+Great care has been taken on performance issues when creating the \emph{libMeshb}. When dealing with binary files, reading and writing throughputs will only be limited by the speed of the physical media where those files are located. Speed ranging from 20 MB/s to 60 MB/s can be achieved with hard drives and 10 MB/s or 100 MB/s with fast ethernet and gigabit ethernet networks, respectively.
 
-The LM7 performs very poorly in ascii mode, which is more processor bound rather than hard-drive bound. Don't expect more than 5 or 10 MB/s throughputs.
+The \emph{libMeshb} performs very poorly in ascii mode, which is more processor bound rather than hard-drive bound. Don't expect more than 5 or 10 MB/s throughputs.
 
 \subsubsection{Compatibility issue: little vs. big endian}
 When it comes to binary storage, the compatibility problem posed by endianness always comes to mind.
@@ -107,7 +107,7 @@ Some processors like PowerPc or SPARC are called big endian because of the way t
 
 The other ones, like i86 (Intel core2, AMD opteron) or itanium, store bytes in the reverse order and are called little endian.
 
-Consequently, a binary word written by a big endian processor cannot de read by a little endian one, and vice versa. This problem can be easily overcome by reversing bytes order when reading misoriented data. The LM7 handles this compatibility issue via a control word that indicates which endian a mesh file was written in.
+Consequently, a binary word written by a big endian processor cannot de read by a little endian one, and vice versa. This problem can be easily overcome by reversing bytes order when reading misoriented data. The \emph{libMeshb} handles this compatibility issue via a control word that indicates which endian a mesh file was written in.
 
 You may then use binary files as safely as ascii ones.
 
@@ -133,11 +133,11 @@ Version & Size of integers & Size of reals & Maximum size of file \\
 \end{tabular}
 \medskip
 
-Although the LM7 still handles versions 1 and 2 for the sake of compatibility, it is strongly advised to create version 3 files since more and more computer are 64-bit capable.
+Although the \emph{libMeshb} still handles versions 1 and 2 for the sake of compatibility, it is strongly advised to create version 3 files since more and more computer are 64-bit capable.
 
 A word of caution: great care must be taken when setting the library's arguments type. Regardless of the file version, some arguments are mandatory 32 bits integer like the open mode tag, mesh dimension or the file index. Even in "full 64 bits" version 4 mesh file format, only the number of lines given or set by the GmfSetKeyword() of GmfStatKeyword() commands and vertex indices used by elements field are using 64 bits integers.
 
-The 64 bits integer data type used by the library is the \emph{long int}, which may be set to 32 bits by come compilers. In this case, the LM7 will simply return with an error when dealing with version 4 mesh files. Most compilers, GNU and Intel for instance, set the long int size to 64 bits unless you specify the "-m32" option.
+The 64 bits integer data type used by the library is the \emph{long int}, which may be set to 32 bits by come compilers. In this case, the \emph{libMeshb} will simply return with an error when dealing with version 4 mesh files. Most compilers, GNU and Intel for instance, set the long int size to 64 bits unless you specify the "-m32" option.
 
 %
 % 2 / QUICKSTART
@@ -412,7 +412,7 @@ will be set to the value read from file, which may range from 1 to 3.
 will be set to the value read from file, only dimensions 2 and 3 are supported.
 
 \paragraph{Returns:}
-Zero on failure or the opened mesh index otherwise. This index should be properly stored since it must be provided to any further LM7 commands working on this file.
+Zero on failure or the opened mesh index otherwise. This index should be properly stored since it must be provided to any further \emph{libMeshb} commands working on this file.
 
 \paragraph{Example:} open a mesh file and print its version and dimension.
 
@@ -456,7 +456,7 @@ must be provided at file creation, see \emph{Reading mode} for version values.
 must be provided at file creation, only dimensions 2 and 3 are supported.
 
 \paragraph{Returns:}
-zero on failure or the opened mesh index otherwise. This index should be properly stored since it must be provided to any further LM7 commands working on this file.
+zero on failure or the opened mesh index otherwise. This index should be properly stored since it must be provided to any further \emph{libMeshb} commands working on this file.
 
 \paragraph{Example:} create a new three dimensional mesh file storing double precision numbers.
 
