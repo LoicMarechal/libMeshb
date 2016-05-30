@@ -1,5 +1,5 @@
-CC = /usr/local/bin/gcc
-FC = /usr/local/bin/gfortran
+CC = gcc
+FC = gfortran
 INCDIR = ../sources
 
 examples: test_libmeshb test_libmeshb_f77 test_libmeshb_sol test_libmeshb_block_f77 test_libmeshb_block test_libmeshb_block_f77
