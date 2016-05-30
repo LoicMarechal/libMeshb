@@ -1,8 +1,8 @@
 
-c     libmesh7 example : transform a quadrilateral mesh into a triangular one
+c     libmeshb example : transform a quadrilateral mesh into a triangular one
 c     using fast block transfer and pipelined post processing
 
-      include 'libmesh7.ins'
+      include 'libmeshb7.ins'
 
       external qad2tri, movver
 
