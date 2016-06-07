@@ -1,6 +1,6 @@
 # libMeshb version 7.12
 A library to handle the *.meshb file format.
-![tape](/LoicMarechal/libMeshb/blob/master/Documentation/tape.jpeg)
+![tape](/LoicMarechal/libMeshb/Documentation/tape.jpeg)
 
 # Overview
 The Gamma Mesh Format (GMF) and the associated library libMeshb provide programers of simulation and meshing software with an easy way to store their meshes and physical solutions.  
