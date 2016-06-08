@@ -32,7 +32,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "libmesh7.h"
+#include "libmeshb7.h"
 
 
 /*----------------------------------------------------------*/
@@ -66,7 +66,7 @@ int GetKwdIdx(char *KwdStr)
 /* Check args and copy each field from in-file to out-file	*/
 /*----------------------------------------------------------*/
 
-main(int ArgCnt, char **ArgVec)
+int main(int ArgCnt, char **ArgVec)
 {
 	int i, j, NmbTyp, SolSiz, TypTab[ GmfMaxTyp ], FilVer=0, InpVer, OutVer=1, dim, MaxRef;
 	int ArgIdx = 1, NmbGrp = 0, NmbTok, NmbTok2, TokTab[ MaxTok ], TokTab2[ MaxTok ], pos;

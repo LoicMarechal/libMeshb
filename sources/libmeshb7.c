@@ -211,6 +211,10 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4] =
     {"DRefGroups", "DRefGroup", "i", "i,i"}
  };
 
+#ifdef TRANSMESH
+int GmfMaxRefTab[ GmfMaxKwd + 1 ];
+#endif
+
 
 /*----------------------------------------------------------*/
 /* Prototypes of local procedures                           */
@@ -920,111 +924,114 @@ extern int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(long long) MshIdx, TYPF77(int) Kw
 
 #ifdef TRANSMESH
 
-int GmfCpyLin(int InpIdx, int OutIdx, int KwdCod)
+int GmfCpyLin(long long InpIdx, long long OutIdx, int KwdCod)
 {
-    char s[ WrdSiz * FilStrSiz ];
-    double d;
-    float f;
-    int i, a;
-    long long l;
-    GmfMshSct *InpMsh = GmfMshTab[ InpIdx ], *OutMsh = GmfMshTab[ OutIdx ];
-    KwdSct *kwd = &InpMsh->KwdTab[ KwdCod ];
+	char s[ WrdSiz * FilStrSiz ];
+	double d;
+	float f;
+	int i, a;
+	long long l;
+	GmfMshSct *InpMsh = (GmfMshSct *)InpIdx, *OutMsh = (GmfMshSct *)OutIdx;
+	KwdSct *kwd = &InpMsh->KwdTab[ KwdCod ];
 
-    /* Save the current stack environment for longjmp */
+	/* Save the current stack environment for longjmp */
 
-    if(setjmp(InpMsh->err) != 0)
-        return(0);
+	if(setjmp(InpMsh->err) != 0)
+		return(0);
 
-    for(i=0;i<kwd->SolSiz;i++)
-    {
-        if(kwd->fmt[i] == 'r')
-        {
-            if(InpMsh->ver == 1)
-            {
-                if(InpMsh->typ & Asc)
-                    safe_fscanf(InpMsh->hdl, "%f", &f, InpMsh->err);
-                else
-                    ScaWrd(InpMsh, (unsigned char *)&f);
+	for(i=0;i<kwd->SolSiz;i++)
+	{
+		if(kwd->fmt[i] == 'r')
+		{
+			if(InpMsh->ver == 1)
+			{
+				if(InpMsh->typ & Asc)
+					safe_fscanf(InpMsh->hdl, "%f", &f, InpMsh->err);
+				else
+					ScaWrd(InpMsh, (unsigned char *)&f);
 
-                d = (double)f;
-            }
-            else
-            {
-                if(InpMsh->typ & Asc)
-                    safe_fscanf(InpMsh->hdl, "%lf", &d, InpMsh->err);
-                else
-                    ScaDblWrd(InpMsh, (unsigned char *)&d);
+				d = (double)f;
+			}
+			else
+			{
+				if(InpMsh->typ & Asc)
+					safe_fscanf(InpMsh->hdl, "%lf", &d, InpMsh->err);
+				else
+					ScaDblWrd(InpMsh, (unsigned char *)&d);
 
-                f = (float)d;
-            }
+				f = (float)d;
+			}
 
-            if(OutMsh->ver == 1)
-                if(OutMsh->typ & Asc)
-                    fprintf(OutMsh->hdl, "%g ", (double)f);
-                else
-                    RecWrd(OutMsh, (unsigned char *)&f);
-            else
-                if(OutMsh->typ & Asc)
-                    fprintf(OutMsh->hdl, "%.15g ", d);
-                else
-                    RecDblWrd(OutMsh, (unsigned char *)&d);
-        }
-        else if(kwd->fmt[i] == 'i')
-        {
-            if(InpMsh->ver <= 3)
-            {
-                if(InpMsh->typ & Asc)
-                    safe_fscanf(InpMsh->hdl, "%d", &a, InpMsh->err);
-                else
-                    ScaWrd(InpMsh, (unsigned char *)&a);
+			if(OutMsh->ver == 1)
+				if(OutMsh->typ & Asc)
+					fprintf(OutMsh->hdl, "%g ", (double)f);
+				else
+					RecWrd(OutMsh, (unsigned char *)&f);
+			else
+				if(OutMsh->typ & Asc)
+					fprintf(OutMsh->hdl, "%.15g ", d);
+				else
+					RecDblWrd(OutMsh, (unsigned char *)&d);
+		}
+		else if(kwd->fmt[i] == 'i')
+		{
+			if(InpMsh->ver <= 3)
+			{
+				if(InpMsh->typ & Asc)
+					safe_fscanf(InpMsh->hdl, "%d", &a, InpMsh->err);
+				else
+					ScaWrd(InpMsh, (unsigned char *)&a);
 
-                l = (long long)a;
-            }
-            else
-            {
-                if(InpMsh->typ & Asc)
-                    safe_fscanf(InpMsh->hdl, "%zd", &l, InpMsh->err);
-                else
-                    ScaDblWrd(InpMsh, (unsigned char *)&l);
+				l = (long long)a;
+			}
+			else
+			{
+				if(InpMsh->typ & Asc)
+					safe_fscanf(InpMsh->hdl, "%zd", &l, InpMsh->err);
+				else
+					ScaDblWrd(InpMsh, (unsigned char *)&l);
 
-                a = (int)l;
-            }
+				a = (int)l;
+			}
 
-            if(OutMsh->ver <= 3)
-            {
-                if(OutMsh->typ & Asc)
-                    fprintf(OutMsh->hdl, "%d ", a);
-                else
-                    RecWrd(OutMsh, (unsigned char *)&a);
-            }
-            else
-            {
-                if(OutMsh->typ & Asc)
-                    fprintf(OutMsh->hdl, "%zd ", l);
-                else
-                    RecDblWrd(OutMsh, (unsigned char *)&l);
-            }
-        }
-        else if(kwd->fmt[i] == 'c')
-        {
-            memset(s, 0, FilStrSiz * WrdSiz);
+			if( (i == kwd->SolSiz-1) && (a > GmfMaxRefTab[ KwdCod ]) )
+				GmfMaxRefTab[ KwdCod ] = a;
 
-            if(InpMsh->typ & Asc)
-                safe_fgets(s, WrdSiz * FilStrSiz, InpMsh->hdl, InpMsh->err);
-            else
-                read(InpMsh->FilDes, s, WrdSiz * FilStrSiz);
+			if(OutMsh->ver <= 3)
+			{
+				if(OutMsh->typ & Asc)
+					fprintf(OutMsh->hdl, "%d ", a);
+				else
+					RecWrd(OutMsh, (unsigned char *)&a);
+			}
+			else
+			{
+				if(OutMsh->typ & Asc)
+					fprintf(OutMsh->hdl, "%zd ", l);
+				else
+					RecDblWrd(OutMsh, (unsigned char *)&l);
+			}
+		}
+		else if(kwd->fmt[i] == 'c')
+		{
+			memset(s, 0, FilStrSiz * WrdSiz);
 
-            if(OutMsh->typ & Asc)
-                fprintf(OutMsh->hdl, "%s ", s);
-            else
-                write(OutMsh->FilDes, s, WrdSiz * FilStrSiz);
-        }
-    }
+			if(InpMsh->typ & Asc)
+				safe_fgets(s, WrdSiz * FilStrSiz, InpMsh->hdl, InpMsh->err);
+			else
+				read(InpMsh->FilDes, s, WrdSiz * FilStrSiz);
 
-    if(OutMsh->typ & Asc)
-        fprintf(OutMsh->hdl, "\n");
+			if(OutMsh->typ & Asc)
+				fprintf(OutMsh->hdl, "%s ", s);
+			else
+				write(OutMsh->FilDes, s, WrdSiz * FilStrSiz);
+		}
+	}
 
-    return(1);
+	if(OutMsh->typ & Asc)
+		fprintf(OutMsh->hdl, "\n");
+
+	return(1);
 }
 
 #endif

@@ -158,7 +158,8 @@ extern int       GmfSetBlock(long long, int, void *, ...);
 
 #ifdef TRANSMESH
 
-extern char *GmfKwdFmt[ GmfMaxKwd + 1 ][4];
-extern int GmfCpyLin(int, int, int);
+extern int GmfMaxRefTab[ GmfMaxKwd + 1 ];
+extern const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4];
+extern int GmfCpyLin(long long, long long, int);
 
 #endif
