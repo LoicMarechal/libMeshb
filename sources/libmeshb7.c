@@ -738,7 +738,7 @@ extern int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(long long) MshIdx, TYPF77(int) Kw
                         if(msh->ver <= 3)
                             safe_fscanf(msh->hdl, "%d", va_arg(VarArg, int *), msh->err);
                         else
-                            safe_fscanf(msh->hdl, "%ld", va_arg(VarArg, long *), msh->err);
+                            safe_fscanf(msh->hdl, "%ld", va_arg(VarArg, long long *), msh->err);
                     else if(kwd->fmt[i] == 'c')
                         safe_fgets(va_arg(VarArg, char *), WrdSiz * FilStrSiz, msh->hdl, msh->err);
             }
@@ -754,7 +754,7 @@ extern int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(long long) MshIdx, TYPF77(int) Kw
                         if(msh->ver <= 3)
                             ScaWrd(msh, (unsigned char *)va_arg(VarArg, int *));
                         else
-                            ScaDblWrd(msh, (unsigned char *)va_arg(VarArg, long *));
+                            ScaDblWrd(msh, (unsigned char *)va_arg(VarArg, long long *));
                     else if(kwd->fmt[i] == 'c')
                         fread(va_arg(VarArg, char *), WrdSiz, FilStrSiz, msh->hdl);
             }
@@ -800,7 +800,7 @@ extern int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(long long) MshIdx, TYPF77(int) Kw
 extern int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(long long) MshIdx, TYPF77(int) KwdCod, ...)
 {
     int i, j, pos, *IntBuf;
-    long *LngBuf;
+    long long *LngBuf;
     float *FltSolTab, *FltBuf;
     double *DblSolTab, *DblBuf;
     va_list VarArg;
@@ -832,7 +832,7 @@ extern int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(long long) MshIdx, TYPF77(int) Kw
                     if(msh->ver <= 3)
                         fprintf(msh->hdl, "%d ", VALF77(va_arg(VarArg, TYPF77(int))));
                     else
-                        fprintf(msh->hdl, "%ld ", VALF77(va_arg(VarArg, TYPF77(long))));
+                        fprintf(msh->hdl, "%ld ", VALF77(va_arg(VarArg, TYPF77(long long))));
                 }
                 else if(kwd->fmt[i] == 'c')
                     fprintf(msh->hdl, "%s ", va_arg(VarArg, char *));
@@ -870,7 +870,7 @@ extern int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(long long) MshIdx, TYPF77(int) Kw
                     else
                     {
                         LngBuf = (void *)&msh->buf[ pos ];
-                        *LngBuf = VALF77(va_arg(VarArg, TYPF77(long)));
+                        *LngBuf = VALF77(va_arg(VarArg, TYPF77(long long)));
                         pos += 8;
                     }
                 }
