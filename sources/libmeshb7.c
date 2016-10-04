@@ -645,7 +645,7 @@ int GmfSetKwd(long long MshIdx, int KwdCod, ...)
         fprintf(msh->hdl, "\n%s\n", GmfKwdFmt[ KwdCod ][0]);
 
         if(kwd->typ != InfKwd)
-            fprintf(msh->hdl, "%zd\n", kwd->NmbLin);
+            fprintf(msh->hdl, "%lld\n", kwd->NmbLin);
 
         /* In case of solution field, write the extended header */
 
@@ -738,7 +738,7 @@ extern int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(long long) MshIdx, TYPF77(int) Kw
                         if(msh->ver <= 3)
                             safe_fscanf(msh->hdl, "%d", va_arg(VarArg, int *), msh->err);
                         else
-                            safe_fscanf(msh->hdl, "%ld", va_arg(VarArg, long long *), msh->err);
+                            safe_fscanf(msh->hdl, "%lld", va_arg(VarArg, long long *), msh->err);
                     else if(kwd->fmt[i] == 'c')
                         safe_fgets(va_arg(VarArg, char *), WrdSiz * FilStrSiz, msh->hdl, msh->err);
             }
@@ -832,7 +832,7 @@ extern int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(long long) MshIdx, TYPF77(int) Kw
                     if(msh->ver <= 3)
                         fprintf(msh->hdl, "%d ", VALF77(va_arg(VarArg, TYPF77(int))));
                     else
-                        fprintf(msh->hdl, "%ld ", VALF77(va_arg(VarArg, TYPF77(long long))));
+                        fprintf(msh->hdl, "%lld ", VALF77(va_arg(VarArg, TYPF77(long long))));
                 }
                 else if(kwd->fmt[i] == 'c')
                     fprintf(msh->hdl, "%s ", va_arg(VarArg, char *));
@@ -1247,7 +1247,7 @@ extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(long long) MshIdx, TYPF77(int
                 {
                     printf("aio_fildes = %d\n",aio.aio_fildes);
                     printf("aio_buf = %p\n",aio.aio_buf);
-                    printf("aio_offset = %lld\n",aio.aio_offset);
+                    printf("aio_offset = %ld\n",aio.aio_offset);
                     printf("aio_nbytes = %ld\n",aio.aio_nbytes);
                     printf("errno = %d\n",errno);
                     exit(1);
@@ -1513,7 +1513,7 @@ extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(long long) MshIdx, TYPF77(int
                 {
                     printf("aio_fildes = %d\n",aio.aio_fildes);
                     printf("aio_buf = %p\n",aio.aio_buf);
-                    printf("aio_offset = %lld\n",aio.aio_offset);
+                    printf("aio_offset = %ld\n",aio.aio_offset);
                     printf("aio_nbytes = %ld\n",aio.aio_nbytes);
                     printf("errno = %d\n",errno);
                     exit(1);
@@ -1736,7 +1736,7 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 
     if(!strcmp("i", GmfKwdFmt[ KwdCod ][2]))
         if(msh->typ & Asc)
-            safe_fscanf(msh->hdl, "%zd", &kwd->NmbLin, msh->err);
+            safe_fscanf(msh->hdl, "%lld", &kwd->NmbLin, msh->err);
         else
             if(msh->ver <= 3)
             {
