@@ -261,7 +261,7 @@ static void CalF77Prc(long long, long long, void *, int, void **);
 /* Open a mesh file in read or write mod                    */
 /*----------------------------------------------------------*/
 
-long long GmfOpenMesh(char *FilNam, int mod, ...)
+long long GmfOpenMesh(const char *FilNam, int mod, ...)
 {
     int KwdCod, res, *PtrVer, *PtrDim;
     long long MshIdx;

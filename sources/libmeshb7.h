@@ -141,7 +141,7 @@ enum GmfKwdCod
 /* Public procedures                                        */
 /*----------------------------------------------------------*/
 
-extern long long GmfOpenMesh(char *, int, ...);
+extern long long GmfOpenMesh(const char *, int, ...);
 extern int       GmfCloseMesh(long long);
 extern long long GmfStatKwd(long long, int, ...);
 extern int       GmfSetKwd(long long, int, ...);
