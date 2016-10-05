@@ -18,6 +18,9 @@
 /* Defines                                                  */
 /*----------------------------------------------------------*/
 
+#ifndef LIBMESHB7_H
+#define LIBMESHB7_H
+
 #define GmfStrSiz 1024
 #define GmfMaxTyp 1000
 #define GmfMaxKwd GmfLastKeyword - 1
@@ -136,6 +139,9 @@ enum GmfKwdCod
     GmfLastKeyword
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*----------------------------------------------------------*/
 /* Public procedures                                        */
@@ -161,5 +167,11 @@ extern int       GmfSetBlock(long long, int, void *, ...);
 extern int GmfMaxRefTab[ GmfMaxKwd + 1 ];
 extern const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4];
 extern int GmfCpyLin(long long, long long, int);
+
+#endif
+
+#ifdef __cplusplus
+} /* end extern "C" */
+#endif
 
 #endif
