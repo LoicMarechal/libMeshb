@@ -2,7 +2,7 @@
 
 /*----------------------------------------------------------*/
 /*                                                          */
-/*                        LIBMESH V 7.13                    */
+/*                        LIBMESH V 7.14                    */
 /*                                                          */
 /*----------------------------------------------------------*/
 /*                                                          */
@@ -312,7 +312,7 @@ static void CalF77Prc(int64_t, int64_t, void *, int, void **);
 /* Open a mesh file in read or write mod                    */
 /*----------------------------------------------------------*/
 
-int64_t GmfOpenMesh(char *FilNam, int mod, ...)
+int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 {
     int KwdCod, res, *PtrVer, *PtrDim;
     int64_t MshIdx;
