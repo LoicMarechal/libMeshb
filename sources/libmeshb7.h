@@ -2,7 +2,7 @@
 
 /*----------------------------------------------------------*/
 /*                                                          */
-/*                        LIBMESH V 7.13                    */
+/*                        LIBMESH V 7.14                    */
 /*                                                          */
 /*----------------------------------------------------------*/
 /*                                                          */
@@ -17,6 +17,9 @@
 /* #include <geogram/third_party/pstdint.h> */
 
 #include <stdint.h>
+
+#ifndef LIBMESHB7_H
+#define LIBMESHB7_H
 
 /*----------------------------------------------------------*/
 /* Defines                                                  */
@@ -141,11 +144,15 @@ enum GmfKwdCod
 };
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*----------------------------------------------------------*/
 /* Public procedures                                        */
 /*----------------------------------------------------------*/
 
-extern int64_t   GmfOpenMesh(char *, int, ...);
+extern int64_t   GmfOpenMesh(const char *, int, ...);
 extern int       GmfCloseMesh(int64_t);
 extern int64_t   GmfStatKwd(int64_t, int, ...);
 extern int       GmfSetKwd(int64_t, int, ...);
@@ -165,5 +172,11 @@ extern int       GmfSetBlock(int64_t, int, void *, ...);
 extern int GmfMaxRefTab[ GmfMaxKwd + 1 ];
 extern const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4];
 extern int GmfCpyLin(int64_t, int64_t, int);
+
+#endif
+
+#ifdef __cplusplus
+} /* end extern "C" */
+#endif
 
 #endif
