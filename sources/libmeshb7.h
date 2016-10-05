@@ -2,17 +2,21 @@
 
 /*----------------------------------------------------------*/
 /*                                                          */
-/*                        LIBMESH V 7.12                    */
+/*                        LIBMESH V 7.13                    */
 /*                                                          */
 /*----------------------------------------------------------*/
 /*                                                          */
 /*    Description:        handle .meshb file format I/O     */
 /*    Author:             Loic MARECHAL                     */
 /*    Creation date:      dec 08 2015                       */
-/*    Last modification:  may 20 2015                       */
+/*    Last modification:  oct 05 2016                       */
 /*                                                          */
 /*----------------------------------------------------------*/
 
+/* [Bruno] get int64_t and PRINTF_INT64_MODIFIER */
+/* #include <geogram/third_party/pstdint.h> */
+
+#include <stdint.h>
 
 /*----------------------------------------------------------*/
 /* Defines                                                  */
@@ -141,15 +145,15 @@ enum GmfKwdCod
 /* Public procedures                                        */
 /*----------------------------------------------------------*/
 
-extern long long GmfOpenMesh(char *, int, ...);
-extern int       GmfCloseMesh(long long);
-extern long long GmfStatKwd(long long, int, ...);
-extern int       GmfSetKwd(long long, int, ...);
-extern int       GmfGotoKwd(long long, int);
-extern int       GmfGetLin(long long, int, ...);
-extern int       GmfSetLin(long long, int, ...);
-extern int       GmfGetBlock(long long, int, void *, ...);
-extern int       GmfSetBlock(long long, int, void *, ...);
+extern int64_t   GmfOpenMesh(char *, int, ...);
+extern int       GmfCloseMesh(int64_t);
+extern int64_t   GmfStatKwd(int64_t, int, ...);
+extern int       GmfSetKwd(int64_t, int, ...);
+extern int       GmfGotoKwd(int64_t, int);
+extern int       GmfGetLin(int64_t, int, ...);
+extern int       GmfSetLin(int64_t, int, ...);
+extern int       GmfGetBlock(int64_t, int, void *, ...);
+extern int       GmfSetBlock(int64_t, int, void *, ...);
 
 
 /*----------------------------------------------------------*/
@@ -160,6 +164,6 @@ extern int       GmfSetBlock(long long, int, void *, ...);
 
 extern int GmfMaxRefTab[ GmfMaxKwd + 1 ];
 extern const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4];
-extern int GmfCpyLin(long long, long long, int);
+extern int GmfCpyLin(int64_t, int64_t, int);
 
 #endif
