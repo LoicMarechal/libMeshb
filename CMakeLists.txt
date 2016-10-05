@@ -6,6 +6,8 @@ add_library(meshb sources/libmeshb7.c)
 target_include_directories(meshb PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/sources>
     $<INSTALL_INTERFACE:include>)
+# using aio functions requires a "-lrt" flag
+target_link_libraries(meshb rt)
 install(TARGETS meshb EXPORT meshb-target DESTINATION lib)
 install(EXPORT meshb-target NAMESPACE ${PROJECT_NAME}::
     DESTINATION lib/cmake/${PROJECT_NAME})
