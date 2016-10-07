@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------*/
 /*                                                          */
-/*                        LIBMESH V 7.14                    */
+/*                        LIBMESH V 7.15                    */
 /*                                                          */
 /*----------------------------------------------------------*/
 /*                                                          */
 /*    Description:        handle .meshb file format I/O     */
 /*    Author:             Loic MARECHAL                     */
 /*    Creation date:      dec 08 2015                       */
-/*    Last modification:  oct 05 2016                       */
+/*    Last modification:  oct 07 2016                       */
 /*                                                          */
 /*----------------------------------------------------------*/
 
