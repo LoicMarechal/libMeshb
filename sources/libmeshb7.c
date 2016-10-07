@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------*/
 /*                                                          */
-/*                        LIBMESH V 7.14                    */
+/*                        LIBMESH V 7.15                    */
 /*                                                          */
 /*----------------------------------------------------------*/
 /*                                                          */
 /*    Description:        handle .meshb file format I/O     */
 /*    Author:             Loic MARECHAL                     */
 /*    Creation date:      dec 08 2015                       */
-/*    Last modification:  oct 05 2016                       */
+/*    Last modification:  oct 07 2016                       */
 /*                                                          */
 /*----------------------------------------------------------*/
 
@@ -108,7 +108,7 @@
 #endif
 
 /* [Bruno] Made asynchronous I/O optional */
-#ifdef WITH_AIO
+#ifndef WITHOUT_AIO
 #include <aio.h>
 #endif
 
@@ -758,7 +758,7 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, ...)
 /* Read a full line from the current kwd                    */
 /*----------------------------------------------------------*/
 
-extern int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...)
+int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...)
 {
     int i, j;
     float *FltSolTab;
@@ -858,7 +858,7 @@ extern int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdC
 /* Write a full line from the current kwd                   */
 /*----------------------------------------------------------*/
 
-extern int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...)
+int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...)
 {
     int i, j, pos, *IntBuf;
     int64_t *LngBuf;
@@ -1099,28 +1099,32 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 #endif
 
 /* [Bruno] Made asynchronous I/O optional */
-#ifdef WITH_AIO
+#ifndef WITHOUT_AIO
 
 /*----------------------------------------------------------*/
 /* Bufferized asynchronous reading of all keyword's lines   */
 /*----------------------------------------------------------*/
 
-extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, void *prc, ...)
+int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, void *prc, ...)
 {
     char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL, *FilPos, **SolTab1, **SolTab2;
     /* [Bruno] "%lld" -> INT64_T_FMT */
     char *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
     int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], UsrTyp[ GmfMaxTyp ];
-    int NmbBlk, NmbArg, SizTab[5] = {0,4,8,4,8}, err, ret, typ, SolTabTyp = 0;
+    int NmbBlk, SizTab[5] = {0,4,8,4,8}, err, ret, typ, SolTabTyp = 0;
     int64_t NmbLin, *FilPtrI64, *UsrPtrI64, BegIdx, EndIdx=0;
     float *FilPtrR32, *UsrPtrR32;
     double *FilPtrR64, *UsrPtrR64;
-    void (*UsrPrc)(int64_t, int64_t, void *) = NULL, *UsrArg, *ArgTab[ MaxArg ];
+    void (*UsrPrc)(int64_t, int64_t, void *) = NULL, *UsrArg;
     size_t UsrLen[ GmfMaxTyp ], SolTypSiz;
     va_list VarArg;
     GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
     KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
     struct aiocb aio;
+#ifdef F77API
+    int NmbArg;
+    void *ArgTab[ MaxArg ];
+#endif
 
     /* Save the current stack environment for longjmp */
     if(setjmp(msh->err) != 0)
@@ -1312,8 +1316,8 @@ extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(int64_t) MshIdx, TYPF77(int) 
                 {
                     printf("aio_fildes = %d\n",aio.aio_fildes);
                     printf("aio_buf = %p\n",aio.aio_buf);
-                    printf("aio_offset = INT64_T_FMT\n",(size_t)aio.aio_offset);
-                    printf("aio_nbytes = INT64_T_FMT\n",(size_t)aio.aio_nbytes);
+                    printf("aio_offset = " INT64_T_FMT "\n",(size_t)aio.aio_offset);
+                    printf("aio_nbytes = " INT64_T_FMT "\n",(size_t)aio.aio_nbytes);
                     printf("errno = %d\n",errno);
                     exit(1);
                 }
@@ -1428,21 +1432,25 @@ extern int NAMF77(GmfGetBlock, gmfgetblock)(TYPF77(int64_t) MshIdx, TYPF77(int) 
 /* Bufferized writing of all keyword's lines                */
 /*----------------------------------------------------------*/
 
-extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, void *prc, ...)
+int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, void *prc, ...)
 {
     char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL, *FilPos;
     char *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" };
     int i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], UsrTyp[ GmfMaxTyp ];
-    int NmbBlk, NmbArg, NmbLin, b, SizTab[5] = {0,4,8,4,8}, err, ret;
+    int NmbBlk, NmbLin, b, SizTab[5] = {0,4,8,4,8}, err, ret;
     int64_t *FilPtrI64, *UsrPtrI64, BegIdx, EndIdx=0;
     float *FilPtrR32, *UsrPtrR32;
     double *FilPtrR64, *UsrPtrR64;
-    void (*UsrPrc)(int64_t, int64_t, void *) = NULL, *UsrArg, *ArgTab[ MaxArg ];
+    void (*UsrPrc)(int64_t, int64_t, void *) = NULL, *UsrArg;
     size_t UsrLen[ GmfMaxTyp ];
     va_list VarArg;
     GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
     KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
     struct aiocb aio;
+#ifdef F77API
+    int NmbArg;
+    void *ArgTab[ MaxArg ];
+#endif
 
     /* Save the current stack environment for longjmp */
     if(setjmp(msh->err) != 0)
@@ -1578,8 +1586,8 @@ extern int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(int64_t) MshIdx, TYPF77(int) 
                 {
                     printf("aio_fildes = %d\n",aio.aio_fildes);
                     printf("aio_buf = %p\n",aio.aio_buf);
-                    printf("aio_offset = INT64_T_FMT\n",(size_t)aio.aio_offset);
-                    printf("aio_nbytes = INT64_T_FMT\n",(size_t)aio.aio_nbytes);
+                    printf("aio_offset = " INT64_T_FMT "\n",(size_t)aio.aio_offset);
+                    printf("aio_nbytes = " INT64_T_FMT "\n",(size_t)aio.aio_nbytes);
                     printf("errno = %d\n",errno);
                     exit(1);
                 }
