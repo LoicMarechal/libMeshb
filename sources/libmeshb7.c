@@ -8,7 +8,7 @@
 /*                                                          */
 /*    Description:        handle .meshb file format I/O     */
 /*    Author:             Loic MARECHAL                     */
-/*    Creation date:      dec 08 2015                       */
+/*    Creation date:      dec 09 1999                       */
 /*    Last modification:  oct 07 2016                       */
 /*                                                          */
 /*----------------------------------------------------------*/
