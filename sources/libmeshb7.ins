@@ -2,14 +2,14 @@
 
 c----------------------------------------------------------
 c														   
-c						LIBMESH V 7.0					   
+c						LIBMESH V 7.21					   
 c														   
 c----------------------------------------------------------
 c														   
 c	Description:		handle .meshb file format I/O	   
 c	Author:				Loic MARECHAL					   
 c	Creation date:		dec 08 2015						   
-c	Last modification:	jan 18 2016						   
+c	Last modification:	dec 06 2016						   
 c														   
 c----------------------------------------------------------
 
@@ -19,9 +19,9 @@ c     Procedures definition
       external gmfclosemesh
       external gmfstatkwd
       external gmfsetkwd
-	  external gmfgotokwd
-	  external gmfgetlin
-	  external gmfsetlin
+      external gmfgotokwd
+      external gmfgetlin
+      external gmfsetlin
       external gmfgetblock
       external gmfsetblock
 
@@ -47,8 +47,8 @@ c     Parameters definition
       integer gmfmat
       integer gmffloat
       integer gmfdouble
-	  integer gmfint
-	  integer gmflong
+      integer gmfint
+      integer gmflong
 
       parameter (gmfmaxtyp=1000)
       parameter (gmfmaxkwd=93)
@@ -60,8 +60,8 @@ c     Parameters definition
       parameter (gmfmat=4)
       parameter (gmffloat=1)
       parameter (gmfdouble=2)
-	  parameter (gmfint=3)
-	  parameter (gmflong=4)
+      parameter (gmfint=3)
+      parameter (gmflong=4)
 
 
 c     Keywords list
@@ -145,18 +145,18 @@ c     Keywords list
       integer gmffault_smalltri
       integer gmfcoarsehexahedra
       integer gmfcomments
-  	  integer gmfperiodicvertices
-  	  integer gmfperiodicedges
-  	  integer gmfperiodictriangles
-  	  integer gmfperiodicquadrilaterals
-  	  integer gmfprismsp2
-  	  integer gmfpyramidsp2
-  	  integer gmfquadrilateralsq3
-  	  integer gmfquadrilateralsq4
-  	  integer gmftrianglesp3
-  	  integer gmftrianglesp4
-  	  integer gmfedgesp3
-  	  integer gmfedgesp4
+      integer gmfperiodicvertices
+      integer gmfperiodicedges
+      integer gmfperiodictriangles
+      integer gmfperiodicquadrilaterals
+      integer gmfprismsp2
+      integer gmfpyramidsp2
+      integer gmfquadrilateralsq3
+      integer gmfquadrilateralsq4
+      integer gmftrianglesp3
+      integer gmftrianglesp4
+      integer gmfedgesp3
+      integer gmfedgesp4
 
       parameter (gmfmeshversionformatted=1)
       parameter (gmfdimension=3)
@@ -238,15 +238,15 @@ c     Keywords list
       parameter (gmffault_smalltri=79)
       parameter (gmfcoarsehexahedra=80)
       parameter (gmfcomments=81)
-  	  parameter (gmfperiodicvertices=82)
-  	  parameter (gmfperiodicedges=83)
-  	  parameter (gmfperiodictriangles=84)
-  	  parameter (gmfperiodicquadrilaterals=85)
-  	  parameter (gmfprismsp2=86)
-  	  parameter (gmfpyramidsp2=87)
-  	  parameter (gmfquadrilateralsq3=88)
-  	  parameter (gmfquadrilateralsq4=89)
-  	  parameter (gmftrianglesp3=90)
-  	  parameter (gmftrianglesp4=91)
-  	  parameter (gmfedgesp3=92)
-  	  parameter (gmfedgesp4=93)
+      parameter (gmfperiodicvertices=82)
+      parameter (gmfperiodicedges=83)
+      parameter (gmfperiodictriangles=84)
+      parameter (gmfperiodicquadrilaterals=85)
+      parameter (gmfprismsp2=86)
+      parameter (gmfpyramidsp2=87)
+      parameter (gmfquadrilateralsq3=88)
+      parameter (gmfquadrilateralsq4=89)
+      parameter (gmftrianglesp3=90)
+      parameter (gmftrianglesp4=91)
+      parameter (gmfedgesp3=92)
+      parameter (gmfedgesp4=93)

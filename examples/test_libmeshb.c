@@ -1,10 +1,9 @@
 
-/* Exemple d'utilisation de la libmeshb7 : transformation de quadrangles en triangles dans un maillage surfacique */
+/* libMeshb 7.2 basic example: read a quad mesh, split it into triangles and write the result back */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <libmeshb7.h>
-
 
 int main()
 {
@@ -14,79 +13,71 @@ int main()
 
 
 	/*-----------------------------------*/
-	/* Ouverture du maillage "quad.mesh" */
+	/* Open mesh file "quad.meshb"       */
 	/*-----------------------------------*/
 
-	if(!(InpMsh = GmfOpenMesh("quad.mesh", GmfRead, &ver, &dim)))
+	if(!(InpMsh = GmfOpenMesh("quad.meshb", GmfRead, &ver, &dim)))
 		return(1);
 
-	printf("InpMsh : idx = %d, version = %d, dimension = %d\n", InpMsh, ver, dim);
+	printf("InpMsh: idx = %lld, version = %d, dimension = %d\n", InpMsh, ver, dim);
 
 	if( (ver != GmfDouble) || (dim != 3) )
 		exit(1);
 
-	/* Lecture des nombres d'elements et de noeuds pour l'allocation de memoire */
-
+	/* Read the number of vertices and allocate memory */
 	NmbVer = GmfStatKwd(InpMsh, GmfVertices);
-	printf("InpMsh : nmb vertices = %d\n", NmbVer);
+	printf("InpMsh: nmb vertices = %d\n", NmbVer);
 	VerTab = malloc((NmbVer+1) * 3 * sizeof(double));
 	RefTab = malloc((NmbVer+1) * sizeof(int));
 
+	/* Read the number of quads and allocate memory */
 	NmbQad = GmfStatKwd(InpMsh, GmfQuadrilaterals);
-	printf("InpMsh : nmb quads = %d\n", NmbQad);
+	printf("InpMsh: nmb quads = %d\n", NmbQad);
 	QadTab = malloc((NmbQad+1) * 5 * sizeof(int));
 
-	/* Lecture des noeuds */
-
+	/* Read the vertices */
 	GmfGotoKwd(InpMsh, GmfVertices);
 
 	for(i=1;i<=NmbVer;i++)
 		GmfGetLin(InpMsh, GmfVertices, &VerTab[i][0], &VerTab[i][1], &VerTab[i][2], &RefTab[i]);
 
-	/* Lecture des quadrangles */
-
+	/* Read the quads */
 	GmfGotoKwd(InpMsh, GmfQuadrilaterals);
 
 	for(i=1;i<=NmbQad;i++)
-		GmfGetLin(InpMsh, GmfQuadrilaterals, &QadTab[i][0], &QadTab[i][1], &QadTab[i][2], &QadTab[i][3], &QadTab[i][4]);
+		GmfGetLin(  InpMsh, GmfQuadrilaterals, &QadTab[i][0], &QadTab[i][1], \
+                    &QadTab[i][2], &QadTab[i][3], &QadTab[i][4] );
 
-	/* Fermeture du maillage quad */
-
+	/* Close the quad mesh */
 	GmfCloseMesh(InpMsh);
 
 
 	/*-----------------------------------*/
-	/* Creation du maillage en triangles */
+	/* Write the triangle mesh           */
 	/*-----------------------------------*/
 
-	if(!(OutMsh = GmfOpenMesh("tri.mesh", GmfWrite, ver, dim)))
+	if(!(OutMsh = GmfOpenMesh("tri.meshb", GmfWrite, ver, dim)))
 		return(1);
 
-	/* Ecriture du nombre de noeuds */
-
+	/* Write the vertices */
 	GmfSetKwd(OutMsh, GmfVertices, NmbVer);
-
-	/* Puis boucle d'ecriture sur les noeuds */
 
 	for(i=1;i<=NmbVer;i++)
 		GmfSetLin(OutMsh, GmfVertices, VerTab[i][0], VerTab[i][1], VerTab[i][2], RefTab[i]);
 
-	/*  Ecriture du nombre de triangles */
-
+	/* Write the triangles */
 	GmfSetKwd(OutMsh, GmfTriangles, 2*NmbQad);
-	printf("OutMsh : nmb triangles = %d\n", 2*NmbQad);
 
-	/* Puis boucle d'ecriture sur les triangles (2 triangles par quad) */
-
+	/* Split each quad into two triangles on the fly */
 	for(i=1;i<=NmbQad;i++)
 	{
 		GmfSetLin(OutMsh, GmfTriangles, QadTab[i][0], QadTab[i][1], QadTab[i][2], QadTab[i][4]);
 		GmfSetLin(OutMsh, GmfTriangles, QadTab[i][0], QadTab[i][2], QadTab[i][3], QadTab[i][4]);
 	}
 
-	/* Ne pas oublier de fermer le fichier */
-
+	/* Do not forget to close the mesh file */
 	GmfCloseMesh(OutMsh);
+	printf("OutMsh: nmb triangles = %d\n", 2*NmbQad);
 
 	free(QadTab);
 	free(RefTab);

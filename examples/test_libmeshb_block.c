@@ -1,5 +1,6 @@
 
-/* Exemple d'utilisation de la libmesh7 : transformation de quadrangles en triangles dans un maillage surfacique */
+/* libMeshb 7.2 basic example: read a quad mesh, split it into triangles
+    and write the result back using fast block transfer */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,70 +15,51 @@ int main()
 
 
     /*-----------------------------------*/
-    /* Ouverture du maillage "quad.mesh" */
+	/* Open mesh file "quad.meshb"       */
     /*-----------------------------------*/
 
     if(!(InpMsh = GmfOpenMesh("quad.meshb", GmfRead, &ver, &dim)))
         return(1);
 
-    printf("InpMsh : idx = %d, version = %d, dimension = %d\n", InpMsh, ver, dim);
+    printf("InpMsh : idx = %lld, version = %d, dimension = %d\n", InpMsh, ver, dim);
 
     if(dim != 3)
         exit(1);
 
-    /* Lecture des nombres d'elements et de noeuds pour l'allocation de memoire */
+	/* Read the number of vertices and allocate memory */
     NmbVer = GmfStatKwd(InpMsh, GmfVertices);
     printf("InpMsh : nmb vertices = %d\n", NmbVer);
     VerTab = malloc((NmbVer+1) * 3 * sizeof(float));
     RefTab = malloc((NmbVer+1) * sizeof(int));
 
+	/* Read the number of quads and allocate memory */
     NmbQad = GmfStatKwd(InpMsh, GmfQuadrilaterals);
     printf("InpMsh : nmb quads = %d\n", NmbQad);
     QadTab = malloc((NmbQad+1) * 5 * sizeof(int));
     TriTab = malloc((NmbQad+1) * 2 * 4 * sizeof(int));
 
-    /* Lecture des noeuds */
-    GmfGetBlock(    InpMsh, GmfVertices, NULL, \
-                    GmfFloat, &VerTab[1][0], &VerTab[2][0], \
-                    GmfFloat, &VerTab[1][1], &VerTab[2][1], \
-                    GmfFloat, &VerTab[1][2], &VerTab[2][2], \
-                    GmfInt, &RefTab[1], &RefTab[2] );
+	/* Read the vertices */
+    GmfGetBlock(InpMsh, GmfVertices, 1, NmbVer, NULL, \
+                GmfFloat, &VerTab[1][0], &VerTab[ NmbVer ][0], \
+                GmfFloat, &VerTab[1][1], &VerTab[ NmbVer ][1], \
+                GmfFloat, &VerTab[1][2], &VerTab[ NmbVer ][2], \
+                GmfInt,   &RefTab[1],    &RefTab[ NmbVer ] );
 
-    /* Lecture des quadrangles */
-    GmfGetBlock(    InpMsh, GmfQuadrilaterals, NULL, \
-                    GmfInt, &QadTab[1][0], &QadTab[2][0], \
-                    GmfInt, &QadTab[1][1], &QadTab[2][1], \
-                    GmfInt, &QadTab[1][2], &QadTab[2][2], \
-                    GmfInt, &QadTab[1][3], &QadTab[2][3], \
-                    GmfInt, &QadTab[1][4], &QadTab[2][4] );
+	/* Read the quads */
+    GmfGetBlock(InpMsh, GmfQuadrilaterals, 1, NmbQad, NULL, \
+                GmfInt, &QadTab[1][0], &QadTab[ NmbQad ][0], \
+                GmfInt, &QadTab[1][1], &QadTab[ NmbQad ][1], \
+                GmfInt, &QadTab[1][2], &QadTab[ NmbQad ][2], \
+                GmfInt, &QadTab[1][3], &QadTab[ NmbQad ][3], \
+                GmfInt, &QadTab[1][4], &QadTab[ NmbQad ][4] );
 
-    /* Fermeture du maillage quad */
+	/* Close the quad mesh */
     GmfCloseMesh(InpMsh);
 
 
     /*-----------------------------------*/
-    /* Creation du maillage en triangles */
+    /* Create the triangluated mesh      */
     /*-----------------------------------*/
-
-    if(!(OutMsh = GmfOpenMesh("tri.meshb", GmfWrite, ver, dim)))
-        return(1);
-
-    /* Ecriture du nombre de noeuds */
-    GmfSetKwd(OutMsh, GmfVertices, NmbVer);
-
-    /* Puis ecriture des noeuds */
-    GmfSetBlock(OutMsh, GmfVertices, NULL, \
-                    GmfFloat, &VerTab[1][0], &VerTab[2][0], \
-                    GmfFloat, &VerTab[1][1], &VerTab[2][1], \
-                    GmfFloat, &VerTab[1][2], &VerTab[2][2], \
-                    GmfInt, &RefTab[1], &RefTab[2] );
-
-
-    /*  Ecriture du nombre de triangles */
-    GmfSetKwd(OutMsh, GmfTriangles, 2*NmbQad);
-    printf("OutMsh : nmb triangles = %d\n", 2*NmbQad);
-
-    /* Puis boucle de conversion des quads en deux triangles */
 
     for(i=1;i<=NmbQad;i++)
     {
@@ -92,15 +74,33 @@ int main()
         TriTab[i*2][3] = QadTab[i][4];
     }
 
-    /* Ecriture des triangles */
-    GmfSetBlock(OutMsh, GmfTriangles, NULL, \
-                    GmfInt, &TriTab[1][0], &TriTab[2][0], \
-                    GmfInt, &TriTab[1][1], &TriTab[2][1], \
-                    GmfInt, &TriTab[1][2], &TriTab[2][2], \
-                    GmfInt, &TriTab[1][3], &TriTab[2][3] );
 
-    /* Ne pas oublier de fermer le fichier */
+	/*-----------------------------------*/
+	/* Write the triangle mesh           */
+	/*-----------------------------------*/
+
+    if(!(OutMsh = GmfOpenMesh("tri.meshb", GmfWrite, ver, dim)))
+        return(1);
+
+	/* Write the vertices */
+    GmfSetKwd(OutMsh, GmfVertices, NmbVer);
+    GmfSetBlock(OutMsh, GmfVertices, NULL, \
+                GmfFloat, &VerTab[1][0], &VerTab[ NmbVer ][0], \
+                GmfFloat, &VerTab[1][1], &VerTab[ NmbVer ][1], \
+                GmfFloat, &VerTab[1][2], &VerTab[ NmbVer ][2], \
+                GmfInt,   &RefTab[1],    &RefTab[ NmbVer ] );
+
+	/* Write the triangles */
+    GmfSetKwd(OutMsh, GmfTriangles, 2*NmbQad);
+    GmfSetBlock(OutMsh, GmfTriangles, NULL, \
+                GmfInt, &TriTab[1][0], &TriTab[ 2*NmbQad ][0], \
+                GmfInt, &TriTab[1][1], &TriTab[ 2*NmbQad ][1], \
+                GmfInt, &TriTab[1][2], &TriTab[ 2*NmbQad ][2], \
+                GmfInt, &TriTab[1][3], &TriTab[ 2*NmbQad ][3] );
+
+	/* Do not forget to close the mesh file */
     GmfCloseMesh(OutMsh);
+    printf("OutMsh : nmb triangles = %d\n", 2*NmbQad);
 
     free(QadTab);
     free(TriTab);
