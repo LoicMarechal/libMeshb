@@ -1,4 +1,4 @@
-# libMeshb version 7.12
+# libMeshb version 7.21
 A library to handle the *.meshb file format.
 
 # Overview
@@ -7,7 +7,7 @@ The GMF features more than 80 kinds of data types, like vertex, polyhedron, norm
 The libMeshb provides a convenient way to move data between those files, via keyword tags, and the user's own structures.  
 Transparent handling of ASCII & binary files.  
 Transparent handling of little & big endian files.  
-Ultra fast asynchronous low level transfers.  
+Optional ultra fast asynchronous and low level transfers.
 Can call user's own pre and post processing routines in a separate thread while accessing a file.
 
 # Build and use
