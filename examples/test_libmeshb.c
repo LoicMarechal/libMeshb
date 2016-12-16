@@ -16,12 +16,12 @@ int main()
 	/* Open mesh file "quad.meshb"       */
 	/*-----------------------------------*/
 
-	if(!(InpMsh = GmfOpenMesh("quad.meshb", GmfRead, &ver, &dim)))
+	if(!(InpMsh = GmfOpenMesh("quad.mesh", GmfRead, &ver, &dim)))
 		return(1);
 
 	printf("InpMsh: idx = %lld, version = %d, dimension = %d\n", InpMsh, ver, dim);
 
-	if( (ver != GmfDouble) || (dim != 3) )
+	if( (ver != 2) || (dim != 3) )
 		exit(1);
 
 	/* Read the number of vertices and allocate memory */
@@ -56,7 +56,7 @@ int main()
 	/* Write the triangle mesh           */
 	/*-----------------------------------*/
 
-	if(!(OutMsh = GmfOpenMesh("tri.meshb", GmfWrite, ver, dim)))
+	if(!(OutMsh = GmfOpenMesh("tri.mesh", GmfWrite, ver, dim)))
 		return(1);
 
 	/* Write the vertices */
