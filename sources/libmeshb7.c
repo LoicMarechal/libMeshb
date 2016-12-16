@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------*/
 /*                                                          */
-/*                        LIBMESH V 7.21                    */
+/*                        LIBMESH V 7.22                    */
 /*                                                          */
 /*----------------------------------------------------------*/
 /*                                                          */
 /*    Description:        handle .meshb file format I/O     */
 /*    Author:             Loic MARECHAL                     */
 /*    Creation date:      dec 09 1999                       */
-/*    Last modification:  dec 07 2016                       */
+/*    Last modification:  dec 15 2016                       */
 /*                                                          */
 /*----------------------------------------------------------*/
 
@@ -820,11 +820,11 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, ...)
 /* Read a full line from the current kwd                    */
 /*----------------------------------------------------------*/
 
-int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...)
+int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 {
     int i, j;
-    float *FltSolTab;
-    double *DblSolTab;
+    float *FltSolTab, FltVal, *PtrFlt;
+    double *DblSolTab, *PtrDbl;
     va_list VarArg;
     GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
     KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
@@ -850,7 +850,12 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
                 for(i=0;i<kwd->SolSiz;i++)
                     if(kwd->fmt[i] == 'r')
                         if(msh->ver <= 1)
-                            safe_fscanf(msh->hdl, "%f", va_arg(VarArg, float *), msh->err);
+                        {
+                            safe_fscanf(msh->hdl, "%f", &FltVal, msh->err);
+                            PtrDbl = va_arg(VarArg, double *);
+                            PtrFlt = (float *)PtrDbl;
+                            *PtrFlt = FltVal;
+                        }                            
                         else
                             safe_fscanf(msh->hdl, "%lf", va_arg(VarArg, double *), msh->err);
                     else if(kwd->fmt[i] == 'i')
@@ -946,7 +951,11 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
                 if(kwd->fmt[i] == 'r')
                 {
                     if(msh->ver <= 1)
-                        fprintf(msh->hdl, "%g ", VALF77(va_arg(VarArg, TYPF77(double))));
+#ifdef F77API
+                        fprintf(msh->hdl, "%g ", *(va_arg(VarArg, float *)));
+#else
+                        fprintf(msh->hdl, "%g ", va_arg(VarArg, double));
+#endif
                     else
                         fprintf(msh->hdl, "%.15g ", VALF77(va_arg(VarArg, TYPF77(double))));
                 }
@@ -973,7 +982,11 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
                     if(msh->ver <= 1)
                     {
                         FltBuf = (void *)&msh->buf[ pos ];
-                        *FltBuf = (float) VALF77(va_arg(VarArg, TYPF77(double)));
+#ifdef F77API
+                        *FltBuf = (float)*(va_arg(VarArg, float *));
+#else
+                        *FltBuf = (float)va_arg(VarArg, double);
+#endif
                         pos += 4;
                     }
                     else
