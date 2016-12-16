@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Meshb VERSION 7.21 LANGUAGES C)
+project(Meshb VERSION 7.22 LANGUAGES C)
 
 add_library(meshb sources/libmeshb7.c)
 target_include_directories(meshb PUBLIC
