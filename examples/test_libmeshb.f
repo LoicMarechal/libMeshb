@@ -16,9 +16,10 @@ c     Open the quadrilateral mesh file for reading
 c     --------------------------------------------
 
 c     Open the mesh file and check the version and dimension
-      InpMsh = gmfopenmesh('quad.meshb',GmfRead,ver,dim)
+      InpMsh = gmfopenmesh('quad.mesh',GmfRead,ver,dim)
       print*, 'input mesh :', InpMsh,'version:',ver,'dim:',dim
       if(InpMsh.eq.0) STOP ' InpMsh = 0'
+      if(ver.le.1) STOP ' version <= 1'
       if(dim.ne.3) STOP ' dimension <> 3'
 
 c     Check memory bounds
@@ -50,7 +51,7 @@ c     ------------------------
 c     Create a triangular mesh
 c     ------------------------
 
-      OutMsh = gmfopenmesh('tri.meshb', GmfWrite, ver, dim)
+      OutMsh = gmfopenmesh('tri.mesh', GmfWrite, ver, dim)
       if(OutMsh.eq.0) STOP ' OutMsh = 0'
 
 c     Set the number of vertices
