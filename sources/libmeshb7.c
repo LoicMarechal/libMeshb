@@ -103,7 +103,8 @@
 #   ifdef GMF_WINDOWS
 #     define INT64_T_FMT "%Id"
 #   else
-#     define INT64_T_FMT "%lld"
+#     include <inttypes.h>
+#     define INT64_T_FMT "%" PRId64
 #   endif
 #endif
 
@@ -1411,15 +1412,15 @@ int NAMF77(GmfGetBlock, gmfgetblock)(   TYPF77(int64_t) MshIdx, TYPF77(int) KwdC
                 if(aio_read(&aio) == -1)
                 {
                     printf("block      = %d / %d\n", b+1, NmbBlk+1);
-                    printf("size       = %lld lines\n", BlkNmbLin);
+                    printf("size       = "INT64_T_FMT" lines\n", BlkNmbLin);
 #ifdef WITH_AIO
                     printf("aio_fildes = %d\n",aio.aio_fildes);
 #else
                     printf("aio_fildes = %p\n",aio.aio_fildes);
 #endif
                     printf("aio_buf    = %p\n",aio.aio_buf);
-                    printf("aio_offset = " INT64_T_FMT "\n",(long long)aio.aio_offset);
-                    printf("aio_nbytes = " INT64_T_FMT "\n",(long long)aio.aio_nbytes);
+                    printf("aio_offset = %lld\n",(long long)aio.aio_offset);
+                    printf("aio_nbytes = %lld\n",(long long)aio.aio_nbytes);
                     printf("errno      = %d\n",errno);
                     exit(1);
                 }
@@ -1698,8 +1699,8 @@ int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod,
                     printf("aio_fildes = %p\n",aio.aio_fildes);
 #endif
                     printf("aio_buf    = %p\n",aio.aio_buf);
-                    printf("aio_offset = " INT64_T_FMT "\n",(long long)aio.aio_offset);
-                    printf("aio_nbytes = " INT64_T_FMT "\n",(long long)aio.aio_nbytes);
+                    printf("aio_offset = %lld\n",(long long)aio.aio_offset);
+                    printf("aio_nbytes = %lld\n",(long long)aio.aio_nbytes);
                     printf("errno = %d\n",errno);
                     exit(1);
                 }
