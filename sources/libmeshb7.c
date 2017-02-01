@@ -106,7 +106,8 @@
 #   ifdef GMF_WINDOWS
 #    define INT64_T_FMT "%Id"
 #   else
-#    define INT64_T_FMT "%lld"
+#    include <inttypes.h>
+#    define INT64_T_FMT "%" PRId64
 #   endif
 #endif
 
