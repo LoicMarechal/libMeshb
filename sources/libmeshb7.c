@@ -369,6 +369,12 @@ static void    CalF77Prc(int64_t, int64_t, void *, int, void **);
    } while(0)
 
 
+#define safe_fread(ptr, siz, nit, str, JmpErr) \
+   do { \
+      if( fread(ptr, siz, nit, str) != nit ) \
+         longjmp( JmpErr, -1); \
+   } while(0)
+
 /*----------------------------------------------------------------------------*/
 /* Open a mesh file in read or write mode                                     */
 /*----------------------------------------------------------------------------*/
@@ -463,8 +469,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
             longjmp(msh->err, -1);
 
          // Read the endian coding tag
-         if( fread(&msh->cod, WrdSiz, 1, msh->hdl) != 1 )
-            longjmp(msh->err, -1);
+         safe_fread(&msh->cod, WrdSiz, 1, msh->hdl, msh->err);
 #endif
 
          // Read the mesh version and the mesh dimension (mandatory kwd)
@@ -907,11 +912,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
                      ScaDblWrd(msh, (unsigned char *)va_arg(VarArg, int64_t *));
                else if(kwd->fmt[i] == 'c')
                   // [Bruno] added error control
-                  if(fread(va_arg(VarArg, char *), \
-                           WrdSiz, FilStrSiz, msh->hdl) != FilStrSiz)
-                  {
-                     longjmp(msh->err, -1);
-                  }
+                  safe_fread(va_arg(VarArg, char *), WrdSiz, FilStrSiz, msh->hdl, msh->err);
          }
       }break;
 
@@ -1187,7 +1188,7 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 #ifdef WITH_AIO
             read(InpMsh->FilDes, s, WrdSiz * FilStrSiz);
 #else
-            fread(s, WrdSiz, FilStrSiz, InpMsh->hdl);
+            safe_fread(s, WrdSiz, FilStrSiz, InpMsh->hdl, InpMsh->err);
 #endif
          if(OutMsh->typ & Asc)
             fprintf(OutMsh->hdl, "%s ", s);
