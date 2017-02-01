@@ -63,13 +63,13 @@ int GetKwdIdx(char *KwdStr)
 
 
 /*----------------------------------------------------------------------------*/
-/* Check args and copy each field from in-file to out-file   */
+/* Check args and copy each field from in-file to out-file                    */
 /*----------------------------------------------------------------------------*/
 
 int main(int ArgCnt, char **ArgVec)
 {
    int i, j, NmbTyp, SolSiz, TypTab[ GmfMaxTyp ], FilVer=0, InpVer, OutVer=1;
-   int dim, MaxRef, ArgIdx = 1, NmbGrp = 0, NmbTok, NmbTok2, TokTab[ MaxTok ]
+   int dim, MaxRef, ArgIdx = 1, NmbGrp = 0, NmbTok, NmbTok2, TokTab[ MaxTok ];
    int TokTab2[ MaxTok ], pos;
    int64_t NmbLin, InpIdx, OutIdx;
    float f;
