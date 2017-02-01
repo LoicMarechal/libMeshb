@@ -12,11 +12,11 @@ Can call user's own pre and post processing routines in a separate thread while 
 
 # Build
 Simply follow these steps:
--unarchive the ZIP file
--cd libMeshb-master
--cmake .
--make
--make install
+- unarchive the ZIP file
+- cd libMeshb-master
+- cmake .
+- make
+- make install
 
 # Usage
 The libMeshb library is written in ANSI C.  
