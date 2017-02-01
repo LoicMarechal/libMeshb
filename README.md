@@ -1,4 +1,4 @@
-# libMeshb version 7.22
+# libMeshb version 7.24
 A library to handle the *.meshb file format.
 
 # Overview
@@ -10,7 +10,15 @@ Transparent handling of little & big endian files.
 Optional ultra fast asynchronous and low level transfers.
 Can call user's own pre and post processing routines in a separate thread while accessing a file.
 
-# Build and use
+# Build
+Simply follow these steps:
+-unarchive the ZIP file
+-cd libMeshb-master
+-cmake .
+-make
+-make install
+
+# Usage
 The libMeshb library is written in ANSI C.  
 It is made of a single C file and a header file to be compiled and linked alongside the calling program.  
 It may be used in C, C++, F77 and F90 programs (Fortran 77 and 90 APIs are provided).  
