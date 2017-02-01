@@ -1,24 +1,37 @@
-cmake_minimum_required(VERSION 3.0.0)
 
-project(Meshb VERSION 7.22 LANGUAGES C)
+################################
+# GLOBAL CONFIGURATION VARIABLES
+################################
 
-add_library(meshb sources/libmeshb7.c)
-target_include_directories(meshb PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/sources>
-    $<INSTALL_INTERFACE:include>)
-install(TARGETS meshb EXPORT meshb-target DESTINATION lib)
-install(EXPORT meshb-target NAMESPACE ${PROJECT_NAME}::
-    DESTINATION lib/cmake/${PROJECT_NAME})
-install(FILES sources/libmeshb7.h DESTINATION include)
+cmake_minimum_required (VERSION 2.6)
+project (libMeshb)
+set (libMeshb_VERSION_MAJOR 7)
+set (libMeshb_VERSION_MINOR 3)
+set (CMAKE_C_FLAGS "-O3")
+set (CMAKE_Fortran_FLAGS "-O3")
+set (CMAKE_INSTALL_PREFIX "/opt/libMeshb")
 
-include(CMakePackageConfigHelpers)
-file(WRITE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-    "include(\${CMAKE_CURRENT_LIST_DIR}/meshb-target.cmake)")
-write_basic_package_version_file(
-    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion)
-install(FILES
-    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-    DESTINATION lib/cmake/${PROJECT_NAME})
+
+#######################################
+# SET FILES AND DIRECTORIES TO BE BUILT
+#######################################
+
+include_directories ("${PROJECT_SOURCE_DIR}/sources")
+add_subdirectory (sources)
+add_subdirectory (examples)
+add_subdirectory (utilities)
+install (FILES LICENSE copyright.txt DESTINATION share/libMeshb)
+install (DIRECTORY sample_meshes DESTINATION share/libMeshb)
+
+
+######################################
+# SET PACKAGE AND DEPLOYMENT VARIABLES
+######################################
+
+include (InstallRequiredSystemLibraries)
+set (CPACK_GENERATOR "TGZ")
+set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/copyright.txt")
+set (CPACK_PACKAGE_VERSION_MAJOR "${libMeshb_VERSION_MAJOR}")
+set (CPACK_PACKAGE_VERSION_MINOR "${libMeshb_VERSION_MINOR}")
+set(CPACK_COMPONENTS_ALL applications examples libraries headers)
+include (CPack)

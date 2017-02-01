@@ -8,9 +8,9 @@ c     using fast block transfer and pipelined post processing
 
 	  integer n
 	  parameter (n=4000)
-      integer i, NmbVer, NmbQad, ver, dim, res
+      integer i, ver, dim, res
      +, RefTab(n), TriTab(4,2*n), QadTab(5,n)
-	  integer*8 InpMsh, OutMsh
+	  integer*8 NmbVer, NmbQad, InpMsh, OutMsh
       real*8 VerTab(3,n)
 
 
@@ -18,7 +18,8 @@ c     --------------------------------------------
 c     Open the quadrilateral mesh file for reading
 c     --------------------------------------------
 
-      InpMsh = gmfopenmesh('quad.meshb',GmfRead,ver,dim)
+      InpMsh = gmfopenmesh('../sample_meshes/quad.meshb'
+     +,GmfRead,ver,dim)
       print*, 'input mesh  :', InpMsh,'version :',ver,'dim :',dim
 
       if(InpMsh.eq.0) STOP ' InpMsh = 0'

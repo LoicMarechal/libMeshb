@@ -18,7 +18,8 @@ c     --------------------------------------------
 c     Open the quadrilateral mesh file for reading
 c     --------------------------------------------
 
-      InpMsh = gmfopenmesh('quad.meshb',GmfRead,ver,dim)
+      InpMsh = gmfopenmesh('../sample_meshes/quad.meshb'
+     +,GmfRead,ver,dim)
 
       if(InpMsh.eq.0) STOP ' InpMsh = 0'
       if(dim.ne.3) STOP ' dimension <> 3'

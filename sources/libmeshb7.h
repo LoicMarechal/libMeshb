@@ -1,29 +1,29 @@
 
 
-/*----------------------------------------------------------*/
-/*                                                          */
-/*                        LIBMESH V 7.22                    */
-/*                                                          */
-/*----------------------------------------------------------*/
-/*                                                          */
-/*    Description:        handle .meshb file format I/O     */
-/*    Author:             Loic MARECHAL                     */
-/*    Creation date:      dec 09 1999                       */
-/*    Last modification:  dec 15 2016                       */
-/*                                                          */
-/*----------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/*                               LIBMESH V 7.24                               */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
+/*                                                                            */
+/*    Description:        handle .meshb file format I/O                       */
+/*    Author:             Loic MARECHAL                                       */
+/*    Creation date:      dec 09 1999                                         */
+/*    Last modification:  jan 12 2017                                         */
+/*                                                                            */
+/*----------------------------------------------------------------------------*/
 
-/* [Bruno] get int64_t and PRINTF_INT64_MODIFIER */
-/* #include <geogram/third_party/pstdint.h> */
+// [Bruno] get PRINTF_INT64_MODIFIER
+// #include <geogram/third_party/pstdint.h>
 
 #include <stdint.h>
 
 #ifndef LIBMESHB7_H
 #define LIBMESHB7_H
 
-/*----------------------------------------------------------*/
-/* Defines                                                  */
-/*----------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/* Defines                                                                    */
+/*----------------------------------------------------------------------------*/
 
 #define GmfStrSiz 1024
 #define GmfMaxTyp 1000
@@ -148,35 +148,33 @@ enum GmfKwdCod
 extern "C" {
 #endif
 
-/*----------------------------------------------------------*/
-/* Public procedures                                        */
-/*----------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/* Public procedures                                                          */
+/*----------------------------------------------------------------------------*/
 
-extern int64_t   GmfOpenMesh(const char *, int, ...);
-extern int       GmfCloseMesh(int64_t);
-extern int64_t   GmfStatKwd(int64_t, int, ...);
-extern int       GmfSetKwd(int64_t, int, ...);
-extern int       GmfGotoKwd(int64_t, int);
-extern int       GmfGetLin(int64_t, int, ...);
-extern int       GmfSetLin(int64_t, int, ...);
-extern int       GmfGetBlock(int64_t, int, int64_t, int64_t, void *, ...);
-extern int       GmfSetBlock(int64_t, int, void *, ...);
+extern int64_t GmfOpenMesh(const char *, int, ...);
+extern int     GmfCloseMesh(int64_t);
+extern int64_t GmfStatKwd(int64_t, int, ...);
+extern int     GmfSetKwd(int64_t, int, ...);
+extern int     GmfGotoKwd(int64_t, int);
+extern int     GmfGetLin(int64_t, int, ...);
+extern int     GmfSetLin(int64_t, int, ...);
+extern int     GmfGetBlock(int64_t, int, int64_t, int64_t, void *, ...);
+extern int     GmfSetBlock(int64_t, int, void *, ...);
 
 
-/*----------------------------------------------------------*/
-/* Transmesh private API                                    */
-/*----------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/* Transmesh private API                                                      */
+/*----------------------------------------------------------------------------*/
 
 #ifdef TRANSMESH
-
 extern int GmfMaxRefTab[ GmfMaxKwd + 1 ];
 extern const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4];
 extern int GmfCpyLin(int64_t, int64_t, int);
-
 #endif
 
 #ifdef __cplusplus
-} /* end extern "C" */
+} // end extern "C"
 #endif
 
 #endif

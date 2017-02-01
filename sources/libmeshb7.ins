@@ -1,16 +1,16 @@
 
 
 c----------------------------------------------------------
-c														   
-c						LIBMESH V 7.22					   
-c														   
+c
+c                     LIBMESH V 7.24
+c 
 c----------------------------------------------------------
-c														   
-c	Description:		handle .meshb file format I/O	   
-c	Author:				Loic MARECHAL					   
-c	Creation date:		dec 08 2015						   
-c	Last modification:	dec 15 2016						   
-c														   
+c
+c   Description:         handles .meshb file format I/O
+c   Author:              Loic MARECHAL
+c   Creation date:       dec 08 2015
+c   Last modification:   jan 04 2017
+c
 c----------------------------------------------------------
 
 
@@ -157,6 +157,9 @@ c     Keywords list
       integer gmftrianglesp4
       integer gmfedgesp3
       integer gmfedgesp4
+      integer GmfIRefGroups
+      integer GmfDRefGroups
+      
 
       parameter (gmfmeshversionformatted=1)
       parameter (gmfdimension=3)
@@ -250,3 +253,6 @@ c     Keywords list
       parameter (gmftrianglesp4=91)
       parameter (gmfedgesp3=92)
       parameter (gmfedgesp4=93)
+      parameter (GmfIRefGroups=94)
+      parameter (GmfDRefGroups=95)
+      
