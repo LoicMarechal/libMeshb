@@ -6,7 +6,7 @@
 cmake_minimum_required (VERSION 2.6)
 project (libMeshb)
 set (libMeshb_VERSION_MAJOR 7)
-set (libMeshb_VERSION_MINOR 3)
+set (libMeshb_VERSION_MINOR 24)
 set (CMAKE_C_FLAGS "-O3")
 set (CMAKE_Fortran_FLAGS "-O3")
 set (CMAKE_INSTALL_PREFIX "/opt/libMeshb")
