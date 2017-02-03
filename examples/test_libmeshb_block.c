@@ -6,6 +6,16 @@
 #include <stdlib.h>
 #include <libmeshb7.h>
 
+#ifdef PRINTF_INT64_MODIFIER
+#define INT64_T_FMT "%" PRINTF_INT64_MODIFIER "d"
+#else
+#   ifdef GMF_WINDOWS
+#    define INT64_T_FMT "%Id"
+#   else
+#    include <inttypes.h>
+#    define INT64_T_FMT "%" PRId64
+#   endif
+#endif
 
 int main()
 {
@@ -21,7 +31,7 @@ int main()
    if(!(InpMsh = GmfOpenMesh("../sample_meshes/quad.meshb", GmfRead, &ver, &dim)))
       return(1);
 
-   printf("InpMsh : idx = %lld, version = %d, dimension = %d\n", InpMsh, ver, dim);
+   printf("InpMsh : idx = "INT64_T_FMT", version = %d, dimension = %d\n", InpMsh, ver, dim);
 
    if(dim != 3)
       exit(1);
