@@ -24,6 +24,16 @@
 #define MaxGrp 1024
 #define MaxTok 1024
 
+#ifdef PRINTF_INT64_MODIFIER
+#define INT64_T_FMT "%" PRINTF_INT64_MODIFIER "d"
+#else
+#   ifdef GMF_WINDOWS
+#    define INT64_T_FMT "%Id"
+#   else
+#    include <inttypes.h>
+#    define INT64_T_FMT "%" PRId64
+#   endif
+#endif
 
 /*----------------------------------------------------------------------------*/
 /* Includes                                                                   */
@@ -212,7 +222,7 @@ int main(int ArgCnt, char **ArgVec)
             continue;
       }
 
-      printf("Parsing %s : %lld item\n", GmfKwdFmt[i][0], NmbLin);
+      printf("Parsing %s : "INT64_T_FMT" item\n", GmfKwdFmt[i][0], NmbLin);
 
       for(j=1;j<=NmbLin;j++)
          GmfCpyLin(InpIdx, OutIdx, i);
