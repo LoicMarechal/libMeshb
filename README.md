@@ -28,35 +28,35 @@ Reading a mesh file is fairly easy:
 
 ```C++
 int64_t LibIdx;
-int ver, dim, NmbTri, (*Nodes)[4], NmbVer, *Domains;
+int ver, dim, NmbVer, NmbTri, (*Nodes)[4], *Domains;
 float (*Coords)[3];
 
 // Open the mesh file for reading
-Libidx = GmfOpenMesh( "triangles.meshb", GmfRead, &ver, &dim );
+LibIdx = GmfOpenMesh( "triangles.meshb", GmfRead, &ver, &dim );
 
-// Get the number of vertices and triangles in the file
-NmbVer = GmfStatKwd( idx, GmfVertices );
-NmbTri = GmfStatKwd( idx, GmfNodes );
+// Get the number of vertices and triangles
+NmbVer = GmfStatKwd( LibIdx, GmfVertices  );
+NmbTri = GmfStatKwd( LibIdx, GmfTriangles );
 
 // Allocate memory accordingly
-Nodes   = malloc( NmbTri * 4 * sizeof(int) );
-Coords = malloc( NmbVer * 3 * sizeof(float) );
-Domains  = malloc( NmbVer *     sizeof(int) );
+Nodes   = malloc( NmbTri * 4 * sizeof(int)   );
+Coords  = malloc( NmbVer * 3 * sizeof(float) );
+Domains = malloc( NmbVer     * sizeof(int)   );
 
 // Move the file pointer to the vertices keyword
-GmfGotoKwd( Libidx, GmfVertices );
+GmfGotoKwd( LibIdx, GmfVertices );
 
 // Read each line of vertex data into your own data structures
-for(i=0;i<nbv;i++)
-  GmfGetLin( Libidx, GmfVertices, &Coords[i][0], &Coords[i][1], &Coords[i][2], &Domains[i] );
+for(i=0;i<NmbVer;i++)
+  GmfGetLin( LibIdx, GmfVertices, &Coords[i][0], &Coords[i][1], &Coords[i][2], &Domains[i] );
 
 // Move the file pointer to the triangles keyword
-GmfGotoKwd( Libidx, GmfNodes );
+GmfGotoKwd( LibIdx, GmfTriangles );
 
 // Read each line of triangle data into your own data structures
-for(i=0;i<nbt;i++)
-  GmfGetLin( Libidx, GmfNodes, &Nodes[i][0], &Nodes[i][1], &tNodest[i][2], &Nodes[i][3] );
+for(i=0;i<NmbTri;i++)
+  GmfGetLin( LibIdx, GmfTriangles, &Nodes[i][0], &Nodes[i][1], &tNodest[i][2], &Nodes[i][3] );
 
 // Close the mesh file !
-GmfCloseMesh( Libidx );
+GmfCloseMesh( LibIdx );
 ```
