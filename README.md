@@ -22,7 +22,7 @@ Simply follow these steps:
 The **libMeshb** library is written in *ANSI C*.  
 It is made of a single C file and a header file to be compiled and linked alongside the calling program.  
 It may be used in C, C++, F77 and F90 programs (Fortran 77 and 90 APIs are provided).  
-Tested on Linux, Mac OS X, and Windows 7.
+Tested on *Linux*, *macOS*, and *Windows 7->10*.
 
 Reading a mesh file is fairly easy:
 
