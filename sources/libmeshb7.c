@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jan 12 2017                                          */
+/*   Last modification:  feb 10 2017                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -86,6 +86,8 @@
 #include <windows.h>
 #include <io.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <wchar.h>
 
 #define OPEN_READ_FLAGS   O_RDONLY | _O_BINARY
 #define OPEN_WRITE_FLAGS  O_CREAT | O_WRONLY | O_TRUNC | _O_BINARY
