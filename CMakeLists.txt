@@ -12,7 +12,7 @@ if (WIN32)
    set (CMAKE_C_FLAGS "-DWIN32")
    set (CMAKE_CONFIGURATION_TYPES "Release")
    if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-      set (CMAKE_INSTALL_PREFIX "Program Files (x86)/libMeshb" CACHE PATH
+      set (CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/libMeshb" CACHE PATH
          "Default libMeshb install path" FORCE)
    endif ()
 else ()
@@ -23,8 +23,10 @@ else ()
    endif ()
 endif ()
 
-project (libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C Fortran)
+project (libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
 
+include (CheckLanguage)
+check_language (Fortran)
 if(CMAKE_Fortran_COMPILER)
   enable_language(Fortran)
 endif()

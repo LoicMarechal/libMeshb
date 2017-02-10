@@ -9,7 +9,7 @@
 /* Description:         convert mesh file from/to ascii/bin                   */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 08 2004                                           */
-/* Last modification:   feb 01 2017                                           */
+/* Last modification:   feb 10 2017                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -97,6 +97,7 @@ int main(int ArgCnt, char **ArgVec)
       puts(" version 2: 32 bits integers, 64 bits reals, file size < 2 GigaBytes");
       puts(" version 3: 32 bits integers, 64 bits reals, file size < 8 ExaBytes");
       puts(" version 4: 64 bits integers, 64 bits reals, file size < 8 ExaBytes\n");
+#ifndef WIN32
       puts(" optional : -igroup inflow 1 Triangles 3,5,6,9-14");
       puts("            Defines a group named \"inflow\" with index 1 that includes");
       puts("            a set of comma-seprated triangle references.");
@@ -105,6 +106,7 @@ int main(int ArgCnt, char **ArgVec)
       puts("            Defines a group named \"wings\" with index 3 that excludes");
       puts("            a set of comma-seprated quadrilateral references.");
       puts("            You may also specify ranges between two dash-separated indices.\n");
+#endif
       exit(0);
    }
 
@@ -133,7 +135,7 @@ int main(int ArgCnt, char **ArgVec)
             exit(1);
          }
       }
-
+#ifndef WIN32
       if(!strcmp(PtrArg, "-igroup") || !strcmp(PtrArg, "-egroup"))
       {
          grp = &GrpTab[ NmbGrp++ ];
@@ -144,11 +146,11 @@ int main(int ArgCnt, char **ArgVec)
          NmbTok = 0;
          TmpStr = ArgVec[ ArgIdx++ ];
 
-         while( (NmbTok < MaxTok) && (TmpStr2 = strsep(&TmpStr, ",")) )
+         while( (NmbTok < MaxTok) && ((TmpStr2 = strsep(&TmpStr, ","))) )
          {
             NmbTok2 = 0;
 
-            while( (NmbTok2 < 2) && (TmpStr3 = strsep(&TmpStr2, "-")) )
+            while( (NmbTok2 < 2) && ((TmpStr3 = strsep(&TmpStr2, "-"))) )
                TokTab2[ NmbTok2++ ] = atoi(TmpStr3);
 
             if(NmbTok2 == 1)
@@ -171,6 +173,7 @@ int main(int ArgCnt, char **ArgVec)
          else
             grp->sgn = -1;
       }
+#endif
    }
 
    if(!(InpIdx = GmfOpenMesh(InpNam, GmfRead, &InpVer, &dim)))
