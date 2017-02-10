@@ -10,13 +10,24 @@ Transparent handling of little & big endian files.
 Optional ultra fast asynchronous and low level transfers.
 Can call user's own pre and post processing routines in a separate thread while accessing a file.
 
-# Build
+# Build for *Linux* or *macOS*
 Simply follow these steps:
 - unarchive the ZIP file
 - `cd libMeshb-master`
 - `cmake .`
 - `make`
 - `make install`
+
+# Build for *Windows*
+- You first need to install [CMake](https://cmake.org/files/v3.7/cmake-3.7.2-win64-x64.msi). Do not forget to choose "add cmake to the path for all users", from the install panel.
+- Then you need a valid C compiler like the free [Visual Studio Express 2015](https://www.visualstudio.com/vs/visual-studio-express/)
+- unarchive the ZIP file
+- open the windows shell
+- `cd libMeshb-master`
+- `mkdir build`
+- `cd build`
+- `cmake -DCMAKE_INSTALL_PREFIX=%HOMEPATH%\libMeshb ..\`
+- `cmake --build . --config Release --target INSTALL`
 
 # Usage
 The **libMeshb** library is written in *ANSI C*.  
