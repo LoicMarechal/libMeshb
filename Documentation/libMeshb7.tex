@@ -36,9 +36,9 @@
 
 \begin{flushright}
 \Large Lo\"ic MAR\'ECHAL / INRIA, Gamma Project\\
-\Large December 2016 \\
-\normalsize Document v1.6 \\
-\normalsize Library v7.2
+\Large February 2017 \\
+\normalsize Document v1.7 \\
+\normalsize Library v7.24
 \end{flushright}
 
 \end{titlepage}
@@ -64,7 +64,7 @@
 \subsection{What is the Gamma Mesh Format ?}
 The Gamma Mesh Format (GMF) and the associated library \emph{libMeshb} provide programers of simulation and meshing softwares with an easy way to store their meshes and physical solutions.
 
-The GMF features more than 50 kinds of data types, ranging from vertex to polyhedron or normal vectors to matricial solution fields.
+The GMF features more than 90 kinds of data types, ranging from vertex to polyhedron or normal vectors to matricial solution fields.
 
 The \emph{libMeshb} provides a convenient way to move data between those files, via keyword tags, and the user's own structures.
 
@@ -134,11 +134,12 @@ Version & Size of integers & Size of reals & Maximum size of file \\
 \end{tabular}
 \medskip
 
-Although the \emph{libMeshb} still handles versions 1 and 2 for the sake of compatibility, it is strongly advised to create version 3 files since more and more computer are 64-bit capable.
+Although the \emph{libMeshb} still handles versions 1 and 2 for the sake of compatibility, it is strongly advised to create version 3 or 4 files since most computers are now 64-bit capable.
 
-A word of caution: great care must be taken when setting the library's arguments type. Regardless of the file version, some arguments are mandatory 32 bits integer like the open mode tag, mesh dimension or the file index. Even in "full 64 bits" version 4 mesh file format, only the number of lines given or set by the GmfSetKeyword() of GmfStatKeyword() commands and vertex indices used by elements field are using 64 bits integers.
+A word of caution: great care must be taken when setting the library's arguments type. Regardless of the file version, some arguments are mandatory 32 bits integers like the open mode tag, mesh dimension or the file version. Even in "full 64 bits" version 4 mesh file format, only the number of lines given or set by the GmfSetKeyword() of GmfStatKeyword() commands and vertex indices used by elements field are using 64 bits integers.
 
-The 64 bits integer data type used by the library is the \emph{long int}, which may be set to 32 bits by come compilers. In this case, the \emph{libMeshb} will simply return with an error when dealing with version 4 mesh files. Most compilers, GNU and Intel for instance, set the long int size to 64 bits unless you specify the "-m32" option.
+The 64 bits integer data type used by the library is the \emph{int64\_t}, which is defined in the standard include file \emph{stdint.h}. In case your system is too old to support 64 bits pointers and integers, you may define \emph{int64\_t} as a regular 32 bits \emph{int}. The library will be aware of it and will still be able to handle version 1 or 2 files.
+
 
 %
 % 2 / QUICKSTART
@@ -165,7 +166,7 @@ Opening a mesh file is done via the GmfOpenMesh() command. It allows to check fo
 
 \begin{tt}
 \begin{verbatim}
-long long MeshIndex;
+int64_t MeshIndex;
 int Version, Dimension;
 MeshIndex = GmfOpenMesh("testcase.meshb", GmfRead, &Version, &Dimension );
 \end{verbatim}
@@ -181,7 +182,7 @@ int NumberOfTriangles, (*TableOfTriangles)[4];
 NumberOfTriangles = GmfStatKwd( MeshIndex, GmfTriangles );
 
 if(NumberOfTriangles > 0)
-    TableOfTriangles = malloc(NumberOfTriangles * 4 * sizeof(int));
+   TableOfTriangles = malloc(NumberOfTriangles * 4 * sizeof(int));
 \end{verbatim}
 \end{tt}
 \normalfont
@@ -200,7 +201,7 @@ Let's say we would like to open a file, check if it contains vertices and quads,
 
 \begin{tt}
 \begin{verbatim}
-long long idx;
+int64_t idx;
 int ver, dim, nbt, (*tt)[4], nbv, *rt;
 float (*ct)[3];
 
@@ -210,7 +211,7 @@ float (*ct)[3];
 idx = GmfOpenMesh("tri.meshb", GmfRead, &ver, &dim );
 
 if( !idx || (ver != 1) || (dim != 3) )
-    exit(1);
+   exit(1);
 
 /* Read the number of vertices and triangles and allocate
    a triangle table (tt[nbt][4]) to store each triangle
@@ -223,7 +224,7 @@ nbv = GmfStatKwd( idx, GmfVertices );
 nbt = GmfStatKwd( idx, GmfTriangles );
 
 if( !nbv || !nbt )
-    exit(1);
+   exit(1);
 
 tt = malloc( nbt * 4 * sizeof(int) );
 ct = malloc( nbv * 3 * sizeof(float) );
@@ -274,7 +275,7 @@ Following the reading example, we would like to write back the data to a new fil
 
 \begin{tt}
 \begin{verbatim}
-long long idx;
+int64_t idx;
 int ver, dim, nbt, (*tt)[4], nbv, *rt;
 float (*ct)[3];
 
@@ -284,7 +285,7 @@ float (*ct)[3];
 idx = GmfOpenMesh("tri.meshb", GmfWrite, 1, 3 );
 
 if( !idx )
-    exit(1);
+   exit(1);
 
 /* Setup a vertex field with nbv lines
    and loop over vertices to write them down.
@@ -313,19 +314,17 @@ In this last example, the file "quad.mesh" a three-dimensional mesh made of quad
 
 \begin{tt}
 \begin{verbatim}
-long long InpMsh, OutMsh;
+int64_t InpMsh, OutMsh;
 int i, nbv, nbq, ver, dim, *rt, (*qt)[5];
 float (*ct)[3];
 
-/* Open and check the input quadrilateral mesh */
-
+// Open and check the input quadrilateral mesh
 InpMsh = GmfOpenMesh("quad.mesh", GmfRead, &ver, &dim);
 
 if( !InpMsh || (ver != 1) || (dim != 3) )
   exit(1);
 
-/* Allocate vertices and quads tables */
-
+// Allocate vertices and quads tables
 nbv = GmfStatKwd(InpMsh, GmfVertices);
 ct = malloc(nbv * 3 * sizeof(float));
 rt = malloc(nbv * sizeof(int));
@@ -333,8 +332,7 @@ rt = malloc(nbv * sizeof(int));
 nbq = GmfStatKwd(InpMsh, GmfQuadrilaterals);
 qt = malloc(nbq * 5 * sizeof(int));
 
-/* Read vertices and quads then close the input file */
-
+// Read vertices and quads then close the input file
 GmfGotoKwd(InpMsh, GmfVertices);
 
 for(i=0;i<nbv;i++)
@@ -348,8 +346,8 @@ for(i=0;i<nbq;i++)
 
 GmfCloseMesh(InpMsh);
 
-/* Now create the output file.
-   Each quad being split into two triangles. */
+// Now create the output file.
+// Each quad being split into two triangles.
 
 if(!(OutMsh = GmfOpenMesh("tri.mesh", GmfWrite, ver, dim)))
   exit(1);
@@ -386,10 +384,10 @@ Open a mesh file for reading or writing: in reading mode, it tries to open the f
 \subsubsection{Reading mode}
 \begin{tt}
 \begin{verbatim}
-long long GmfOpenMesh( char *FileName,
-                       int OpenMode,
-                       int *Version,
-                       int *Dimension );
+int64_t GmfOpenMesh( char *FileName,
+                     int OpenMode,
+                     int *Version,
+                     int *Dimension );
 \end{verbatim}
 \end{tt}
 \normalfont
@@ -419,7 +417,7 @@ Zero on failure or the opened mesh index otherwise. This index should be properl
 
 \begin{tt}
 \begin{verbatim}
-long long MeshIndex;
+int64_t MeshIndex;
 int Version, Dimension;
 
 Meshindex = GmfOpenMesh("testcase.meshb", GmfRead, &Version, &Dimension );
@@ -436,10 +434,10 @@ else
 \subsubsection{Writing mode}
 \begin{tt}
 \begin{verbatim}
-long long GmfOpenMesh( char *FileName,
-                       int OpenMode,
-                       int Version,
-                       int Dimension );
+int64_t GmfOpenMesh( char *FileName,
+                     int OpenMode,
+                     int Version,
+                     int Dimension );
 \end{verbatim}
 \end{tt}
 \normalfont
@@ -474,7 +472,7 @@ A mesh file must be properly closed in order to release any allocated memory and
 
 \begin{tt}
 \begin{verbatim}
-GmfCloseMesh( long long MeshIndex );
+GmfCloseMesh( int64_t MeshIndex );
 \end{verbatim}
 \end{tt}
 \normalfont
@@ -491,7 +489,7 @@ This command queries the mesh file for the presence of a given keyword and the n
 
 \begin{tt}
 \begin{verbatim}
-int GmfStatKwd( long long MeshIndex,
+int GmfStatKwd( int64_t MeshIndex,
                 int Keyword );
 \end{verbatim}
 \end{tt}
@@ -522,11 +520,11 @@ In this case, additional information will be provided: the number of fields per 
 
 \begin{tt}
 \begin{verbatim}
-long long GmfStatKwd( long long MeshIndex,
-                      int Keyword,
-                      int *NumberOfTypes,
-                      int *SizeOfSolution,
-                      int *TableOfTypes );
+int64_t GmfStatKwd( int64_t MeshIndex,
+                    int Keyword,
+                    int *NumberOfTypes,
+                    int *SizeOfSolution,
+                    int *TableOfTypes );
 \end{verbatim}
 \end{tt}
 \normalfont
@@ -578,7 +576,7 @@ Prior to reading each line of a keyword with the GmfGetLin() command, the file p
 
 \begin{tt}
 \begin{verbatim}
-int GmfGotoKwd( long long MeshIndex, int Keyword );
+int GmfGotoKwd( int64_t MeshIndex, int Keyword );
 \end{verbatim}
 \end{tt}
 \normalfont
@@ -598,7 +596,7 @@ Prior to writing each line of a keyword with the GmfSetLin() command, the keywor
 
 \begin{tt}
 \begin{verbatim}
-int GmfSetKwd( long long MeshIndex,
+int GmfSetKwd( int64_t MeshIndex,
                int Keyword,
                int NumberOfLines );
 \end{verbatim}
@@ -619,7 +617,7 @@ When it comes to solution keywords, two extra arguments must be passed on: a tab
 
 \begin{tt}
 \begin{verbatim}
-int GmfSetKwd( long long MeshIndex,
+int GmfSetKwd( int64_t MeshIndex,
                int Keyword,
                int NumberOfLines,
                int NumberOfTypes,
@@ -647,7 +645,7 @@ GmfGetLin() is a variable arguments command, it reads one line of data from the 
 
 \begin{tt}
 \begin{verbatim}
-int GmfGetLin( long long MeshIndex,
+int GmfGetLin( int64_t MeshIndex,
                int Keyword,
                arguments );
 \end{verbatim}
@@ -683,7 +681,7 @@ This commands works pretty much like GmfGetLin(), but arguments are given direct
 
 \begin{tt}
 \begin{verbatim}
-int GmfSetLin( long long MeshIndex,
+int GmfSetLin( int64_t MeshIndex,
                int Keyword,
                arguments );
 \end{verbatim}
@@ -703,8 +701,8 @@ GmfGetBlock() is a variable arguments command, it reads all the lines of data fr
 
 \begin{tt}
 \begin{verbatim}
-int GmfGetBlock(long long MeshIndex, int Keyword, long long BeginLine, 
-                long long EndLine, Procedure, arguments...);
+int GmfGetBlock(int64_t MeshIndex, int Keyword, int64_t BeginLine, 
+                int64_t EndLine, Procedure, arguments...);
 \end{verbatim}
 \end{tt}
 \normalfont
@@ -760,10 +758,10 @@ GmfSetBlock(MeshIndex, GmfVertices, FlipRefs, ref, \
 
 \begin{tt}
 \begin{verbatim}
-FlipRefs(long long begin, long long end, void *data)
+FlipRefs(int64_t begin, int64_t end, void *data)
 {
     int *ref = (int *)data;
-    long long i;
+    int64_t i;
 
     for(i=begin;i<=end;i++)
         if(ref[i] == 1)
@@ -823,11 +821,6 @@ data & description \\
 9 integers & vertex indices and a reference \\
 \hline\hline
 
-\multicolumn{2}{|l|}{HexahedraP2} \\
-\hline
-28 integers & vertex indices and a reference \\
-\hline\hline
-
 \multicolumn{2}{|l|}{Normals} \\
 \hline
 2 or 3 reals & normal vector: 2 or 3 components depending on the mesh dimension \\
@@ -848,19 +841,29 @@ data & description \\
 2 integers & first integer points to a vertex and the second one points to the associated normal vector index \\
 \hline\hline
 
-\multicolumn{2}{|l|}{Pentahedra} \\
+\multicolumn{2}{|l|}{Polygons} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{Polyhedra} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{Prisms} \\
 \hline
 7 integers & vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{Pyramids} \\
+\hline
+6 integers & vertex indices and a reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{Quadrilaterals} \\
 \hline
 5 integers & vertex indices and a reference \\
-\hline\hline
-
-\multicolumn{2}{|l|}{QuadrilateralsP2} \\
-\hline
-10 integers & vertex indices and a reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{RequiredEdges} \\
@@ -908,14 +911,192 @@ data & description \\
 5 integers & vertex indices and a reference \\
 \hline\hline
 
-\multicolumn{2}{|l|}{TetrahedraP2} \\
-\hline
-11 integers & vertex indices and a reference \\
-\hline\hline
-
 \multicolumn{2}{|l|}{Triangles} \\
 \hline
 4 integers & vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{Vertices} \\
+\hline
+2 or 3 reals + 1 integer & vertex coordinates followed by a reference \\
+\hline
+
+\end{longtable}
+
+
+\subsection{List of keywords describing geometric properties}
+
+\setlongtables
+\begin{longtable}{|m{4cm}|m{11cm}|}
+\endhead
+\endfoot
+
+\hline
+\multicolumn{2}{|l|}{keyword} \\
+\hline
+data & description \\
+\hline\hline
+
+\multicolumn{2}{|l|}{EdgesOnGeometricEdges} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{TrianglesOnGeometricQuadrilaterals} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{TrianglesOnGeometricTriangles} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PeriodicEdges} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PeriodicQuadrilaterals} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PeriodicTriangles} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PeriodicVertices} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{QuadrilateralsOnGeometricQuadrilaterals} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{QuadrilateralsOnGeometricTriangles} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{VerticesOnGeometricEdges} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{VerticesOnGeometricQuadrilaterals} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{VerticesOnGeometricTriangles} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{VerticesOnGeometricVertices} \\
+\hline
+to be defined \\
+\hline\hline
+
+\end{longtable}
+
+
+
+\subsection{List of High Order elements keywords}
+
+\setlongtables
+\begin{longtable}{|m{4cm}|m{11cm}|}
+\endhead
+\endfoot
+
+\hline
+\multicolumn{2}{|l|}{keyword} \\
+\hline
+data & description \\
+\hline\hline
+
+\multicolumn{2}{|l|}{EdgesP2} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{EdgesP3} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{EdgesP4} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{ExtraVerticesAtEdges} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{ExtraVerticesAtHexahedra} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{ExtraVerticesAtPrisms} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{ExtraVerticesAtQuadrilaterals} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{ExtraVerticesAtTetrahedra} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{ExtraVerticesAtTriangles} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HexahedraQ2} \\
+\hline
+28 integers & vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PrismsP2} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PyramidsP2} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{QuadrilateralsQ2} \\
+\hline
+10 integers & vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{QuadrilateralsQ3} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{QuadrilateralsQ4} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{TetrahedraP2} \\
+\hline
+11 integers & vertex indices and a reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{TrianglesP2} \\
@@ -923,10 +1104,15 @@ data & description \\
 7 integers & vertex indices and a reference \\
 \hline\hline
 
-\multicolumn{2}{|l|}{Vertices} \\
+\multicolumn{2}{|l|}{TrianglesP3} \\
 \hline
-2 or 3 reals + 1 integer & vertex coordinates followed by a reference \\
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{TrianglesP4} \\
 \hline
+to be defined \\
+\hline\hline
 
 \end{longtable}
 
@@ -972,9 +1158,14 @@ SolSize * reals & as many reals as stated in the DSolAtVertices keyword header \
 8 integers & there must be as many ISolAtHexahedra as there are Hexahedra in a mesh, each ISolAtHexahedra line pointing implicitly to the respective hex. The eight integers are associated with the hex vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
 \hline\hline
 
-\multicolumn{2}{|l|}{ISolAtPentahedra} \\
+\multicolumn{2}{|l|}{ISolAtPyramids} \\
 \hline
-6 integers & there must be as many ISolAtPentahedra as there are Pentahedra in a mesh, each ISolAtPentahedra line pointing implicitly to the respective penta. The six integers are associated with the penta vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
+5 integers & there must be as many ISolAtPyramids as there are Pentahedra in a mesh, each ISolAtPyramids line pointing implicitly to the respective pyramid. The five integers are associated with the pyramid's vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
+\hline\hline
+
+\multicolumn{2}{|l|}{ISolAtPrisms} \\
+\hline
+6 integers & there must be as many ISolAtPrisms as there are Pentahedra in a mesh, each ISolAtPrisms line pointing implicitly to the respective prism. The six integers are associated with the prism's vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ISolAtQuadrilaterals} \\
@@ -1007,9 +1198,14 @@ SolSize * reals & as many reals as stated in the DSolAtVertices keyword header \
 SolSize * reals & as many reals as stated in the SolAtHexahedra keyword header \\
 \hline\hline
 
-\multicolumn{2}{|l|}{SolAtPentahedra} \\
+\multicolumn{2}{|l|}{SolAtPyramids} \\
 \hline
-SolSize * reals & as many reals as stated in the SolAtPentahedra keyword header \\
+SolSize * reals & as many reals as stated in the SolAtPyramidamids keyword header \\
+\hline\hline
+
+\multicolumn{2}{|l|}{SolAtPrisms} \\
+\hline
+SolSize * reals & as many reals as stated in the SolAtPrisms keyword header \\
 \hline\hline
 
 \multicolumn{2}{|l|}{SolAtQuadrilaterals} \\
@@ -1052,9 +1248,59 @@ data & description \\
 1 real & threshold angle for automatic sharp features detection, in degrees\\
 \hline\hline
 
+\multicolumn{2}{|l|}{Body} \\
+\hline
+to be defined \\
+\hline
+
 \multicolumn{2}{|l|}{BoundingBox} \\
 \hline
 4 or 6 reals & the box coordinates bounding the whole mesh: $x_{min}$, $x_{max}$, $y_{min}$, $y_{max}$ and $z_{min}$ and $z_{max}$ (in three dimensional case only) \\
+\hline\hline
+
+\multicolumn{2}{|l|}{CoarseHexahedra} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{DRefGroups} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{Fault\_BadShape} \\
+\hline
+to be defined \\
+\hline
+
+\multicolumn{2}{|l|}{Fault\_FreeEdge} \\
+\hline
+to be defined \\
+\hline
+
+\multicolumn{2}{|l|}{Fault\_Inter} \\
+\hline
+to be defined \\
+\hline
+
+\multicolumn{2}{|l|}{Fault\_NearTri} \\
+\hline
+to be defined \\
+\hline
+
+\multicolumn{2}{|l|}{Fault\_Overlap} \\
+\hline
+to be defined \\
+\hline
+
+\multicolumn{2}{|l|}{Fault\_SmallTri} \\
+\hline
+to be defined \\
+\hline
+
+\multicolumn{2}{|l|}{IRefGroups} \\
+\hline
+to be defined \\
 \hline\hline
 
 \multicolumn{2}{|l|}{Iterations} \\
@@ -1062,9 +1308,29 @@ data & description \\
 1 integer & discretionary iteration counter \\
 \hline\hline
 
+\multicolumn{2}{|l|}{IterationsAll} \\
+\hline
+to be defined \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PrivateTable} \\
+\hline
+to be defined \\
+\hline
+
+\multicolumn{2}{|l|}{SubDomainFromGeom} \\
+\hline
+to be defined \\
+\hline
+
 \multicolumn{2}{|l|}{Time} \\
 \hline
 1 real & discretionary time counter \\
+\hline
+
+\multicolumn{2}{|l|}{TimeAll} \\
+\hline
+to be defined \\
 \hline
 
 \end{tabular}
