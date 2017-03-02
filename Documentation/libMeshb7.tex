@@ -38,7 +38,7 @@
 \Large Lo\"ic MAR\'ECHAL / INRIA, Gamma Project\\
 \Large February 2017 \\
 \normalsize Document v1.7 \\
-\normalsize Library v7.24
+\normalsize Library v7.25
 \end{flushright}
 
 \end{titlepage}
@@ -843,12 +843,12 @@ data & description \\
 
 \multicolumn{2}{|l|}{Polygons} \\
 \hline
-to be defined \\
+9 integers & Arbitrary polygonal face: can store up to 8 vertex indices and a reference, Useless indices are set to 0 \\
 \hline\hline
 
 \multicolumn{2}{|l|}{Polyhedra} \\
 \hline
-to be defined \\
+9 integers & Arbitrary polyhedron: can store up to 32 polygonal face indices and a reference. Useless indices are set to 0. Caution: indices point to faces, not to vertices as other volumic elements do. \\
 \hline\hline
 
 \multicolumn{2}{|l|}{Prisms} \\
@@ -939,67 +939,67 @@ data & description \\
 
 \multicolumn{2}{|l|}{EdgesOnGeometricEdges} \\
 \hline
-to be defined \\
+2 integers & edge index from the source mesh and the corresponding edge index it is projected on in the geometric support mesh \\
 \hline\hline
 
 \multicolumn{2}{|l|}{TrianglesOnGeometricQuadrilaterals} \\
 \hline
-to be defined \\
+2 integers & triangle index from the source mesh and the corresponding quad index it is projected on in the support mesh \\
 \hline\hline
 
 \multicolumn{2}{|l|}{TrianglesOnGeometricTriangles} \\
 \hline
-to be defined \\
+2 integers & triangle index from the source mesh and the corresponding triangle index it is projected on in the geometric support mesh \\
 \hline\hline
 
 \multicolumn{2}{|l|}{PeriodicEdges} \\
 \hline
-to be defined \\
+2 integers & indices of linked entities \\
 \hline\hline
 
 \multicolumn{2}{|l|}{PeriodicQuadrilaterals} \\
 \hline
-to be defined \\
+2 integers & indices of linked entities \\
 \hline\hline
 
 \multicolumn{2}{|l|}{PeriodicTriangles} \\
 \hline
-to be defined \\
+2 integers & indices of linked entities \\
 \hline\hline
 
 \multicolumn{2}{|l|}{PeriodicVertices} \\
 \hline
-to be defined \\
+2 integers & indices of linked entities \\
 \hline\hline
 
 \multicolumn{2}{|l|}{QuadrilateralsOnGeometricQuadrilaterals} \\
 \hline
-to be defined \\
+2 integers & quad index from the source mesh and the corresponding quad index it is projected on in the geometric support mesh \\
 \hline\hline
 
 \multicolumn{2}{|l|}{QuadrilateralsOnGeometricTriangles} \\
 \hline
-to be defined \\
+2 integers & quad index from the source mesh and the corresponding triangle index it is projected on in the geometric support mesh \\
 \hline\hline
 
 \multicolumn{2}{|l|}{VerticesOnGeometricEdges} \\
 \hline
-to be defined \\
+2 integers and 1 real & index of a vertex and the edge index in the geomtric support mesh it it projected on followed by the barycentric position on this edge \\
 \hline\hline
 
 \multicolumn{2}{|l|}{VerticesOnGeometricQuadrilaterals} \\
 \hline
-to be defined \\
+2 integers and 2 reals & index of a vertex and the quad index in the geomtric support mesh it it projected on followed by the barycentric position on this quad \\
 \hline\hline
 
 \multicolumn{2}{|l|}{VerticesOnGeometricTriangles} \\
 \hline
-to be defined \\
+2 integers and 2 reals & index of a vertex and the triangle index in the geomtric support mesh it it projected on followed by the barycentric position on this triangle \\
 \hline\hline
 
 \multicolumn{2}{|l|}{VerticesOnGeometricVertices} \\
 \hline
-to be defined \\
+2 integers & vertex index from the source mesh and the corresponding vertex index it is projected on in the geometric support mesh \\
 \hline\hline
 
 \end{longtable}
@@ -1021,97 +1021,97 @@ data & description \\
 
 \multicolumn{2}{|l|}{EdgesP2} \\
 \hline
-to be defined \\
+4 integers & two vertex nodes first then the middle node index a finaly the reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{EdgesP3} \\
 \hline
-to be defined \\
+5 integers & two vertex nodes first then the two middle nodes index a finaly the reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{EdgesP4} \\
 \hline
-to be defined \\
+6 integers & two vertex nodes first then the three middle nodes index a finaly the reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ExtraVerticesAtEdges} \\
 \hline
-to be defined \\
+$n$ integers & the first integer points to a P1 edge and the remaining $n-1$ point to middle nodes \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ExtraVerticesAtHexahedra} \\
 \hline
-to be defined \\
+$n$ integers & the first integer points to a P1 hexahedra and the remaining $n-1$ point to middle nodes \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ExtraVerticesAtPrisms} \\
 \hline
-to be defined \\
+$n$ integers & the first integer points to a P1 prism and the remaining $n-1$ point to middle nodes \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ExtraVerticesAtQuadrilaterals} \\
 \hline
-to be defined \\
+$n$ integers & the first integer points to a P1 quad and the remaining $n-1$ point to middle nodes \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ExtraVerticesAtTetrahedra} \\
 \hline
-to be defined \\
+$n$ integers & the first integer points to a P1 tetrahedra and the remaining $n-1$ point to middle nodes \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ExtraVerticesAtTriangles} \\
 \hline
-to be defined \\
+$n$ integers & the first integer points to a P1 triangle and the remaining $n-1$ point to middle nodes \\
 \hline\hline
 
 \multicolumn{2}{|l|}{HexahedraQ2} \\
 \hline
-28 integers & vertex indices and a reference \\
+28 integers & 27 vertex indices and a reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{PrismsP2} \\
 \hline
-to be defined \\
+19 integers & 18 vertex indices and a reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{PyramidsP2} \\
 \hline
-to be defined \\
+15 integers & 14 vertex indices and a reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{QuadrilateralsQ2} \\
 \hline
-10 integers & vertex indices and a reference \\
+10 integers & 9 vertex indices and a reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{QuadrilateralsQ3} \\
 \hline
-to be defined \\
+17 integers & 16 vertex indices and a reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{QuadrilateralsQ4} \\
 \hline
-to be defined \\
+26 integers & 25 vertex indices and a reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{TetrahedraP2} \\
 \hline
-11 integers & vertex indices and a reference \\
+11 integers & 10 vertex indices and a reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{TrianglesP2} \\
 \hline
-7 integers & vertex indices and a reference \\
+7 integers & 6 vertex indices and a reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{TrianglesP3} \\
 \hline
-to be defined \\
+11 integers & 10 vertex indices and a reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{TrianglesP4} \\
 \hline
-to be defined \\
+16 integers & 15 vertex indices and a reference \\
 \hline\hline
 
 \end{longtable}
@@ -1248,11 +1248,6 @@ data & description \\
 1 real & threshold angle for automatic sharp features detection, in degrees\\
 \hline\hline
 
-\multicolumn{2}{|l|}{Body} \\
-\hline
-to be defined \\
-\hline
-
 \multicolumn{2}{|l|}{BoundingBox} \\
 \hline
 4 or 6 reals & the box coordinates bounding the whole mesh: $x_{min}$, $x_{max}$, $y_{min}$, $y_{max}$ and $z_{min}$ and $z_{max}$ (in three dimensional case only) \\
@@ -1260,47 +1255,17 @@ to be defined \\
 
 \multicolumn{2}{|l|}{CoarseHexahedra} \\
 \hline
-to be defined \\
+1 integer & hexahedra index that is too big to capture the surface geometry \\
 \hline\hline
 
 \multicolumn{2}{|l|}{DRefGroups} \\
 \hline
-to be defined \\
+1 string and 3 integers & name of the super group, group index, type of elements and number of references included \\
 \hline\hline
-
-\multicolumn{2}{|l|}{Fault\_BadShape} \\
-\hline
-to be defined \\
-\hline
-
-\multicolumn{2}{|l|}{Fault\_FreeEdge} \\
-\hline
-to be defined \\
-\hline
-
-\multicolumn{2}{|l|}{Fault\_Inter} \\
-\hline
-to be defined \\
-\hline
-
-\multicolumn{2}{|l|}{Fault\_NearTri} \\
-\hline
-to be defined \\
-\hline
-
-\multicolumn{2}{|l|}{Fault\_Overlap} \\
-\hline
-to be defined \\
-\hline
-
-\multicolumn{2}{|l|}{Fault\_SmallTri} \\
-\hline
-to be defined \\
-\hline
 
 \multicolumn{2}{|l|}{IRefGroups} \\
 \hline
-to be defined \\
+2 integers & element keyword and element index \\
 \hline\hline
 
 \multicolumn{2}{|l|}{Iterations} \\
@@ -1308,29 +1273,19 @@ to be defined \\
 1 integer & discretionary iteration counter \\
 \hline\hline
 
-\multicolumn{2}{|l|}{IterationsAll} \\
-\hline
-to be defined \\
-\hline\hline
-
 \multicolumn{2}{|l|}{PrivateTable} \\
 \hline
-to be defined \\
+1 integer & free form table \\
 \hline
 
 \multicolumn{2}{|l|}{SubDomainFromGeom} \\
 \hline
-to be defined \\
+3 integers & triangle index, orientation (+1 or -1) and subdomain reference \\
 \hline
 
 \multicolumn{2}{|l|}{Time} \\
 \hline
 1 real & discretionary time counter \\
-\hline
-
-\multicolumn{2}{|l|}{TimeAll} \\
-\hline
-to be defined \\
 \hline
 
 \end{tabular}

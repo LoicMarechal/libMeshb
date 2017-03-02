@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.24                               */
+/*                               LIBMESH V 7.25                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  jan 12 2017                                         */
+/*    Last modification:  feb 21 2017                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -55,8 +55,8 @@ enum GmfKwdCod
     GmfTetrahedra, \
     GmfPrisms, \
     GmfHexahedra, \
-    GmfIterationsAll, \
-    GmfTimesAll, \
+    GmfReserved3, \
+    GmfReserved4, \
     GmfCorners, \
     GmfRidges, \
     GmfRequiredVertices, \
@@ -95,7 +95,7 @@ enum GmfKwdCod
     GmfFault_Overlap, \
     GmfPyramids, \
     GmfBoundingBox, \
-    GmfBody, \
+    GmfReserved5, \
     GmfPrivateTable, \
     GmfFault_BadShape, \
     GmfEnd, \

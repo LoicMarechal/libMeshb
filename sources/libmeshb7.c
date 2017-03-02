@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.24                               */
+/*                               LIBMESH V 7.25                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  feb 10 2017                                          */
+/*   Last modification:  mar 02 2017                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -238,8 +238,8 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4] =
    {"Tetrahedra", "Tetrahedron", "i", "iiiii"},
    {"Prisms", "Prism", "i", "iiiiiii"},
    {"Hexahedra", "Hexahedron", "i", "iiiiiiiii"},
-   {"IterationsAll", "IterationAll","","i"},
-   {"TimesAll", "TimeAll","","r"},               
+   {"Reserved", "", "", ""},
+   {"Reserved", "", "", ""},
    {"Corners", "Corner", "i", "i"},
    {"Ridges", "Ridge", "i", "i"},
    {"RequiredVertices", "RequiredVertex", "i", "i"},
@@ -267,25 +267,25 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4] =
    {"ExtraVerticesAtTetrahedra", "ExtraVerticesAtTetrahedron", "i", "in"},
    {"ExtraVerticesAtPrisms", "ExtraVerticesAtPrism", "i", "in"},
    {"ExtraVerticesAtHexahedra", "ExtraVerticesAtHexahedron", "i", "in"},
-   {"VerticesOnGeometricVertices", "VertexOnGeometricVertex", "i", "iir"},
+   {"VerticesOnGeometricVertices", "VertexOnGeometricVertex", "i", "ii"},
    {"VerticesOnGeometricEdges", "VertexOnGeometricEdge", "i", "iirr"},
    {"VerticesOnGeometricTriangles", "VertexOnGeometricTriangle", "i", "iirrr"},
    {"VerticesOnGeometricQuadrilaterals", "VertexOnGeometricQuadrilateral", "i", "iirrr"},
-   {"EdgesOnGeometricEdges", "EdgeOnGeometricEdge", "i", "iir"},
+   {"EdgesOnGeometricEdges", "EdgeOnGeometricEdge", "i", "ii"},
    {"Fault_FreeEdge", "Fault_FreeEdge", "i", "i"},
    {"Polyhedra", "Polyhedron", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
    {"Polygons", "Polygon", "", "iiiiiiiii"},
    {"Fault_Overlap", "Fault_Overlap", "i", "i"},
    {"Pyramids", "Pyramid", "i", "iiiiii"},
    {"BoundingBox", "", "", "drdr"},
-   {"Body","i", "drdrdrdr"},
+   {"Reserved", "", "", ""},
    {"PrivateTable", "PrivateTable", "i", "i"},
    {"Fault_BadShape", "Fault_BadShape", "i", "i"},
    {"End", "", "", ""},
-   {"TrianglesOnGeometricTriangles", "TriangleOnGeometricTriangle", "i", "iir"},
-   {"TrianglesOnGeometricQuadrilaterals", "TriangleOnGeometricQuadrilateral", "i", "iir"},
-   {"QuadrilateralsOnGeometricTriangles", "QuadrilateralOnGeometricTriangle", "i", "iir"},
-   {"QuadrilateralsOnGeometricQuadrilaterals", "QuadrilateralOnGeometricQuadrilateral", "i", "iir"},
+   {"TrianglesOnGeometricTriangles", "TriangleOnGeometricTriangle", "i", "ii"},
+   {"TrianglesOnGeometricQuadrilaterals", "TriangleOnGeometricQuadrilateral", "i", "ii"},
+   {"QuadrilateralsOnGeometricTriangles", "QuadrilateralOnGeometricTriangle", "i", "ii"},
+   {"QuadrilateralsOnGeometricQuadrilaterals", "QuadrilateralOnGeometricQuadrilateral", "i", "ii"},
    {"Tangents", "Tangent", "i", "dr"},
    {"Normals", "Normal", "i", "dr"},
    {"TangentAtVertices", "TangentAtVertex", "i", "ii"},
@@ -321,9 +321,9 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4] =
    {"TrianglesP4", "TriangleP4", "i", "iiiiiiiiiiiiiiii"},
    {"EdgesP3", "EdgeP3", "i", "iiiii"},
    {"EdgesP4", "EdgeP4", "i", "iiiiii"},
-   {"IRefGroups", "IRefGroup", "i", "c,i,i,i"},
-   {"DRefGroups", "DRefGroup", "i", "i,i"}
- };
+   {"IRefGroups", "IRefGroup", "i", "ciii"},
+   {"DRefGroups", "DRefGroup", "i", "iii"}
+};
 
 #ifdef TRANSMESH
 int GmfMaxRefTab[ GmfMaxKwd + 1 ];
@@ -376,6 +376,7 @@ static void    CalF77Prc(int64_t, int64_t, void *, int, void **);
       if( fread(ptr, siz, nit, str) != nit ) \
          longjmp( JmpErr, -1); \
    } while(0)
+
 
 /*----------------------------------------------------------------------------*/
 /* Open a mesh file in read or write mode                                     */
