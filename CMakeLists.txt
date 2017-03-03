@@ -13,10 +13,7 @@ if (WIN32)
    set (CMAKE_CONFIGURATION_TYPES "Release")
 else ()
    set (CMAKE_C_FLAGS "-O3")
-   if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-      set (CMAKE_INSTALL_PREFIX "/opt/libMeshb" CACHE PATH
-         "Default libMeshb install path" FORCE)
-   endif ()
+   set (CMAKE_Fortran_FLAGS "-O3")
 endif ()
 
 project (libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)

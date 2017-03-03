@@ -26,7 +26,7 @@ Simply follow these steps:
 - `cd libMeshb-master`
 - `mkdir build`
 - `cd build`
-- `cmake -DCMAKE_INSTALL_PREFIX=%HOMEPATH%\libMeshb ..\`
+- `cmake -DCMAKE_INSTALL_PREFIX=%HOMEPATH%\local ..\`
 - `cmake --build . --config Release --target INSTALL`
 
 # Usage

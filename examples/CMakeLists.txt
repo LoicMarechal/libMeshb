@@ -22,8 +22,6 @@ install (TARGETS test_libmeshb_sol DESTINATION share/libMeshb/examples COMPONENT
 
 
 if (CMAKE_Fortran_COMPILER)
-   set (CMAKE_Fortran_FLAGS "-O3")
-
    add_executable(test_libmeshb_f77 test_libmeshb.f)
    target_link_libraries(test_libmeshb_f77 Meshbf.7)
    install (TARGETS test_libmeshb_f77 DESTINATION share/libMeshb/examples COMPONENT examples)
