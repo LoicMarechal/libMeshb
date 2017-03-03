@@ -14,7 +14,9 @@ Can call user's own pre and post processing routines in a separate thread while 
 Simply follow these steps:
 - unarchive the ZIP file
 - `cd libMeshb-master`
-- `cmake .`
+- `mkdir build`
+- `cd build`
+- `cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../`
 - `make`
 - `make install`
 
