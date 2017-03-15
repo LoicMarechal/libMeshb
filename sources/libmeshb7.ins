@@ -2,14 +2,14 @@
 
 c----------------------------------------------------------
 c
-c                     LIBMESH V 7.24
+c                     LIBMESH V 7.26
 c 
 c----------------------------------------------------------
 c
 c   Description:         handles .meshb file format I/O
 c   Author:              Loic MARECHAL
 c   Creation date:       dec 08 2015
-c   Last modification:   jan 04 2017
+c   Last modification:   mar 15 2017
 c
 c----------------------------------------------------------
 
@@ -51,7 +51,7 @@ c     Parameters definition
       integer gmflong
 
       parameter (gmfmaxtyp=1000)
-      parameter (gmfmaxkwd=93)
+      parameter (gmfmaxkwd=103)
       parameter (gmfread=1)
       parameter (gmfwrite=2)
       parameter (gmfsca=1)
@@ -157,8 +157,16 @@ c     Keywords list
       integer gmftrianglesp4
       integer gmfedgesp3
       integer gmfedgesp4
-      integer GmfIRefGroups
-      integer GmfDRefGroups
+      integer gmfirefgroups
+      integer gmfdrefgroups
+      integer gmftetrahedrap3
+      integer gmftetrahedrap4
+      integer gmfhexahedraq3
+      integer gmfhexahedraq4
+      integer gmfpyramidsp3
+      integer gmfpyramidsp4
+      integer gmfprismsp3
+      integer gmfprismsp4
       
 
       parameter (gmfmeshversionformatted=1)
@@ -253,6 +261,13 @@ c     Keywords list
       parameter (gmftrianglesp4=91)
       parameter (gmfedgesp3=92)
       parameter (gmfedgesp4=93)
-      parameter (GmfIRefGroups=94)
-      parameter (GmfDRefGroups=95)
-      
+      parameter (gmfirefgroups=94)
+      parameter (gmfdrefgroups=95)
+      parameter (gmftetrahedrap3=96)
+      parameter (gmftetrahedrap4=97)
+      parameter (gmfhexahedraq3=98)
+      parameter (gmfhexahedraq4=99)
+      parameter (gmfpyramidsp3=100)
+      parameter (gmfpyramidsp4=101)
+      parameter (gmfprismsp3=102)
+      parameter (gmfprismsp4=103)
