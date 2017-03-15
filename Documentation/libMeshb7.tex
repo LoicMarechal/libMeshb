@@ -36,9 +36,9 @@
 
 \begin{flushright}
 \Large Lo\"ic MAR\'ECHAL / INRIA, Gamma Project\\
-\Large February 2017 \\
+\Large March 2017 \\
 \normalsize Document v1.7 \\
-\normalsize Library v7.25
+\normalsize Library v7.26
 \end{flushright}
 
 \end{titlepage}
@@ -747,7 +747,7 @@ Works exactly as GmfGetBlock exept that all lines are written, you cannot specif
 int ref[nv];
 double x[nv], y[nv], z[nv];
 
-GmfSetBlock(MeshIndex, GmfVertices, FlipRefs, ref, \
+GmfSetBlock(MeshIndex, GmfVertices, 1, nv, FlipRefs, ref, \
             GmfDouble, &x[1],   &x[nv], \
             GmfDouble, &y[1],   &y[nv], \
             GmfDouble, &z[1],   &z[nv], \
