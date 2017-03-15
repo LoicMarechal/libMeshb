@@ -6,11 +6,11 @@ c     using fast block transfer and pipelined post processing
 
       external qad2tri
 
-	  integer n
-	  parameter (n=4000)
+      integer n
+      parameter (n=4000)
       integer i, ver, dim, res
      +, RefTab(n), TriTab(4,2*n), QadTab(5,n)
-	  integer*8 InpMsh, OutMsh, NmbVer, NmbQad
+      integer*8 InpMsh, OutMsh, NmbVer, NmbQad
       real*8 VerTab(3,n)
 
 
@@ -29,7 +29,7 @@ c     Check memory bounds
       if(NmbVer.gt.n) STOP 'Too many vertices'
 
       NmbQad = gmfstatkwd(InpMsh, GmfQuadrilaterals)
-	  if(NmbQad.gt.n) STOP 'Too many quads'
+      if(NmbQad.gt.n) STOP 'Too many quads'
 
 c     Print some information on the open file
       print*, 'input mesh  :', InpMsh
@@ -39,14 +39,14 @@ c     Print some information on the open file
       print*, 'quads       :', NmbQad
 
 c     Read the vertices
-	  res = gmfgetblock(InpMsh,GmfVertices,1_8,NmbVer,0_8,
+      res = gmfgetblock(InpMsh,GmfVertices,1_8,NmbVer,%val(0),
      +         GmfDouble, VerTab(1,1), VerTab(1,NmbVer),
      +         GmfDouble, VerTab(2,1), VerTab(2,NmbVer),
      +         GmfDouble, VerTab(3,1), VerTab(3,NmbVer),
      +         GmfInt,    RefTab(1),   RefTab(NmbVer))
 
 c     Read the quads
-	 res = gmfgetblock(InpMsh,GmfQuadrilaterals,1_8,NmbQad,0_8,
+      res = gmfgetblock(InpMsh,GmfQuadrilaterals,1_8,NmbQad,%val(0),
      +         GmfInt, QadTab(1,1), QadTab(1,NmbQad),
      +         GmfInt, QadTab(2,1), QadTab(2,NmbQad),
      +         GmfInt, QadTab(3,1), QadTab(3,NmbQad),
@@ -65,23 +65,23 @@ c     -----------------------
       if(OutMsh.eq.0) STOP ' OutMsh = 0'
 
 c     Set the number of vertices
-	  res = gmfsetkwd(OutMsh, GmfVertices, NmbVer, 0 , 0)
+      res = gmfsetkwd(OutMsh, GmfVertices, NmbVer, 0, 0)
 
 c     Then write them down
-	  res = gmfsetblock(OutMsh, GmfVertices, 0,
+      res = gmfsetblock(OutMsh,GmfVertices,1_8,NmbVer,0,0,%val(0),
      +                      GmfDouble, VerTab(1,1), VerTab(1,NmbVer),
      +                      GmfDouble, VerTab(2,1), VerTab(2,NmbVer),
      +                      GmfDouble, VerTab(3,1), VerTab(3,NmbVer),
      +                      GmfInt,    RefTab(1),   RefTab(NmbVer))
 
 c     Write the triangles
-	  res = gmfsetkwd(OutMsh, GmfTriangles, 2*NmbQad, 0, 0)
-	  res = gmfsetblock(    OutMsh, GmfTriangles,
-     +                      qad2tri, 2, QadTab, TriTab,
-     +                      GmfInt, TriTab(1,1), TriTab(1,2*NmbQad),
-     +                      GmfInt, TriTab(2,1), TriTab(2,2*NmbQad),
-     +                      GmfInt, TriTab(3,1), TriTab(3,2*NmbQad),
-     +                      GmfInt, TriTab(4,1), TriTab(4,2*NmbQad))
+      res = gmfsetkwd(OutMsh, GmfTriangles, 2*NmbQad, 0, 0)
+      res = gmfsetblock(OutMsh, GmfTriangles,1_8,2*NmbQad,0,0,
+     +                  qad2tri, 2, QadTab, TriTab,
+     +                  GmfInt, TriTab(1,1), TriTab(1,2*NmbQad),
+     +                  GmfInt, TriTab(2,1), TriTab(2,2*NmbQad),
+     +                  GmfInt, TriTab(3,1), TriTab(3,2*NmbQad),
+     +                  GmfInt, TriTab(4,1), TriTab(4,2*NmbQad))
 
 c     Don't forget to close the file
       res = gmfclosemesh(OutMsh)
@@ -94,24 +94,24 @@ c     Don't forget to close the file
 
 c     A subroutine that reads quads ans splits them into triangles
 c     it is executed concurently with the block writing
-	  subroutine qad2tri(BegIdx,EndIdx,QadTab,TriTab)
+      subroutine qad2tri(BegIdx,EndIdx,QadTab,TriTab)
 
-	  integer*8 i,BegIdx,EndIdx
-	  integer TriTab(4,*),QadTab(5,*)
+      integer*8 i,BegIdx,EndIdx
+      integer TriTab(4,*),QadTab(5,*)
 
-	  do i = BegIdx,EndIdx
-		  if(mod(i,2) .EQ. 1) then
-			  TriTab(1,i) = QadTab(1,(i+1)/2)
-			  TriTab(2,i) = QadTab(2,(i+1)/2)
-			  TriTab(3,i) = QadTab(3,(i+1)/2)
-			  TriTab(4,i) = QadTab(5,(i+1)/2)
-		  else
-			  TriTab(1,i) = QadTab(1,(i+1)/2)
-			  TriTab(2,i) = QadTab(3,(i+1)/2)
-			  TriTab(3,i) = QadTab(4,(i+1)/2)
-			  TriTab(4,i) = QadTab(5,(i+1)/2)
-		  endif
-	  end do
+      do i = BegIdx,EndIdx
+         if(mod(i,2) .EQ. 1) then
+            TriTab(1,i) = QadTab(1,(i+1)/2)
+            TriTab(2,i) = QadTab(2,(i+1)/2)
+            TriTab(3,i) = QadTab(3,(i+1)/2)
+            TriTab(4,i) = QadTab(5,(i+1)/2)
+         else
+            TriTab(1,i) = QadTab(1,(i+1)/2)
+            TriTab(2,i) = QadTab(3,(i+1)/2)
+            TriTab(3,i) = QadTab(4,(i+1)/2)
+            TriTab(4,i) = QadTab(5,(i+1)/2)
+         endif
+      end do
 
-	  return
-	  end
+      return
+      end

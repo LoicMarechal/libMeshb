@@ -1,6 +1,6 @@
 
-/* libMeshb 7.2 basic example: read a quad mesh, split it into triangles
-   and write the result back using fast block transfer */
+// libMeshb 7.2 basic example: read a quad mesh, split it into triangles
+// and write the result back using fast block transfer
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -94,7 +94,7 @@ int main()
 
    // Write the vertices
    GmfSetKwd(OutMsh, GmfVertices, NmbVer);
-   GmfSetBlock(OutMsh, GmfVertices, NULL, \
+   GmfSetBlock(OutMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL, \
                GmfFloat, &VerTab[1][0], &VerTab[ NmbVer ][0], \
                GmfFloat, &VerTab[1][1], &VerTab[ NmbVer ][1], \
                GmfFloat, &VerTab[1][2], &VerTab[ NmbVer ][2], \
@@ -102,7 +102,7 @@ int main()
 
    // Write the triangles
    GmfSetKwd(OutMsh, GmfTriangles, 2*NmbQad);
-   GmfSetBlock(OutMsh, GmfTriangles, NULL, \
+   GmfSetBlock(OutMsh, GmfTriangles, 1, 2*NmbQad, 0, NULL, NULL, \
                GmfInt, &TriTab[1][0], &TriTab[ 2*NmbQad ][0], \
                GmfInt, &TriTab[1][1], &TriTab[ 2*NmbQad ][1], \
                GmfInt, &TriTab[1][2], &TriTab[ 2*NmbQad ][2], \
