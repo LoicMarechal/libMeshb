@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.25                               */
+/*                               LIBMESH V 7.26                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  mar 02 2017                                          */
+/*   Last modification:  mar 14 2017                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -31,7 +31,6 @@
 // Pass parameters as pointers in Fortran
 #define VALF77(v) *v
 #define TYPF77(t) t*
-#define PRCF77(p) *((int *)p)
 
 #else
 
@@ -39,7 +38,6 @@
 #define NAMF77(c,f) c
 #define VALF77(v) v
 #define TYPF77(t) t
-#define PRCF77(p) p
 
 #endif
 
@@ -322,7 +320,15 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4] =
    {"EdgesP3", "EdgeP3", "i", "iiiii"},
    {"EdgesP4", "EdgeP4", "i", "iiiiii"},
    {"IRefGroups", "IRefGroup", "i", "ciii"},
-   {"DRefGroups", "DRefGroup", "i", "iii"}
+   {"DRefGroups", "DRefGroup", "i", "iii"},
+   {"TetrahedraP3", "TetrahedronP3", "i", "iiiiiiiiiiiiiiiiiiiii"},
+   {"TetrahedraP4", "TetrahedronP4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"HexahedraQ3", "HexahedronQ3", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"HexahedraQ4", "HexahedronQ4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"PyramidsP3", "PyramidP3", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"PyramidsP4", "PyramidP4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"PrismsP3", "PrismP3", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"PrismsP4", "PrismP4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"}
 };
 
 #ifdef TRANSMESH
@@ -1220,13 +1226,13 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 /*----------------------------------------------------------------------------*/
 
 int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
-                                       TYPF77(int) KwdCod, \
+                                       TYPF77(int)     KwdCod, \
                                        TYPF77(int64_t) BegIdx, \
                                        TYPF77(int64_t) EndIdx, \
                                        void *prc, ... )
 {
    char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
-   char *FilPos, **SolTab1=NULL, **SolTab2=NULL;
+   char *FilPos, **SolTab1=NULL, **SolTab2=NULL, *EndUsrDat;
    // [Bruno] "%lld" -> INT64_T_FMT
    char *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
    int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
@@ -1282,7 +1288,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
 
    // Get the user's preporcessing procedure and argument adresses, if any
 #ifdef F77API
-   if(PRCF77(prc))
+   if(prc)
    {
       UsrPrc = (void (*)(int64_t, int64_t, void *))prc;
       NmbArg = *(va_arg(VarArg, int *));
@@ -1298,15 +1304,18 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
    }
 #endif
 
-   /* Get the user's data type and pointers to first and last adresses
-      in order to compute the stride */
-
+   // Get the user's data type and pointers to first
+   // and last adresses in order to compute the stride
    for(i=0;i<kwd->SolSiz;i++)
    {
+      // The user stored the pointers in a table instea
+      // of giving them explicitely as separate arguments
       if(!SolTabTyp)
       {
+         // All fields belong to the same type
          typ = VALF77(va_arg(VarArg, TYPF77(int)));
 
+         // But each field has its own pointers to the beggining and end
          if( (typ == GmfFloatTable) || (typ == GmfDoubleTable) )
          {
             if(typ == GmfFloatTable)
@@ -1321,6 +1330,8 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
 
       if(SolTabTyp)
       {
+         // In case of a table of pointers,
+         // extract the tables base pointers and stride
          UsrTyp[i] = SolTabTyp;
          UsrDat[i] = *(SolTab1 + i);
          UsrLen[i] = (UsrNmbLin > 1) ? \
@@ -1328,10 +1339,13 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
       }
       else
       {
+         // Otherwise, get the type, beggin and end pointers
+         // from the variable arguments
          UsrTyp[i] = typ;
          UsrDat[i] = va_arg(VarArg, char *);
+         EndUsrDat = va_arg(VarArg, char *);
          UsrLen[i] = (UsrNmbLin > 1) ? \
-                     (size_t)(va_arg(VarArg, char *) - UsrDat[i]) / (UsrNmbLin - 1) : 0;
+                     (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1) : 0;
       }
 
       // Get the file's data type
@@ -1363,10 +1377,9 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
          {
             safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] ], UsrDat[j], msh->err);
 
-            /* Move to the next user's data line only when the desired
-               begining position in the ascii file has been reached since
-               we cannot move directly to an arbitrary position */
-
+            // Move to the next user's data line only when the desired
+            // begining position in the ascii file has been reached since
+            // we cannot move directly to an arbitrary position
             if(i >= FilBegIdx)
                UsrDat[j] += UsrLen[j];
          }
@@ -1404,9 +1417,8 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
       // Loop over N+1 blocks
       for(b=0;b<=NmbBlk+1;b++)
       {
-         /* Wait for the previous block read to complete except
-            for the first loop interation */
-
+         // Wait for the previous block read to complete except
+         // for the first loop interation
          if(b)
          {
             while(aio_error(&aio) == EINPROGRESS);
@@ -1468,9 +1480,8 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
             }
          }
 
-         /* Then decode the block and store it in the user's data structure
-            except for the first loop interation */
-
+         // Then decode the block and store it in the user's data structure
+         // except for the first loop interation
          if(b)
          {
             // The last block is shorter than the others
@@ -1578,15 +1589,21 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
 /* Bufferized writing of all keyword's lines                                  */
 /*----------------------------------------------------------------------------*/
 
-int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(int64_t) MshIdx, \
-                                     TYPF77(int) KwdCod, void *prc, ...)
+int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
+                                       TYPF77(int)     KwdCod, \
+                                       TYPF77(int64_t) BegIdx, \
+                                       TYPF77(int64_t) EndIdx, \
+                                       TYPF77(int)     MapTyp, \
+                                       void           *MapTab, \
+                                       void *prc, ... )
 {
    char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
    char *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" }, *FilPos;
+   char *UsrBas[ GmfMaxTyp ], **SolTab1=NULL, **SolTab2=NULL, *EndUsrDat;
    int i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
    int UsrTyp[ GmfMaxTyp ], NmbBlk, b, SizTab[5] = {0,4,8,4,8};
-   int err, ret;
-   int64_t *FilPtrI64, *UsrPtrI64, BegIdx, EndIdx=0, NmbLin=0;
+   int err, ret, typ, SolTabTyp=0, *IntMapTab=NULL;
+   int64_t *FilPtrI64, *UsrPtrI64, BlkNmbLin=0, BlkBegIdx, BlkEndIdx=0, *LngMapTab=NULL;
    float *FilPtrR32, *UsrPtrR32;
    double *FilPtrR64, *UsrPtrR64;
    void (*UsrPrc)(int64_t, int64_t, void *) = NULL;
@@ -1594,6 +1611,8 @@ int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(int64_t) MshIdx, \
    va_list VarArg;
    GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
    KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   //int64_t FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx), UsrNmbLin;
+   int64_t FilBegIdx = 1, FilEndIdx = kwd->NmbLin, UsrNmbLin, OldIdx=0;
    struct aiocb aio;
 #ifdef F77API
    int NmbArg = 0;
@@ -1619,13 +1638,25 @@ int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(int64_t) MshIdx, \
    if( (kwd->typ != RegKwd) && (kwd->typ != SolKwd) )
       return(0);
 
+   // Check user's bounds
+   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > kwd->NmbLin) )
+      return(0);
+
+   // Compute the number of lines to be read
+   UsrNmbLin = FilEndIdx - FilBegIdx + 1;
+
+   if(VALF77(MapTyp == GmfInt))
+      IntMapTab = (int *)MapTab;
+   else if(VALF77(MapTyp == GmfLong))
+      LngMapTab = (int64_t *)MapTab;
+
    // Start decoding the arguments
    va_start(VarArg, prc);
    LinSiz = 0;
 
    // Get the user's postprocessing procedure and argument adresses, if any
 #ifdef F77API
-   if(PRCF77(prc))
+   if(prc)
    {
       UsrPrc = (void (*)(int64_t, int64_t, void *))prc;
       NmbArg = *(va_arg(VarArg, int *));
@@ -1642,13 +1673,45 @@ int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(int64_t) MshIdx, \
 #endif
    for(i=0;i<kwd->SolSiz;i++)
    {
-      /* Get the user's data type and pointers to first
-         and last adress to compute the stride */
+      // The user stored the pointers in a table instea
+      // of giving them explicitely as separate arguments
+      if(!SolTabTyp)
+      {
+         // All fields belong to the same type
+         typ = VALF77(va_arg(VarArg, TYPF77(int)));
 
-      UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));
-      UsrDat[i] = va_arg(VarArg, char *);
-      UsrLen[i] = (kwd->NmbLin > 1) ? \
-                  (size_t)(va_arg(VarArg, char *) - UsrDat[i]) / (kwd->NmbLin - 1) : 0;
+         // But each field has its own pointers to the beggining and end
+         if( (typ == GmfFloatTable) || (typ == GmfDoubleTable) )
+         {
+            if(typ == GmfFloatTable)
+               SolTabTyp = GmfFloat;
+            else
+               SolTabTyp = GmfDouble;
+
+            SolTab1 = va_arg(VarArg, char **);
+            SolTab2 = va_arg(VarArg, char **);
+         }
+      }
+
+      if(SolTabTyp)
+      {
+         // In case of a table of pointers,
+         // extract the tables base pointers and stride
+         UsrTyp[i] = SolTabTyp;
+         UsrDat[i] = UsrBas[i] = *(SolTab1 + i);
+         UsrLen[i] = (UsrNmbLin > 1) ? \
+                     (size_t)(SolTab2[i] - SolTab1[i]) / (UsrNmbLin - 1) : 0;
+      }
+      else
+      {
+         // Otherwise, get the type, beggin and end pointers
+         // from the variable arguments
+         UsrTyp[i] = typ;
+         UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
+         EndUsrDat = va_arg(VarArg, char *);
+         UsrLen[i] = (UsrNmbLin > 1) ? \
+                     (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1) : 0;
+      }
 
       // Get the file's data type
       if(kwd->fmt[i] == 'r')
@@ -1678,7 +1741,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(int64_t) MshIdx, \
          UsrPrc(1, kwd->NmbLin, UsrArg);
 #endif
 
-      for(i=0;i<kwd->NmbLin;i++)
+      for(i=FilBegIdx; i<=FilEndIdx; i++)
          for(j=0;j<kwd->SolSiz;j++)
          {
             if(UsrTyp[j] == GmfFloat)
@@ -1729,17 +1792,16 @@ int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(int64_t) MshIdx, \
 #endif
       aio.aio_offset = GetFilPos(msh);
 
-      NmbBlk = kwd->NmbLin / BufSiz;
+      NmbBlk = UsrNmbLin / BufSiz;
 
       // Loop over N+1 blocks
       for(b=0;b<=NmbBlk+1;b++)
       {
-         /* Launch an asynchronous block write
-            except for the first loop iteration */
-
+         // Launch an asynchronous block write
+         // except for the first loop iteration
          if(b)
          {
-            aio.aio_nbytes = NmbLin * LinSiz;
+            aio.aio_nbytes = BlkNmbLin * LinSiz;
             
             if(aio_write(&aio) == -1)
             {
@@ -1761,27 +1823,36 @@ int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(int64_t) MshIdx, \
          {
             // The last block is shorter
             if(b == NmbBlk)
-               NmbLin = kwd->NmbLin - b * BufSiz;
+               BlkNmbLin = UsrNmbLin - b * BufSiz;
             else
-               NmbLin = BufSiz;
+               BlkNmbLin = BufSiz;
 
             FilPos = FilBuf;
-            BegIdx = EndIdx+1;
-            EndIdx += NmbLin;
+            BlkBegIdx = BlkEndIdx+1;
+            BlkEndIdx += BlkNmbLin;
 
             // Call user's preprocessing first
             if(UsrPrc)
 #ifdef F77API
-               CalF77Prc(BegIdx, EndIdx, UsrPrc, NmbArg, ArgTab);
+               CalF77Prc(BlkBegIdx, BlkEndIdx, UsrPrc, NmbArg, ArgTab);
 #else
-               UsrPrc(BegIdx, EndIdx, UsrArg);
+               UsrPrc(BlkBegIdx, BlkEndIdx, UsrArg);
 #endif
 
             // Then copy it's data to the file buffer
-            for(i=0;i<NmbLin;i++)
+            for(i=0;i<BlkNmbLin;i++)
             {
+               OldIdx++;
+
                for(j=0;j<kwd->SolSiz;j++)
                {
+                  if(IntMapTab)
+                     UsrDat[j] = UsrBas[j] + (IntMapTab[ OldIdx ] - 1) * UsrLen[j];
+                  else if(LngMapTab)
+                     UsrDat[j] = UsrBas[j] + (LngMapTab[ OldIdx ] - 1) * UsrLen[j];
+                  else
+                     UsrDat[j] = UsrBas[j] + (OldIdx - 1) * UsrLen[j];
+
                   if(FilTyp[j] == GmfInt)
                   {
                      FilPtrI32 = (int *)FilPos;
@@ -1844,7 +1915,6 @@ int NAMF77(GmfSetBlock, gmfsetblock)(TYPF77(int64_t) MshIdx, \
                   }
 
                   FilPos += SizTab[ FilTyp[j] ];
-                  UsrDat[j] += UsrLen[j];
                }
             }
          }
@@ -2026,10 +2096,10 @@ static void ExpFmt(GmfMshSct *msh, int KwdCod)
       for(i=0;i<kwd->NmbTyp;i++)
          switch(kwd->TypTab[i])
          {
-            case GmfSca   : TmpSiz += 1; break;
-            case GmfVec   : TmpSiz += msh->dim; break;
+            case GmfSca    : TmpSiz += 1; break;
+            case GmfVec    : TmpSiz += msh->dim; break;
             case GmfSymMat : TmpSiz += (msh->dim * (msh->dim+1)) / 2; break;
-            case GmfMat   : TmpSiz += msh->dim * msh->dim; break;
+            case GmfMat    : TmpSiz += msh->dim * msh->dim; break;
          }
 
    // Scan each character from the format string
