@@ -9,7 +9,7 @@
 /* Description:         convert mesh file from/to ascii/bin                   */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 08 2004                                           */
-/* Last modification:   feb 10 2017                                           */
+/* Last modification:   mar 29 2017                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -206,7 +206,7 @@ int main(int ArgCnt, char **ArgVec)
       if(strcmp("i", GmfKwdFmt[i][2]))
       {
          if((NmbLin = GmfStatKwd(InpIdx, i)))
-            GmfSetKwd(OutIdx, i);
+            GmfSetKwd(OutIdx, i, 0);
          else
             continue;
       }
