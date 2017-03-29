@@ -163,7 +163,7 @@ extern "C" {
 extern int64_t GmfOpenMesh(const char *, int, ...);
 extern int     GmfCloseMesh(int64_t);
 extern int64_t GmfStatKwd(int64_t, int, ...);
-extern int     GmfSetKwd(int64_t, int, ...);
+extern int     GmfSetKwd(int64_t, int, int64_t, ...);
 extern int     GmfGotoKwd(int64_t, int);
 extern int     GmfGetLin(int64_t, int, ...);
 extern int     GmfSetLin(int64_t, int, ...);
