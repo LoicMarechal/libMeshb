@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.26                               */
+/*                               LIBMESH V 7.27                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  mar 14 2017                                          */
+/*   Last modification:  apr 18 2017                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -424,9 +424,8 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 
    strcpy(msh->FilNam, FilNam);
 
-   /* Store the opening mod (read or write) and guess the filetype 
-      (binary or ascii) depending on the extension */
-
+   // Store the opening mod (read or write) and guess
+   // the filetype (binary or ascii) depending on the extension
    msh->mod = mod;
    msh->buf = (void *)msh->DblBuf;
    msh->FltBuf = (void *)msh->DblBuf;
@@ -456,9 +455,8 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       PtrDim = va_arg(VarArg, int *);
       va_end(VarArg);
 
-      /* Read the endian coding tag, the mesh version
-         and the mesh dimension (mandatory kwd) */
-
+      // Read the endian coding tag, the mesh version
+      // and the mesh dimension (mandatory kwd)
       if(msh->typ & Bin)
       {
          // Create the name string and open the file
@@ -557,7 +555,6 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       msh->cod = 1;
 
       // Check if the user provided a valid version number and dimension
-
       va_start(VarArg, mod);
       msh->ver = va_arg(VarArg, int);
       msh->dim = va_arg(VarArg, int);
@@ -1221,16 +1218,19 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
                                        TYPF77(int)     KwdCod, \
                                        TYPF77(int64_t) BegIdx, \
                                        TYPF77(int64_t) EndIdx, \
-                                       void *prc, ... )
+                                       TYPF77(int)     MapTyp, \
+                                       void           *MapTab, \
+                                       void           *prc, ... )
 {
    char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
-   char *FilPos, **SolTab1=NULL, **SolTab2=NULL, *EndUsrDat;
+   char *UsrBas[ GmfMaxTyp ], *FilPos, **SolTab1=NULL, **SolTab2=NULL, *EndUsrDat;
    // [Bruno] "%lld" -> INT64_T_FMT
    char *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
    int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
    int UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8}, err, ret, typ;
-   int SolTabTyp = 0;
+   int SolTabTyp = 0, *IntMapTab=NULL;;
    int64_t BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx=0;
+   int64_t *LngMapTab=NULL, OldIdx=0;
    float *FilPtrR32, *UsrPtrR32;
    double *FilPtrR64, *UsrPtrR64;
    void (*UsrPrc)(int64_t, int64_t, void *) = NULL;
@@ -1274,6 +1274,12 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
    // Compute the number of lines to be read
    UsrNmbLin = FilEndIdx - FilBegIdx + 1;
 
+   // Get the renumbering map if any
+   if(VALF77(MapTyp) == GmfInt)
+      IntMapTab = (int *)MapTab;
+   else if(VALF77(MapTyp) == GmfLong)
+      LngMapTab = (int64_t *)MapTab;
+
    // Start decoding the arguments
    va_start(VarArg, prc);
    LinSiz = 0;
@@ -1307,7 +1313,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
          // All fields belong to the same type
          typ = VALF77(va_arg(VarArg, TYPF77(int)));
 
-         // But each field has its own pointers to the beggining and end
+         // But each field has its own pointers to the begining and end
          if( (typ == GmfFloatTable) || (typ == GmfDoubleTable) )
          {
             if(typ == GmfFloatTable)
@@ -1325,19 +1331,25 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
          // In case of a table of pointers,
          // extract the tables base pointers and stride
          UsrTyp[i] = SolTabTyp;
-         UsrDat[i] = *(SolTab1 + i);
-         UsrLen[i] = (UsrNmbLin > 1) ? \
-                     (size_t)(SolTab2[i] - SolTab1[i]) / (UsrNmbLin - 1) : 0;
+         UsrDat[i] = UsrBas[i] = *(SolTab1 + i);
+
+         if(UsrNmbLin > 1)
+            UsrLen[i] = (size_t)(SolTab2[i] - SolTab1[i]) / (UsrNmbLin - 1);
+         else
+            UsrLen[i] = 0;
       }
       else
       {
-         // Otherwise, get the type, beggin and end pointers
+         // Otherwise, get the type, begin and end pointers
          // from the variable arguments
          UsrTyp[i] = typ;
-         UsrDat[i] = va_arg(VarArg, char *);
+         UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
          EndUsrDat = va_arg(VarArg, char *);
-         UsrLen[i] = (UsrNmbLin > 1) ? \
-                     (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1) : 0;
+
+         if(UsrNmbLin > 1)
+            UsrLen[i] = (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1);
+         else
+            UsrLen[i] = 0;
       }
 
       // Get the file's data type
@@ -1488,10 +1500,19 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
 
             for(i=0;i<BlkNmbLin;i++)
             {
+               OldIdx++;
+
                for(j=0;j<kwd->SolSiz;j++)
                {
                   if(msh->cod != 1)
                      SwpWrd(FilPos, SizTab[ FilTyp[j] ]);
+
+                  if(IntMapTab)
+                     UsrDat[j] = UsrBas[j] + (IntMapTab[ OldIdx ] - 1) * UsrLen[j];
+                  else if(LngMapTab)
+                     UsrDat[j] = UsrBas[j] + (LngMapTab[ OldIdx ] - 1) * UsrLen[j];
+                  else
+                     UsrDat[j] = UsrBas[j] + (OldIdx - 1) * UsrLen[j];
 
                   if(FilTyp[j] == GmfInt)
                   {
@@ -1587,15 +1608,16 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
                                        TYPF77(int64_t) EndIdx, \
                                        TYPF77(int)     MapTyp, \
                                        void           *MapTab, \
-                                       void *prc, ... )
+                                       void           *prc, ... )
 {
    char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
    char *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" }, *FilPos;
    char *UsrBas[ GmfMaxTyp ], **SolTab1=NULL, **SolTab2=NULL, *EndUsrDat;
    int i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
    int UsrTyp[ GmfMaxTyp ], NmbBlk, b, SizTab[5] = {0,4,8,4,8};
-   int err, ret, typ, SolTabTyp=0, *IntMapTab=NULL;
-   int64_t *FilPtrI64, *UsrPtrI64, BlkNmbLin=0, BlkBegIdx, BlkEndIdx=0, *LngMapTab=NULL;
+   int err, ret, typ, SolTabTyp=0, *IntMapTab = NULL;
+   int64_t *FilPtrI64, *UsrPtrI64, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
+   int64_t *LngMapTab = NULL;
    float *FilPtrR32, *UsrPtrR32;
    double *FilPtrR64, *UsrPtrR64;
    void (*UsrPrc)(int64_t, int64_t, void *) = NULL;
@@ -1634,12 +1656,13 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
    if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > kwd->NmbLin) )
       return(0);
 
-   // Compute the number of lines to be read
+   // Compute the number of lines to be written
    UsrNmbLin = FilEndIdx - FilBegIdx + 1;
 
-   if(VALF77(MapTyp == GmfInt))
+   // Get the renumbering map if any
+   if(VALF77(MapTyp) == GmfInt)
       IntMapTab = (int *)MapTab;
-   else if(VALF77(MapTyp == GmfLong))
+   else if(VALF77(MapTyp) == GmfLong)
       LngMapTab = (int64_t *)MapTab;
 
    // Start decoding the arguments
@@ -1672,7 +1695,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
          // All fields belong to the same type
          typ = VALF77(va_arg(VarArg, TYPF77(int)));
 
-         // But each field has its own pointers to the beggining and end
+         // But each field has its own pointers to the begining and end
          if( (typ == GmfFloatTable) || (typ == GmfDoubleTable) )
          {
             if(typ == GmfFloatTable)
@@ -1691,18 +1714,24 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
          // extract the tables base pointers and stride
          UsrTyp[i] = SolTabTyp;
          UsrDat[i] = UsrBas[i] = *(SolTab1 + i);
-         UsrLen[i] = (UsrNmbLin > 1) ? \
-                     (size_t)(SolTab2[i] - SolTab1[i]) / (UsrNmbLin - 1) : 0;
+
+         if(UsrNmbLin > 1)
+            UsrLen[i] = (size_t)(SolTab2[i] - SolTab1[i]) / (UsrNmbLin - 1);
+         else
+            UsrLen[i] = 0;
       }
       else
       {
-         // Otherwise, get the type, beggin and end pointers
+         // Otherwise, get the type, begin and end pointers
          // from the variable arguments
          UsrTyp[i] = typ;
          UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
          EndUsrDat = va_arg(VarArg, char *);
-         UsrLen[i] = (UsrNmbLin > 1) ? \
-                     (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1) : 0;
+
+         if(UsrNmbLin > 1)
+            UsrLen[i] = (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1);
+         else
+            UsrLen[i] = 0;
       }
 
       // Get the file's data type
@@ -1974,10 +2003,8 @@ static int ScaKwdTab(GmfMshSct *msh)
          // Fast test in order to reject quickly the numeric values
          if(isalpha(str[0]))
          {
-            /* Search which kwd code this string is associated with, 
-               then get its header and save the curent position in file
-               (just before the data) */
-
+            // Search which kwd code this string is associated with, then get its
+            // header and save the curent position in file (just before the data)
             for(KwdCod=1; KwdCod<= GmfMaxKwd; KwdCod++)
                if(!strcmp(str, GmfKwdFmt[ KwdCod ][0]))
                {
@@ -2241,8 +2268,8 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
       msh->pos += siz * WrdSiz;
    }
 
-   /* When the buffer is full or this procedure is APIF77ed with a 0 size,
-      flush the cache on disk */
+   // When the buffer is full or this procedure is APIF77ed with a 0 size,
+   // flush the cache on disk
 
    if( (msh->pos > BufSiz) || (!siz && msh->pos) )
    {

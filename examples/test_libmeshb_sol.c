@@ -37,7 +37,7 @@ int main()
    }
 
    // solution field block reading
-   GmfGetBlock(InpMsh, GmfSolAtVertices, 1, NmbSol, NULL, GmfDoubleTable, PtrTab1, PtrTab2 );
+   GmfGetBlock(InpMsh, GmfSolAtVertices, 1, NmbSol, 0, NULL, NULL, GmfDoubleTable, PtrTab1, PtrTab2 );
 
    // Print each solutions of each vertices
    for(i=1;i<=NmbSol;i++)

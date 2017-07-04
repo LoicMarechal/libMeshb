@@ -39,14 +39,16 @@ c     Print some information on the open file
       print*, 'quads       :', NmbQad
 
 c     Read the vertices
-      res = gmfgetblock(InpMsh,GmfVertices,1_8,NmbVer,%val(0),
+      res = gmfgetblock(InpMsh,GmfVertices,
+     +         1_8, NmbVer, 0, %val(0), %val(0),
      +         GmfDouble, VerTab(1,1), VerTab(1,NmbVer),
      +         GmfDouble, VerTab(2,1), VerTab(2,NmbVer),
      +         GmfDouble, VerTab(3,1), VerTab(3,NmbVer),
      +         GmfInt,    RefTab(1),   RefTab(NmbVer))
 
 c     Read the quads
-      res = gmfgetblock(InpMsh,GmfQuadrilaterals,1_8,NmbQad,%val(0),
+      res = gmfgetblock(InpMsh,GmfQuadrilaterals,
+     +         1_8, NmbQad, 0, %val(0), %val(0),
      +         GmfInt, QadTab(1,1), QadTab(1,NmbQad),
      +         GmfInt, QadTab(2,1), QadTab(2,NmbQad),
      +         GmfInt, QadTab(3,1), QadTab(3,NmbQad),
@@ -68,7 +70,8 @@ c     Set the number of vertices
       res = gmfsetkwd(OutMsh, GmfVertices, NmbVer, 0, 0)
 
 c     Then write them down
-      res = gmfsetblock(OutMsh,GmfVertices,1_8,NmbVer,0,0,%val(0),
+      res = gmfsetblock(OutMsh,GmfVertices,
+     +                      1_8, NmbVer, 0, %val(0), %val(0),
      +                      GmfDouble, VerTab(1,1), VerTab(1,NmbVer),
      +                      GmfDouble, VerTab(2,1), VerTab(2,NmbVer),
      +                      GmfDouble, VerTab(3,1), VerTab(3,NmbVer),
@@ -76,7 +79,8 @@ c     Then write them down
 
 c     Write the triangles
       res = gmfsetkwd(OutMsh, GmfTriangles, 2*NmbQad, 0, 0)
-      res = gmfsetblock(OutMsh, GmfTriangles,1_8,2*NmbQad,0,0,
+      res = gmfsetblock(OutMsh, GmfTriangles,
+     +                  1_8, 2*NmbQad, 0, %val(0),
      +                  qad2tri, 2, QadTab, TriTab,
      +                  GmfInt, TriTab(1,1), TriTab(1,2*NmbQad),
      +                  GmfInt, TriTab(2,1), TriTab(2,2*NmbQad),

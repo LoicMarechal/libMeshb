@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.26                               */
+/*                               LIBMESH V 7.27                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  mar 08 2017                                         */
+/*    Last modification:  apr 18 2017                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -167,7 +167,7 @@ extern int     GmfSetKwd(int64_t, int, int64_t, ...);
 extern int     GmfGotoKwd(int64_t, int);
 extern int     GmfGetLin(int64_t, int, ...);
 extern int     GmfSetLin(int64_t, int, ...);
-extern int     GmfGetBlock(int64_t, int, int64_t, int64_t, void *, ...);
+extern int     GmfGetBlock(int64_t, int, int64_t, int64_t, int, void *, void *, ...);
 extern int     GmfSetBlock(int64_t, int, int64_t, int64_t, int, void *, void *, ...);
 
 

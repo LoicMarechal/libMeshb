@@ -49,14 +49,14 @@ int main()
    TriTab = malloc((NmbQad+1) * 2 * 4 * sizeof(int));
 
    // Read the vertices
-   GmfGetBlock(InpMsh, GmfVertices, 1, NmbVer, NULL, \
+   GmfGetBlock(InpMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL, \
                GmfFloat, &VerTab[1][0], &VerTab[ NmbVer ][0], \
                GmfFloat, &VerTab[1][1], &VerTab[ NmbVer ][1], \
                GmfFloat, &VerTab[1][2], &VerTab[ NmbVer ][2], \
                GmfInt,   &RefTab[1],    &RefTab[ NmbVer ] );
 
    // Read the quads
-   GmfGetBlock(InpMsh, GmfQuadrilaterals, 1, NmbQad, NULL, \
+   GmfGetBlock(InpMsh, GmfQuadrilaterals, 1, NmbQad, 0, NULL, NULL, \
                GmfInt, &QadTab[1][0], &QadTab[ NmbQad ][0], \
                GmfInt, &QadTab[1][1], &QadTab[ NmbQad ][1], \
                GmfInt, &QadTab[1][2], &QadTab[ NmbQad ][2], \
