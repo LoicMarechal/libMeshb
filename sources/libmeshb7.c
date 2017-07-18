@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.28                               */
+/*                               LIBMESH V 7.29                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jul 17 2017                                          */
+/*   Last modification:  jul 18 2017                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -1358,6 +1358,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
    }
    else if(kwd->typ == SolKwd)
    {
+         // Get the type, begin and end pointers from the variable arguments
       UsrTyp[0] = VALF77(va_arg(VarArg, TYPF77(int)));;
       UsrDat[0] = UsrBas[0] = va_arg(VarArg, char *);
       EndUsrDat = va_arg(VarArg, char *);
@@ -1367,14 +1368,13 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
       else
          UsrLen[0] = 0;
 
-      printf("typ %d, adr %p, len %zd\n",UsrTyp[0],UsrDat[0],UsrLen[0]);
-
+      // HO solutions use only on set of type/begin/end pointers
+      // and the base adress is incremented for each entry
       for(i=1;i<kwd->SolSiz;i++)
       {
          UsrTyp[i] = UsrTyp[0];
          UsrDat[i] = UsrBas[i] = UsrDat[0] + SizTab[ UsrTyp[0] ];
          UsrLen[i] = UsrLen[0];
-         printf("typ %d, adr %p, len %zd\n",UsrTyp[i],UsrDat[i],UsrLen[i]);
       }
    }
    else
@@ -1642,10 +1642,10 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
 {
    char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
    char *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" }, *FilPos;
-   char *UsrBas[ GmfMaxTyp ], **SolTab1=NULL, **SolTab2=NULL, *EndUsrDat;
+   char *UsrBas[ GmfMaxTyp ], *EndUsrDat;
    int i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
    int UsrTyp[ GmfMaxTyp ], NmbBlk, b, SizTab[5] = {0,4,8,4,8};
-   int err, ret, typ, SolTabTyp=0, *IntMapTab = NULL;
+   int err, ret, *IntMapTab = NULL;
    int64_t *FilPtrI64, *UsrPtrI64, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
    int64_t *LngMapTab = NULL;
    float *FilPtrR32, *UsrPtrR32;
@@ -1716,45 +1716,15 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
       UsrArg = va_arg(VarArg, void *);
    }
 #endif
-   for(i=0;i<kwd->SolSiz;i++)
+
+   // Get the user's data type and pointers to first
+   // and last adresses in order to compute the stride
+   if(kwd->typ == RegKwd)
    {
-      // The user stored the pointers in a table instea
-      // of giving them explicitely as separate arguments
-      if(!SolTabTyp)
+      for(i=0;i<kwd->SolSiz;i++)
       {
-         // All fields belong to the same type
-         typ = VALF77(va_arg(VarArg, TYPF77(int)));
-
-         // But each field has its own pointers to the begining and end
-         if( (typ == GmfFloatTable) || (typ == GmfDoubleTable) )
-         {
-            if(typ == GmfFloatTable)
-               SolTabTyp = GmfFloat;
-            else
-               SolTabTyp = GmfDouble;
-
-            SolTab1 = va_arg(VarArg, char **);
-            SolTab2 = va_arg(VarArg, char **);
-         }
-      }
-
-      if(SolTabTyp)
-      {
-         // In case of a table of pointers,
-         // extract the tables base pointers and stride
-         UsrTyp[i] = SolTabTyp;
-         UsrDat[i] = UsrBas[i] = *(SolTab1 + i);
-
-         if(UsrNmbLin > 1)
-            UsrLen[i] = (size_t)(SolTab2[i] - SolTab1[i]) / (UsrNmbLin - 1);
-         else
-            UsrLen[i] = 0;
-      }
-      else
-      {
-         // Otherwise, get the type, begin and end pointers
-         // from the variable arguments
-         UsrTyp[i] = typ;
+         // Get the type, begin and end pointers from the variable arguments
+         UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));;
          UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
          EndUsrDat = va_arg(VarArg, char *);
 
@@ -1763,8 +1733,34 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
          else
             UsrLen[i] = 0;
       }
+   }
+   else if(kwd->typ == SolKwd)
+   {
+         // Get the type, begin and end pointers from the variable arguments
+      UsrTyp[0] = VALF77(va_arg(VarArg, TYPF77(int)));;
+      UsrDat[0] = UsrBas[0] = va_arg(VarArg, char *);
+      EndUsrDat = va_arg(VarArg, char *);
 
-      // Get the file's data type
+      if(UsrNmbLin > 1)
+         UsrLen[0] = (size_t)(EndUsrDat - UsrDat[0]) / (UsrNmbLin - 1);
+      else
+         UsrLen[0] = 0;
+
+      // HO solutions use only on set of type/begin/end pointers
+      // and the base adress is incremented for each entry
+      for(i=1;i<kwd->SolSiz;i++)
+      {
+         UsrTyp[i] = UsrTyp[0];
+         UsrDat[i] = UsrBas[i] = UsrDat[0] + SizTab[ UsrTyp[0] ];
+         UsrLen[i] = UsrLen[0];
+      }
+   }
+   else
+      return(0);
+
+   // Get the file's data type
+   for(i=0;i<kwd->SolSiz;i++)
+   {
       if(kwd->fmt[i] == 'r')
          if(msh->ver <= 1)
             FilTyp[i] = GmfFloat;

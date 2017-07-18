@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.28                               */
+/*                               LIBMESH V 7.29                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  jul 06 2017                                         */
+/*    Last modification:  jul 18 2017                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -39,8 +39,6 @@
 #define GmfDouble 2
 #define GmfInt 3
 #define GmfLong 4
-#define GmfDoubleTable 5
-#define GmfFloatTable 6
 
 enum GmfKwdCod
 {
