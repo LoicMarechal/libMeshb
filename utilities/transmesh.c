@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               TRANSMESH V 5.1                              */
+/*                               TRANSMESH V 5.2                              */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /* Description:         convert mesh file from/to ascii/bin                   */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 08 2004                                           */
-/* Last modification:   mar 29 2017                                           */
+/* Last modification:   jul 17 2017                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -80,7 +80,7 @@ int main(int ArgCnt, char **ArgVec)
 {
    int i, j, NmbTyp, SolSiz, TypTab[ GmfMaxTyp ], FilVer=0, InpVer, OutVer=1;
    int dim, MaxRef, ArgIdx = 1, NmbGrp = 0, NmbTok, NmbTok2, TokTab[ MaxTok ];
-   int TokTab2[ MaxTok ], pos;
+   int TokTab2[ MaxTok ], pos, deg, NmbNod;
    int64_t NmbLin, InpIdx, OutIdx;
    float f;
    double d;
@@ -90,7 +90,7 @@ int main(int ArgCnt, char **ArgVec)
 
    if(ArgCnt == 1)
    {
-      puts("\nTRANSMESH v5.1, may 12 2016, Loic MARECHAL / INRIA\n");
+      puts("\nTRANSMESH v5.2, july 17 2017, Loic MARECHAL / INRIA\n");
       puts(" Usage    : transmesh source_name destination_name (-options)\n");
       puts(" optional : -v output_file_version");
       puts(" version 1: 32 bits integers, 32 bits reals, file size < 2 GigaBytes");
@@ -210,7 +210,7 @@ int main(int ArgCnt, char **ArgVec)
          else
             continue;
       }
-      else if(strcmp("sr", GmfKwdFmt[i][3]))
+      else if(strcmp("sr", GmfKwdFmt[i][3]) && strcmp("hr", GmfKwdFmt[i][3]))
       {
          if((NmbLin = GmfStatKwd(InpIdx, i)))
             GmfSetKwd(OutIdx, i, NmbLin);
@@ -219,10 +219,20 @@ int main(int ArgCnt, char **ArgVec)
       }
       else
       {
-         if((NmbLin = GmfStatKwd(InpIdx, i, &NmbTyp, &SolSiz, TypTab)))
-            GmfSetKwd(OutIdx, i,  NmbLin, NmbTyp, TypTab);
-         else
-            continue;
+         if(!strcmp("sr", GmfKwdFmt[i][3]))
+         {
+            if((NmbLin = GmfStatKwd(InpIdx, i, &NmbTyp, &SolSiz, TypTab)))
+               GmfSetKwd(OutIdx, i,  NmbLin, NmbTyp, TypTab);
+            else
+               continue;
+         }
+         else if(!strcmp("hr", GmfKwdFmt[i][3]))
+         {
+            if((NmbLin = GmfStatKwd(InpIdx, i, &NmbTyp, &SolSiz, TypTab, &deg, &NmbNod)))
+               GmfSetKwd(OutIdx, i,  NmbLin, NmbTyp, TypTab, deg, NmbNod);
+            else
+               continue;
+         }
       }
 
       printf("Parsing %s : "INT64_T_FMT" item\n", GmfKwdFmt[i][0], NmbLin);

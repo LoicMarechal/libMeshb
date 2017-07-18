@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.27                               */
+/*                               LIBMESH V 7.28                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  apr 18 2017                                         */
+/*    Last modification:  jul 06 2017                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -148,6 +148,27 @@ enum GmfKwdCod
    GmfPyramidsP4, \
    GmfPrismsP3, \
    GmfPrismsP4, \
+   GmfHOSolAtEdgesP1, \
+   GmfHOSolAtEdgesP2, \
+   GmfHOSolAtEdgesP3, \
+   GmfHOSolAtTrianglesP1, \
+   GmfHOSolAtTrianglesP2, \
+   GmfHOSolAtTrianglesP3, \
+   GmfHOSolAtQuadrilateralsQ1, \
+   GmfHOSolAtQuadrilateralsQ2, \
+   GmfHOSolAtQuadrilateralsQ3, \
+   GmfHOSolAtTetrahedraP1, \
+   GmfHOSolAtTetrahedraP2, \
+   GmfHOSolAtTetrahedraP3, \
+   GmfHOSolAtPyramidsP1, \
+   GmfHOSolAtPyramidsP2, \
+   GmfHOSolAtPyramidsP3, \
+   GmfHOSolAtPrismsP1, \
+   GmfHOSolAtPrismsP2, \
+   GmfHOSolAtPrismsP3, \
+   GmfHOSolAtHexahedraQ1, \
+   GmfHOSolAtHexahedraQ2, \
+   GmfHOSolAtHexahedraQ3, \
    GmfLastKeyword
 };
 

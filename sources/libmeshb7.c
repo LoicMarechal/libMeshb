@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.27                               */
+/*                               LIBMESH V 7.28                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  apr 18 2017                                          */
+/*   Last modification:  jul 17 2017                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -73,7 +73,7 @@
 #include <unistd.h>
 
 #define OPEN_READ_FLAGS   O_RDONLY
-#define OPEN_WRITE_FLAGS   O_CREAT | O_WRONLY | O_TRUNC
+#define OPEN_WRITE_FLAGS  O_CREAT | O_WRONLY | O_TRUNC
 #define OPEN_READ_MODE    0666
 #define OPEN_WRITE_MODE   0666   
    
@@ -123,7 +123,7 @@ struct aiocb
    off_t  aio_offset;          // File offset
    void   *aio_buf;            // Location of buffer
    size_t aio_nbytes;          // Length of transfer
-   int   aio_lio_opcode;       // Operation to be performed
+   int    aio_lio_opcode;      // Operation to be performed
 };
 
 int aio_error( const struct aiocb * aiocbp )
@@ -198,7 +198,7 @@ int aio_write( struct aiocb * aiocbp )
 
 typedef struct
 {
-   int typ, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
+   int typ, deg, NmbNod, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
    int64_t NmbLin, pos;
    char fmt[ GmfMaxTyp*9 ];
 }KwdSct;
@@ -225,110 +225,131 @@ typedef struct
 
 const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4] = 
 {
-   {"Reserved", "", "", ""},
-   {"MeshVersionFormatted", "", "", "i"},
-   {"Reserved", "", "", ""},
-   {"Dimension", "", "", "i"},
-   {"Vertices", "Vertex", "i", "dri"},
-   {"Edges", "Edge", "i", "iii"},
-   {"Triangles", "Triangle", "i", "iiii"},
-   {"Quadrilaterals", "Quadrilateral", "i", "iiiii"},
-   {"Tetrahedra", "Tetrahedron", "i", "iiiii"},
-   {"Prisms", "Prism", "i", "iiiiiii"},
-   {"Hexahedra", "Hexahedron", "i", "iiiiiiiii"},
-   {"Reserved", "", "", ""},
-   {"Reserved", "", "", ""},
-   {"Corners", "Corner", "i", "i"},
-   {"Ridges", "Ridge", "i", "i"},
-   {"RequiredVertices", "RequiredVertex", "i", "i"},
-   {"RequiredEdges", "RequiredEdge", "i", "i"},
-   {"RequiredTriangles", "RequiredTriangle", "i", "i"},
-   {"RequiredQuadrilaterals", "RequiredQuadrilateral", "i", "i"},
-   {"TangentAtEdgeVertices", "TangentAtEdgeVertex", "i", "iii"},
-   {"NormalAtVertices", "NormalAtVertex", "i", "ii"},
-   {"NormalAtTriangleVertices", "NormalAtTriangleVertex", "i", "iii"},
-   {"NormalAtQuadrilateralVertices", "NormalAtQuadrilateralVertex", "i", "iiii"},
-   {"AngleOfCornerBound", "", "", "r"},
-   {"TrianglesP2", "TriangleP2", "i", "iiiiiii"},
-   {"EdgesP2", "EdgeP2", "i", "iiii"},
-   {"SolAtPyramids", "SolAtPyramid", "i", "sr"},
-   {"QuadrilateralsQ2", "QuadrilateralQ2", "i", "iiiiiiiiii"},
-   {"ISolAtPyramids", "ISolAtPyramid", "i", "iiiii"},
-   {"SubDomainFromGeom", "SubDomainFromGeom", "i", "iii"},
-   {"TetrahedraP2", "TetrahedronP2", "i", "iiiiiiiiiii"},
-   {"Fault_NearTri", "Fault_NearTri", "i", "i"},
-   {"Fault_Inter", "Fault_Inter", "i", "i"},
-   {"HexahedraQ2", "HexahedronQ2", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"ExtraVerticesAtEdges", "ExtraVerticesAtEdge", "i", "in"},
-   {"ExtraVerticesAtTriangles", "ExtraVerticesAtTriangle", "i", "in"},
-   {"ExtraVerticesAtQuadrilaterals", "ExtraVerticesAtQuadrilateral", "i", "in"},
-   {"ExtraVerticesAtTetrahedra", "ExtraVerticesAtTetrahedron", "i", "in"},
-   {"ExtraVerticesAtPrisms", "ExtraVerticesAtPrism", "i", "in"},
-   {"ExtraVerticesAtHexahedra", "ExtraVerticesAtHexahedron", "i", "in"},
-   {"VerticesOnGeometricVertices", "VertexOnGeometricVertex", "i", "ii"},
-   {"VerticesOnGeometricEdges", "VertexOnGeometricEdge", "i", "iirr"},
-   {"VerticesOnGeometricTriangles", "VertexOnGeometricTriangle", "i", "iirrr"},
-   {"VerticesOnGeometricQuadrilaterals", "VertexOnGeometricQuadrilateral", "i", "iirrr"},
-   {"EdgesOnGeometricEdges", "EdgeOnGeometricEdge", "i", "ii"},
-   {"Fault_FreeEdge", "Fault_FreeEdge", "i", "i"},
-   {"Polyhedra", "Polyhedron", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"Polygons", "Polygon", "", "iiiiiiiii"},
-   {"Fault_Overlap", "Fault_Overlap", "i", "i"},
-   {"Pyramids", "Pyramid", "i", "iiiiii"},
-   {"BoundingBox", "", "", "drdr"},
-   {"Reserved", "", "", ""},
-   {"PrivateTable", "PrivateTable", "i", "i"},
-   {"Fault_BadShape", "Fault_BadShape", "i", "i"},
-   {"End", "", "", ""},
-   {"TrianglesOnGeometricTriangles", "TriangleOnGeometricTriangle", "i", "ii"},
-   {"TrianglesOnGeometricQuadrilaterals", "TriangleOnGeometricQuadrilateral", "i", "ii"},
-   {"QuadrilateralsOnGeometricTriangles", "QuadrilateralOnGeometricTriangle", "i", "ii"},
-   {"QuadrilateralsOnGeometricQuadrilaterals", "QuadrilateralOnGeometricQuadrilateral", "i", "ii"},
-   {"Tangents", "Tangent", "i", "dr"},
-   {"Normals", "Normal", "i", "dr"},
-   {"TangentAtVertices", "TangentAtVertex", "i", "ii"},
-   {"SolAtVertices", "SolAtVertex", "i", "sr"},
-   {"SolAtEdges", "SolAtEdge", "i", "sr"},
-   {"SolAtTriangles", "SolAtTriangle", "i", "sr"},
-   {"SolAtQuadrilaterals", "SolAtQuadrilateral", "i", "sr"},
-   {"SolAtTetrahedra", "SolAtTetrahedron", "i", "sr"},
-   {"SolAtPrisms", "SolAtPrism", "i", "sr"},
-   {"SolAtHexahedra", "SolAtHexahedron", "i", "sr"},
-   {"DSolAtVertices", "DSolAtVertex", "i", "sr"},
-   {"ISolAtVertices", "ISolAtVertex", "i", "i"},
-   {"ISolAtEdges", "ISolAtEdge", "i", "ii"},
-   {"ISolAtTriangles", "ISolAtTriangle", "i", "iii"},
-   {"ISolAtQuadrilaterals", "ISolAtQuadrilateral", "i", "iiii"},
-   {"ISolAtTetrahedra", "ISolAtTetrahedron", "i", "iiii"},
-   {"ISolAtPrisms", "ISolAtPrism", "i", "iiiiii"},
-   {"ISolAtHexahedra", "ISolAtHexahedron", "i", "iiiiiiii"},
-   {"Iterations", "","","i"},
-   {"Time", "","","r"},
-   {"Fault_SmallTri", "Fault_SmallTri","i","i"},
-   {"CoarseHexahedra", "CoarseHexahedron", "i", "i"},
-   {"Comments", "Comment", "i", "c"},
-   {"PeriodicVertices", "PeriodicVertex", "i", "ii"},
-   {"PeriodicEdges", "PeriodicEdge", "i", "ii"},
-   {"PeriodicTriangles", "PeriodicTriangle", "i", "ii"},
-   {"PeriodicQuadrilaterals", "PeriodicQuadrilateral", "i", "ii"},
-   {"PrismsP2", "PrismP2", "i", "iiiiiiiiiiiiiiiiiii"},
-   {"PyramidsP2", "PyramidP2", "i", "iiiiiiiiiiiiiii"},
-   {"QuadrilateralsQ3", "QuadrilateralQ3", "i", "iiiiiiiiiiiiiiiii"},
-   {"QuadrilateralsQ4", "QuadrilateralQ4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"TrianglesP3", "TriangleP3", "i", "iiiiiiiiiii"},
-   {"TrianglesP4", "TriangleP4", "i", "iiiiiiiiiiiiiiii"},
-   {"EdgesP3", "EdgeP3", "i", "iiiii"},
-   {"EdgesP4", "EdgeP4", "i", "iiiiii"},
-   {"IRefGroups", "IRefGroup", "i", "ciii"},
-   {"DRefGroups", "DRefGroup", "i", "iii"},
-   {"TetrahedraP3", "TetrahedronP3", "i", "iiiiiiiiiiiiiiiiiiiii"},
-   {"TetrahedraP4", "TetrahedronP4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"HexahedraQ3", "HexahedronQ3", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"HexahedraQ4", "HexahedronQ4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"PyramidsP3", "PyramidP3", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"PyramidsP4", "PyramidP4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"PrismsP3", "PrismP3", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"PrismsP4", "PrismP4", "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"}
+   {"Reserved",                                 "",                                       "", ""},
+   {"MeshVersionFormatted",                     "",                                       "", "i"},
+   {"Reserved",                                 "",                                       "", ""},
+   {"Dimension",                                "",                                       "", "i"},
+   {"Vertices",                                 "Vertex",                                 "i", "dri"},
+   {"Edges",                                    "Edge",                                   "i", "iii"},
+   {"Triangles",                                "Triangle",                               "i", "iiii"},
+   {"Quadrilaterals",                           "Quadrilateral",                          "i", "iiiii"},
+   {"Tetrahedra",                               "Tetrahedron",                            "i", "iiiii"},
+   {"Prisms",                                   "Prism",                                  "i", "iiiiiii"},
+   {"Hexahedra",                                "Hexahedron",                             "i", "iiiiiiiii"},
+   {"Reserved",                                 "",                                       "", ""},
+   {"Reserved",                                 "",                                       "", ""},
+   {"Corners",                                  "Corner",                                 "i", "i"},
+   {"Ridges",                                   "Ridge",                                  "i", "i"},
+   {"RequiredVertices",                         "RequiredVertex",                         "i", "i"},
+   {"RequiredEdges",                            "RequiredEdge",                           "i", "i"},
+   {"RequiredTriangles",                        "RequiredTriangle",                       "i", "i"},
+   {"RequiredQuadrilaterals",                   "RequiredQuadrilateral",                  "i", "i"},
+   {"TangentAtEdgeVertices",                    "TangentAtEdgeVertex",                    "i", "iii"},
+   {"NormalAtVertices",                         "NormalAtVertex",                         "i", "ii"},
+   {"NormalAtTriangleVertices",                 "NormalAtTriangleVertex",                 "i", "iii"},
+   {"NormalAtQuadrilateralVertices",            "NormalAtQuadrilateralVertex",            "i", "iiii"},
+   {"AngleOfCornerBound",                       "",                                       "", "r"},
+   {"TrianglesP2",                              "TriangleP2",                             "i", "iiiiiii"},
+   {"EdgesP2",                                  "EdgeP2",                                 "i", "iiii"},
+   {"SolAtPyramids",                            "SolAtPyramid",                           "i", "sr"},
+   {"QuadrilateralsQ2",                         "QuadrilateralQ2",                        "i", "iiiiiiiiii"},
+   {"ISolAtPyramids",                           "ISolAtPyramid",                          "i", "iiiii"},
+   {"SubDomainFromGeom",                        "SubDomainFromGeom",                      "i", "iii"},
+   {"TetrahedraP2",                             "TetrahedronP2",                          "i", "iiiiiiiiiii"},
+   {"Fault_NearTri",                            "Fault_NearTri",                          "i", "i"},
+   {"Fault_Inter",                              "Fault_Inter",                            "i", "i"},
+   {"HexahedraQ2",                              "HexahedronQ2",                           "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"ExtraVerticesAtEdges",                     "ExtraVerticesAtEdge",                    "i", "in"},
+   {"ExtraVerticesAtTriangles",                 "ExtraVerticesAtTriangle",                "i", "in"},
+   {"ExtraVerticesAtQuadrilaterals",            "ExtraVerticesAtQuadrilateral",           "i", "in"},
+   {"ExtraVerticesAtTetrahedra",                "ExtraVerticesAtTetrahedron",             "i", "in"},
+   {"ExtraVerticesAtPrisms",                    "ExtraVerticesAtPrism",                   "i", "in"},
+   {"ExtraVerticesAtHexahedra",                 "ExtraVerticesAtHexahedron",              "i", "in"},
+   {"VerticesOnGeometricVertices",              "VertexOnGeometricVertex",                "i", "ii"},
+   {"VerticesOnGeometricEdges",                 "VertexOnGeometricEdge",                  "i", "iirr"},
+   {"VerticesOnGeometricTriangles",             "VertexOnGeometricTriangle",              "i", "iirrr"},
+   {"VerticesOnGeometricQuadrilaterals",        "VertexOnGeometricQuadrilateral",         "i", "iirrr"},
+   {"EdgesOnGeometricEdges",                    "EdgeOnGeometricEdge",                    "i", "ii"},
+   {"Fault_FreeEdge",                           "Fault_FreeEdge",                         "i", "i"},
+   {"Polyhedra",                                "Polyhedron",                             "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"Polygons",                                 "Polygon",                                "", "iiiiiiiii"},
+   {"Fault_Overlap",                            "Fault_Overlap",                          "i", "i"},
+   {"Pyramids",                                 "Pyramid",                                "i", "iiiiii"},
+   {"BoundingBox",                              "",                                       "", "drdr"},
+   {"Reserved",                                 "",                                       "", ""},
+   {"PrivateTable",                             "PrivateTable",                           "i", "i"},
+   {"Fault_BadShape",                           "Fault_BadShape",                         "i", "i"},
+   {"End",                                      "",                                       "", ""},
+   {"TrianglesOnGeometricTriangles",            "TriangleOnGeometricTriangle",            "i", "ii"},
+   {"TrianglesOnGeometricQuadrilaterals",       "TriangleOnGeometricQuadrilateral",       "i", "ii"},
+   {"QuadrilateralsOnGeometricTriangles",       "QuadrilateralOnGeometricTriangle",       "i", "ii"},
+   {"QuadrilateralsOnGeometricQuadrilaterals",  "QuadrilateralOnGeometricQuadrilateral",  "i", "ii"},
+   {"Tangents",                                 "Tangent",                                "i", "dr"},
+   {"Normals",                                  "Normal",                                 "i", "dr"},
+   {"TangentAtVertices",                        "TangentAtVertex",                        "i", "ii"},
+   {"SolAtVertices",                            "SolAtVertex",                            "i", "sr"},
+   {"SolAtEdges",                               "SolAtEdge",                              "i", "sr"},
+   {"SolAtTriangles",                           "SolAtTriangle",                          "i", "sr"},
+   {"SolAtQuadrilaterals",                      "SolAtQuadrilateral",                     "i", "sr"},
+   {"SolAtTetrahedra",                          "SolAtTetrahedron",                       "i", "sr"},
+   {"SolAtPrisms",                              "SolAtPrism",                             "i", "sr"},
+   {"SolAtHexahedra",                           "SolAtHexahedron",                        "i", "sr"},
+   {"DSolAtVertices",                           "DSolAtVertex",                           "i", "sr"},
+   {"ISolAtVertices",                           "ISolAtVertex",                           "i", "i"},
+   {"ISolAtEdges",                              "ISolAtEdge",                             "i", "ii"},
+   {"ISolAtTriangles",                          "ISolAtTriangle",                         "i", "iii"},
+   {"ISolAtQuadrilaterals",                     "ISolAtQuadrilateral",                    "i", "iiii"},
+   {"ISolAtTetrahedra",                         "ISolAtTetrahedron",                      "i", "iiii"},
+   {"ISolAtPrisms",                             "ISolAtPrism",                            "i", "iiiiii"},
+   {"ISolAtHexahedra",                          "ISolAtHexahedron",                       "i", "iiiiiiii"},
+   {"Iterations",                               "",                                       "",  "i"},
+   {"Time",                                     "",                                       "",  "r"},
+   {"Fault_SmallTri",                           "Fault_SmallTri",                         "i","i"},
+   {"CoarseHexahedra",                          "CoarseHexahedron",                       "i", "i"},
+   {"Comments",                                 "Comment",                                "i", "c"},
+   {"PeriodicVertices",                         "PeriodicVertex",                         "i", "ii"},
+   {"PeriodicEdges",                            "PeriodicEdge",                           "i", "ii"},
+   {"PeriodicTriangles",                        "PeriodicTriangle",                       "i", "ii"},
+   {"PeriodicQuadrilaterals",                   "PeriodicQuadrilateral",                  "i", "ii"},
+   {"PrismsP2",                                 "PrismP2",                                "i", "iiiiiiiiiiiiiiiiiii"},
+   {"PyramidsP2",                               "PyramidP2",                              "i", "iiiiiiiiiiiiiii"},
+   {"QuadrilateralsQ3",                         "QuadrilateralQ3",                        "i", "iiiiiiiiiiiiiiiii"},
+   {"QuadrilateralsQ4",                         "QuadrilateralQ4",                        "i", "iiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"TrianglesP3",                              "TriangleP3",                             "i", "iiiiiiiiiii"},
+   {"TrianglesP4",                              "TriangleP4",                             "i", "iiiiiiiiiiiiiiii"},
+   {"EdgesP3",                                  "EdgeP3",                                 "i", "iiiii"},
+   {"EdgesP4",                                  "EdgeP4",                                 "i", "iiiiii"},
+   {"IRefGroups",                               "IRefGroup",                              "i", "ciii"},
+   {"DRefGroups",                               "DRefGroup",                              "i", "iii"},
+   {"TetrahedraP3",                             "TetrahedronP3",                          "i", "iiiiiiiiiiiiiiiiiiiii"},
+   {"TetrahedraP4",                             "TetrahedronP4",                          "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"HexahedraQ3",                              "HexahedronQ3",                           "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"HexahedraQ4",                              "HexahedronQ4",                           "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"PyramidsP3",                               "PyramidP3",                              "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"PyramidsP4",                               "PyramidP4",                              "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"PrismsP3",                                 "PrismP3",                                "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"PrismsP4",                                 "PrismP4",                                "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"HOSolAtEdgesP1",                           "HOSolAtEdgeP1",                          "i", "hr"},
+   {"HOSolAtEdgesP2",                           "HOSolAtEdgeP2",                          "i", "hr"},
+   {"HOSolAtEdgesP3",                           "HOSolAtEdgeP3",                          "i", "hr"},
+   {"HOSolAtTrianglesP1",                       "HOSolAtTriangleP1",                      "i", "hr"},
+   {"HOSolAtTrianglesP2",                       "HOSolAtTriangleP2",                      "i", "hr"},
+   {"HOSolAtTrianglesP3",                       "HOSolAtTriangleP3",                      "i", "hr"},
+   {"HOSolAtQuadrilateralsQ1",                  "HOSolAtQuadrilateralQ1",                 "i", "hr"},
+   {"HOSolAtQuadrilateralsQ2",                  "HOSolAtQuadrilateralQ2",                 "i", "hr"},
+   {"HOSolAtQuadrilateralsQ3",                  "HOSolAtQuadrilateralQ3",                 "i", "hr"},
+   {"HOSolAtTetrahedraP1",                      "HOSolAtTetrahedronP1",                   "i", "hr"},
+   {"HOSolAtTetrahedraP2",                      "HOSolAtTetrahedronP2",                   "i", "hr"},
+   {"HOSolAtTetrahedraP3",                      "HOSolAtTetrahedronP3",                   "i", "hr"},
+   {"HOSolAtPyramidsP1",                        "HOSolAtPyramidP1",                       "i", "hr"},
+   {"HOSolAtPyramidsP2",                        "HOSolAtPyramidP2",                       "i", "hr"},
+   {"HOSolAtPyramidsP3",                        "HOSolAtPyramidP3",                       "i", "hr"},
+   {"HOSolAtPrismsP1",                          "HOSolAtPrismP1",                         "i", "hr"},
+   {"HOSolAtPrismsP2",                          "HOSolAtPrismP2",                         "i", "hr"},
+   {"HOSolAtPrismsP3",                          "HOSolAtPrismP3",                         "i", "hr"},
+   {"HOSolAtHexahedraQ1",                       "HOSolAtHexahedraQ1",                     "i", "hr"},
+   {"HOSolAtHexahedraQ2",                       "HOSolAtHexahedraQ2",                     "i", "hr"},
+   {"HOSolAtHexahedraQ3",                       "HOSolAtHexahedraQ3",                     "i", "hr"}
 };
 
 #ifdef TRANSMESH
@@ -663,7 +684,7 @@ int GmfCloseMesh(int64_t MshIdx)
 
 int64_t GmfStatKwd(int64_t MshIdx, int KwdCod, ...)
 {
-   int i, *PtrNmbTyp, *PtrSolSiz, *TypTab;
+   int i, *PtrNmbTyp, *PtrSolSiz, *TypTab, *PtrDeg, *PtrNmbNod;
    GmfMshSct *msh = (GmfMshSct *)MshIdx;
    KwdSct *kwd;
    va_list VarArg;
@@ -691,6 +712,16 @@ int64_t GmfStatKwd(int64_t MshIdx, int KwdCod, ...)
 
       for(i=0;i<kwd->NmbTyp;i++)
          TypTab[i] = kwd->TypTab[i];
+
+      // Add two extra paramaters for HO elements: degree and nmb nodes
+      if(!strcmp("hr", GmfKwdFmt[ KwdCod ][3]) )
+      {
+         PtrDeg = va_arg(VarArg, int *);
+         *PtrDeg = kwd->deg;
+         
+         PtrNmbNod = va_arg(VarArg, int *);
+         *PtrNmbNod = kwd->NmbNod;
+      }
 
       va_end(VarArg);
    }
@@ -744,6 +775,13 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 
       for(i=0;i<kwd->NmbTyp;i++)
          kwd->TypTab[i] = TypTab[i];
+
+      // Add two extra paramaters for HO elements: degree and nmb nodes
+      if(!strcmp("hr", GmfKwdFmt[ KwdCod ][3]) )
+      {
+         kwd->deg = va_arg(VarArg, int);
+         kwd->NmbNod = va_arg(VarArg, int);
+      }
 
       va_end(VarArg);
    }
@@ -834,7 +872,7 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 
 int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 {
-   int i, j;
+   int i;
    float *FltSolTab, FltVal, *PtrFlt;
    double *DblSolTab, *PtrDbl;
    va_list VarArg;
@@ -921,22 +959,22 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
             FltSolTab = va_arg(VarArg, float *);
 
             if(msh->typ & Asc)
-               for(j=0;j<kwd->SolSiz;j++)
-                  safe_fscanf(msh->hdl, "%f", &FltSolTab[j], msh->err);
+               for(i=0; i<kwd->SolSiz; i++)
+                  safe_fscanf(msh->hdl, "%f", &FltSolTab[i], msh->err);
             else
-               for(j=0;j<kwd->SolSiz;j++)
-                  ScaWrd(msh, (unsigned char *)&FltSolTab[j]);
+               for(i=0; i<kwd->SolSiz; i++)
+                  ScaWrd(msh, (unsigned char *)&FltSolTab[i]);
          }
          else
          {
             DblSolTab = va_arg(VarArg, double *);
 
             if(msh->typ & Asc)
-               for(j=0;j<kwd->SolSiz;j++)
-                  safe_fscanf(msh->hdl, "%lf", &DblSolTab[j], msh->err);
+               for(i=0; i<kwd->SolSiz; i++)
+                  safe_fscanf(msh->hdl, "%lf", &DblSolTab[i], msh->err);
             else
-               for(j=0;j<kwd->SolSiz;j++)
-                  ScaDblWrd(msh, (unsigned char *)&DblSolTab[j]);
+               for(i=0; i<kwd->SolSiz; i++)
+                  ScaDblWrd(msh, (unsigned char *)&DblSolTab[i]);
          }
       }break;
    }
@@ -953,7 +991,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 
 int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...)
 {
-   int i, j, pos, *IntBuf;
+   int i, pos, *IntBuf;
    int64_t *LngBuf;
    float *FltSolTab, *FltBuf;
    double *DblSolTab, *DblBuf;
@@ -1057,8 +1095,8 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
          FltSolTab = va_arg(VarArg, float *);
 
          if(msh->typ & Asc)
-            for(j=0;j<kwd->SolSiz;j++)
-               fprintf(msh->hdl, "%g ", (double)FltSolTab[j]);
+            for(i=0; i<kwd->SolSiz; i++)
+               fprintf(msh->hdl, "%g ", (double)FltSolTab[i]);
          else
             RecBlk(msh, (unsigned char *)FltSolTab, kwd->NmbWrd);
       }
@@ -1067,8 +1105,8 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
          DblSolTab = va_arg(VarArg, double *);
 
          if(msh->typ & Asc)
-            for(j=0;j<kwd->SolSiz;j++)
-               fprintf(msh->hdl, "%.15g ", DblSolTab[j]);
+            for(i=0; i<kwd->SolSiz; i++)
+               fprintf(msh->hdl, "%.15g ", DblSolTab[i]);
          else
             RecBlk(msh, (unsigned char *)DblSolTab, kwd->NmbWrd);
       }
@@ -1223,12 +1261,11 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
                                        void           *prc, ... )
 {
    char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
-   char *UsrBas[ GmfMaxTyp ], *FilPos, **SolTab1=NULL, **SolTab2=NULL, *EndUsrDat;
+   char *UsrBas[ GmfMaxTyp ], *FilPos, *EndUsrDat;
    // [Bruno] "%lld" -> INT64_T_FMT
    char *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
-   int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8}, err, ret, typ;
-   int SolTabTyp = 0, *IntMapTab=NULL;;
+   int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], err, ret;
+   int UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8}, *IntMapTab=NULL;
    int64_t BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx=0;
    int64_t *LngMapTab=NULL, OldIdx=0;
    float *FilPtrR32, *UsrPtrR32;
@@ -1304,45 +1341,12 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
 
    // Get the user's data type and pointers to first
    // and last adresses in order to compute the stride
-   for(i=0;i<kwd->SolSiz;i++)
+   if(kwd->typ == RegKwd)
    {
-      // The user stored the pointers in a table instea
-      // of giving them explicitely as separate arguments
-      if(!SolTabTyp)
+      for(i=0;i<kwd->SolSiz;i++)
       {
-         // All fields belong to the same type
-         typ = VALF77(va_arg(VarArg, TYPF77(int)));
-
-         // But each field has its own pointers to the begining and end
-         if( (typ == GmfFloatTable) || (typ == GmfDoubleTable) )
-         {
-            if(typ == GmfFloatTable)
-               SolTabTyp = GmfFloat;
-            else
-               SolTabTyp = GmfDouble;
-
-            SolTab1 = va_arg(VarArg, char **);
-            SolTab2 = va_arg(VarArg, char **);
-         }
-      }
-
-      if(SolTabTyp)
-      {
-         // In case of a table of pointers,
-         // extract the tables base pointers and stride
-         UsrTyp[i] = SolTabTyp;
-         UsrDat[i] = UsrBas[i] = *(SolTab1 + i);
-
-         if(UsrNmbLin > 1)
-            UsrLen[i] = (size_t)(SolTab2[i] - SolTab1[i]) / (UsrNmbLin - 1);
-         else
-            UsrLen[i] = 0;
-      }
-      else
-      {
-         // Otherwise, get the type, begin and end pointers
-         // from the variable arguments
-         UsrTyp[i] = typ;
+         // Get the type, begin and end pointers from the variable arguments
+         UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));;
          UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
          EndUsrDat = va_arg(VarArg, char *);
 
@@ -1351,8 +1355,34 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
          else
             UsrLen[i] = 0;
       }
+   }
+   else if(kwd->typ == SolKwd)
+   {
+      UsrTyp[0] = VALF77(va_arg(VarArg, TYPF77(int)));;
+      UsrDat[0] = UsrBas[0] = va_arg(VarArg, char *);
+      EndUsrDat = va_arg(VarArg, char *);
 
-      // Get the file's data type
+      if(UsrNmbLin > 1)
+         UsrLen[0] = (size_t)(EndUsrDat - UsrDat[0]) / (UsrNmbLin - 1);
+      else
+         UsrLen[0] = 0;
+
+      printf("typ %d, adr %p, len %zd\n",UsrTyp[0],UsrDat[0],UsrLen[0]);
+
+      for(i=1;i<kwd->SolSiz;i++)
+      {
+         UsrTyp[i] = UsrTyp[0];
+         UsrDat[i] = UsrBas[i] = UsrDat[0] + SizTab[ UsrTyp[0] ];
+         UsrLen[i] = UsrLen[0];
+         printf("typ %d, adr %p, len %zd\n",UsrTyp[i],UsrDat[i],UsrLen[i]);
+      }
+   }
+   else
+      return(0);
+
+   // Get the file's data type
+   for(i=0;i<kwd->SolSiz;i++)
+   {
       if(kwd->fmt[i] == 'r')
          if(msh->ver <= 1)
             FilTyp[i] = GmfFloat;
@@ -2068,7 +2098,8 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
    else
       kwd->NmbLin = 1;
 
-   if(!strcmp("sr", GmfKwdFmt[ KwdCod ][3]))
+   if(!strcmp("sr", GmfKwdFmt[ KwdCod ][3]) \
+   || !strcmp("hr", GmfKwdFmt[ KwdCod ][3]) )
    {
       if(msh->typ & Asc)
       {
@@ -2076,6 +2107,19 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 
          for(i=0;i<kwd->NmbTyp;i++)
             safe_fscanf(msh->hdl, "%d", &kwd->TypTab[i], msh->err);
+
+         // Scan two extra fields for HO solutions: deg and nmb Nodes
+         if(!strcmp("hr", GmfKwdFmt[ KwdCod ][3]))
+         {
+            safe_fscanf(msh->hdl, "%d", &kwd->deg, msh->err);
+            safe_fscanf(msh->hdl, "%d", &kwd->NmbNod, msh->err);
+         }
+         else
+         {
+            kwd->deg = 0;
+            kwd->NmbNod = 1;
+         }
+
       }
       else
       {
@@ -2083,6 +2127,18 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 
          for(i=0;i<kwd->NmbTyp;i++)
             ScaWrd(msh, (unsigned char *)&kwd->TypTab[i]);
+
+         // Scan two extra fields for HO solutions: deg and nmb Nodes
+         if(!strcmp("hr", GmfKwdFmt[ KwdCod ][3]))
+         {
+            ScaWrd(msh, (unsigned char *)&kwd->deg);
+            ScaWrd(msh, (unsigned char *)&kwd->NmbNod);
+         }
+         else
+         {
+            kwd->deg = 0;
+            kwd->NmbNod = 1;
+         }
       }
    }
 
@@ -2097,7 +2153,7 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 
 static void ExpFmt(GmfMshSct *msh, int KwdCod)
 {
-   int i, j, TmpSiz=0, IntWrd, FltWrd;
+   int i, j, n, TmpSiz=0, IntWrd, FltWrd;
    char chr;
    const char *InpFmt = GmfKwdFmt[ KwdCod ][3];
    KwdSct *kwd = &msh->KwdTab[ KwdCod ];
@@ -2105,21 +2161,22 @@ static void ExpFmt(GmfMshSct *msh, int KwdCod)
    // Set the kwd's type
    if(!strlen(GmfKwdFmt[ KwdCod ][2]))
       kwd->typ = InfKwd;
-   else if(!strcmp(InpFmt, "sr"))
+   else if( !strcmp(InpFmt, "sr") || !strcmp(InpFmt, "hr") )
       kwd->typ = SolKwd;
    else
       kwd->typ = RegKwd;
 
    // Get the solution-field's size
    if(kwd->typ == SolKwd)
-      for(i=0;i<kwd->NmbTyp;i++)
-         switch(kwd->TypTab[i])
-         {
-            case GmfSca    : TmpSiz += 1; break;
-            case GmfVec    : TmpSiz += msh->dim; break;
-            case GmfSymMat : TmpSiz += (msh->dim * (msh->dim+1)) / 2; break;
-            case GmfMat    : TmpSiz += msh->dim * msh->dim; break;
-         }
+      for(n=0;n<kwd->NmbNod;n++)
+         for(i=0;i<kwd->NmbTyp;i++)
+            switch(kwd->TypTab[i])
+            {
+               case GmfSca    : TmpSiz += 1; break;
+               case GmfVec    : TmpSiz += msh->dim; break;
+               case GmfSymMat : TmpSiz += (msh->dim * (msh->dim+1)) / 2; break;
+               case GmfMat    : TmpSiz += msh->dim * msh->dim; break;
+            }
 
    // Scan each character from the format string
    i = kwd->SolSiz = kwd->NmbWrd = 0;
