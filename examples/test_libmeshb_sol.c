@@ -10,7 +10,7 @@ int main()
 {
    int i, j, NmbSol, ver, dim, SolSiz, NmbTyp, TypTab[ GmfMaxTyp ];
    long long InpMsh;
-   double *SolTab, *PtrTab1[ GmfMaxTyp ], *PtrTab2[ GmfMaxTyp ];
+   double *SolTab;
 
 
    // Open the "out.sol" mesh file
@@ -27,14 +27,9 @@ int main()
    printf("NmbSol = %d, NmbTyp = %d, SolSiz = %d\n", NmbSol, NmbTyp, SolSiz);
    SolTab = malloc( (NmbSol+1) * SolSiz * sizeof(double));
 
-   // Fill the pointer tables with pointers on first and last entries
-   // of each solution fields in user's data structures so that
-   // the libMeshb is able to compute the strides
-   PtrTab1[0] = &SolTab[      1 * SolSiz ];
-   PtrTab2[0] = &SolTab[ NmbSol * SolSiz ];
-
-   // solution field block reading
-   GmfGetBlock(InpMsh, GmfSolAtVertices, 1, NmbSol, 0, NULL, NULL, GmfDouble, PtrTab1, PtrTab2);
+   // Solution field block reading
+   GmfGetBlock(InpMsh, GmfSolAtVertices, 1, NmbSol, 0, NULL, NULL, \
+               GmfDouble, &SolTab[ 1 * SolSiz ], &SolTab[ NmbSol * SolSiz ]);
 
    // Print each solutions of each vertices
    for(i=1;i<=NmbSol;i++)

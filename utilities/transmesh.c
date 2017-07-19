@@ -9,7 +9,7 @@
 /* Description:         convert mesh file from/to ascii/bin                   */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 08 2004                                           */
-/* Last modification:   jul 17 2017                                           */
+/* Last modification:   jul 19 2017                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -90,7 +90,7 @@ int main(int ArgCnt, char **ArgVec)
 
    if(ArgCnt == 1)
    {
-      puts("\nTRANSMESH v5.2, july 17 2017, Loic MARECHAL / INRIA\n");
+      puts("\nTRANSMESH v5.2, july 19 2017, Loic MARECHAL / INRIA\n");
       puts(" Usage    : transmesh source_name destination_name (-options)\n");
       puts(" optional : -v output_file_version");
       puts(" version 1: 32 bits integers, 32 bits reals, file size < 2 GigaBytes");
@@ -203,14 +203,14 @@ int main(int ArgCnt, char **ArgVec)
       if(!GmfGotoKwd(InpIdx, i))
          continue;
 
-      if(strcmp("i", GmfKwdFmt[i][2]))
+      if(strcmp("i", GmfKwdFmt[i][1]))
       {
          if((NmbLin = GmfStatKwd(InpIdx, i)))
             GmfSetKwd(OutIdx, i, 0);
          else
             continue;
       }
-      else if(strcmp("sr", GmfKwdFmt[i][3]) && strcmp("hr", GmfKwdFmt[i][3]))
+      else if(strcmp("sr", GmfKwdFmt[i][2]) && strcmp("hr", GmfKwdFmt[i][2]))
       {
          if((NmbLin = GmfStatKwd(InpIdx, i)))
             GmfSetKwd(OutIdx, i, NmbLin);
@@ -219,14 +219,14 @@ int main(int ArgCnt, char **ArgVec)
       }
       else
       {
-         if(!strcmp("sr", GmfKwdFmt[i][3]))
+         if(!strcmp("sr", GmfKwdFmt[i][2]))
          {
             if((NmbLin = GmfStatKwd(InpIdx, i, &NmbTyp, &SolSiz, TypTab)))
                GmfSetKwd(OutIdx, i,  NmbLin, NmbTyp, TypTab);
             else
                continue;
          }
-         else if(!strcmp("hr", GmfKwdFmt[i][3]))
+         else if(!strcmp("hr", GmfKwdFmt[i][2]))
          {
             if((NmbLin = GmfStatKwd(InpIdx, i, &NmbTyp, &SolSiz, TypTab, &deg, &NmbNod)))
                GmfSetKwd(OutIdx, i,  NmbLin, NmbTyp, TypTab, deg, NmbNod);

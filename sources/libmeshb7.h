@@ -196,7 +196,7 @@ extern int     GmfSetBlock(int64_t, int, int64_t, int64_t, int, void *, void *, 
 
 #ifdef TRANSMESH
 extern int GmfMaxRefTab[ GmfMaxKwd + 1 ];
-extern const char *GmfKwdFmt[ GmfMaxKwd + 1 ][4];
+extern const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3];
 extern int GmfCpyLin(int64_t, int64_t, int);
 #endif
 
