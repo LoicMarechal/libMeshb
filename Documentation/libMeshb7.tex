@@ -36,9 +36,9 @@
 
 \begin{flushright}
 \Large Lo\"ic MAR\'ECHAL / INRIA, Gamma Project\\
-\Large March 2017 \\
-\normalsize Document v1.7 \\
-\normalsize Library v7.26
+\Large August 2017 \\
+\normalsize Document v1.8 \\
+\normalsize Library v7.29
 \end{flushright}
 
 \end{titlepage}
@@ -702,7 +702,8 @@ GmfGetBlock() is a variable arguments command, it reads all the lines of data fr
 \begin{tt}
 \begin{verbatim}
 int GmfGetBlock(int64_t MeshIndex, int Keyword, int64_t BeginLine, 
-                int64_t EndLine, Procedure, arguments...);
+                int64_t EndLine, int MapType, void *RenumberingMap,
+                void *Procedure, arguments...);
 \end{verbatim}
 \end{tt}
 \normalfont
@@ -716,6 +717,10 @@ the index returned by GmfOpenMesh() must be provided.
 
 \paragraph{EndLine:} ending line in the mesh file.
 
+\paragraph{MapType:} set the integer type (GmfInt or GmfLong) of the following renumbering table.
+
+\paragraph{RenumberingMap:} pointer to a renumbering table that gives the position to store each mesh entity in the user's table (for example: give the old to new renumbering through a Hilbert curve).
+
 \paragraph{Procedure:} pointer to an optinal user's procedure that will be called in  parallel after each block has been read. If a procedure is given, a second pointer on user's data must be provided right after.
 
 \paragraph{arguments:} for each type of data as stated by the keyword definition (see section \ref{keywords}), three arguments must be provided. First, the user's type of data in which the file's data will be stored (four kinds are available: GmfFloat, GmfDouble, GmfInt and GmfLong). Second, a pointer to the first line of this data type in the user's structure. Third, the same pointer but on the last line. The example below is more telling.
@@ -727,7 +732,7 @@ the index returned by GmfOpenMesh() must be provided.
 int ref[nv];
 double x[nv], y[nv], z[nv];
 
-GmfGetBlock(MeshIndex, GmfVertices, 1, nv, NULL, \
+GmfGetBlock(MeshIndex, GmfVertices, 1, nv, 0, NULL, NULL, \
             GmfDouble, &x[1],   &x[nv], \
             GmfDouble, &y[1],   &y[nv], \
             GmfDouble, &z[1],   &z[nv], \
@@ -747,7 +752,7 @@ Works exactly as GmfGetBlock exept that all lines are written, you cannot specif
 int ref[nv];
 double x[nv], y[nv], z[nv];
 
-GmfSetBlock(MeshIndex, GmfVertices, 1, nv, FlipRefs, ref, \
+GmfSetBlock(MeshIndex, GmfVertices, 1, nv, 0, NULL, FlipRefs, ref, \
             GmfDouble, &x[1],   &x[nv], \
             GmfDouble, &y[1],   &y[nv], \
             GmfDouble, &z[1],   &z[nv], \
