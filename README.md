@@ -1,4 +1,4 @@
-# libMeshb version 7.24
+# libMeshb version 7.29
 A library to handle the *.meshb file format.
 
 # Overview
