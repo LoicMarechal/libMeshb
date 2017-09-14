@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  sep 13 2017                                          */
+/*   Last modification:  sep 14 2017                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -1384,7 +1384,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
             UsrLen[i] = 0;
 
          // Replicate the table data type and increment the base address
-         if(RepCnt > 2)
+         if(RepCnt >= 2)
          {
             for(j=i+1; j<i+RepCnt; j++)
             {
@@ -1793,7 +1793,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
             UsrLen[i] = 0;
 
          // Replicate the table data type and increment the base address
-         if(RepCnt > 2)
+         if(RepCnt >= 2)
          {
             for(j=i+1; j<i+RepCnt; j++)
             {
