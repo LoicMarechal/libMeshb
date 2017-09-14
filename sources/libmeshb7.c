@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.29                               */
+/*                               LIBMESH V 7.30                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jul 19 2017                                          */
+/*   Last modification:  sep 13 2017                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -1276,7 +1276,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
    char *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
    int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], err, ret;
    int UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8}, *IntMapTab=NULL;
-   int64_t BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx=0;
+   int64_t BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx=0, RepCnt;
    int64_t *LngMapTab=NULL, OldIdx=0;
    float *FilPtrR32, *UsrPtrR32;
    double *FilPtrR64, *UsrPtrR64;
@@ -1355,8 +1355,26 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
    {
       for(i=0;i<kwd->SolSiz;i++)
       {
-         // Get the type, begin and end pointers from the variable arguments
+         // Get the type from the variable arguments
          UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));;
+
+         // If a table is given, read its size in the next argument
+         // and automatically fill the pointer table by incrementing
+         // as many times the base user address
+         if(UsrTyp[i] == GmfIntTab)
+         {
+            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            UsrTyp[i] = GmfInt;
+         }
+         else if(UsrTyp[i] == GmfLongTab)
+         {
+            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            UsrTyp[i] = GmfLong;
+         }
+         else
+            RepCnt = 0;
+
+         // Get the begin and end pointers from the variable arguments
          UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
          EndUsrDat = va_arg(VarArg, char *);
 
@@ -1364,6 +1382,19 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
             UsrLen[i] = (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1);
          else
             UsrLen[i] = 0;
+
+         // Replicate the table data type and increment the base address
+         if(RepCnt > 2)
+         {
+            for(j=i+1; j<i+RepCnt; j++)
+            {
+               UsrTyp[j] = UsrTyp[i];
+               UsrDat[j] = UsrBas[j] = UsrDat[ j-1 ] + SizTab[ UsrTyp[i] ];
+               UsrLen[j] = UsrLen[i];
+            }
+
+            i += RepCnt - 1;
+         }
       }
    }
    else if(kwd->typ == SolKwd)
@@ -1655,7 +1686,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
    char *UsrBas[ GmfMaxTyp ], *EndUsrDat;
    int i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
    int UsrTyp[ GmfMaxTyp ], NmbBlk, b, SizTab[5] = {0,4,8,4,8};
-   int err, ret, *IntMapTab = NULL;
+   int err, ret, *IntMapTab = NULL, RepCnt;
    int64_t *FilPtrI64, *UsrPtrI64, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
    int64_t *LngMapTab = NULL;
    float *FilPtrR32, *UsrPtrR32;
@@ -1733,8 +1764,26 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
    {
       for(i=0;i<kwd->SolSiz;i++)
       {
-         // Get the type, begin and end pointers from the variable arguments
-         UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));;
+         // Get the type from the variable arguments
+         UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));
+
+         // If a table is given, read its size in the next argument
+         // and automatically fill the pointer table by incrementing
+         // as many times the base user address
+         if(UsrTyp[i] == GmfIntTab)
+         {
+            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            UsrTyp[i] = GmfInt;
+         }
+         else if(UsrTyp[i] == GmfLongTab)
+         {
+            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            UsrTyp[i] = GmfLong;
+         }
+         else
+            RepCnt = 0;
+
+         // Get the begin and end pointers from the variable arguments
          UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
          EndUsrDat = va_arg(VarArg, char *);
 
@@ -1742,6 +1791,19 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
             UsrLen[i] = (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1);
          else
             UsrLen[i] = 0;
+
+         // Replicate the table data type and increment the base address
+         if(RepCnt > 2)
+         {
+            for(j=i+1; j<i+RepCnt; j++)
+            {
+               UsrTyp[j] = UsrTyp[i];
+               UsrDat[j] = UsrBas[j] = UsrDat[ j-1 ] + SizTab[ UsrTyp[i] ];
+               UsrLen[j] = UsrLen[i];
+            }
+
+            i += RepCnt - 1;
+         }
       }
    }
    else if(kwd->typ == SolKwd)

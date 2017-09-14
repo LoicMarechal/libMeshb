@@ -36,9 +36,9 @@
 
 \begin{flushright}
 \Large Lo\"ic MAR\'ECHAL / INRIA, Gamma Project\\
-\Large August 2017 \\
-\normalsize Document v1.8 \\
-\normalsize Library v7.29
+\Large September 2017 \\
+\normalsize Document v1.81 \\
+\normalsize Library v7.30
 \end{flushright}
 
 \end{titlepage}
@@ -341,7 +341,7 @@ for(i=0;i<nbv;i++)
 GmfGotoKwd(InpMsh, GmfQuadrilaterals);
 
 for(i=0;i<nbq;i++)
-  GmfGetLin(InpMsh, GmfQuadrilaterals, &qt[i][0], \
+  GmfGetLin(InpMsh, GmfQuadrilaterals, &qt[i][0],
             &qt[i][1], &qt[i][2], &qt[i][3], &qt[i][4]);
 
 GmfCloseMesh(InpMsh);
@@ -696,7 +696,7 @@ the index returned by GmfOpenMesh() must be provided.
 \paragraph{arguments:} as many values of the required type of data as stated by the keyword definition (see section \ref{keywords}) should be provided.
 
 
-\subsection{GmfGetBlock}
+\subsection{GmfSetBlock}
 GmfGetBlock() is a variable arguments command, it reads all the lines of data from the file and stores each items in the provided pointers to user's data structures. The user's data structure has to be fully described in order for the library to fill all the lines automatically.
 
 \begin{tt}
@@ -732,11 +732,38 @@ the index returned by GmfOpenMesh() must be provided.
 int ref[nv];
 double x[nv], y[nv], z[nv];
 
-GmfGetBlock(MeshIndex, GmfVertices, 1, nv, 0, NULL, NULL, \
-            GmfDouble, &x[1],   &x[nv], \
-            GmfDouble, &y[1],   &y[nv], \
-            GmfDouble, &z[1],   &z[nv], \
+GmfGetBlock(MeshIndex, GmfVertices, 1, nv, 0, NULL, NULL,
+            GmfDouble, &x[1],   &x[nv],
+            GmfDouble, &y[1],   &y[nv],
+            GmfDouble, &z[1],   &z[nv],
             GmfInt,    &ref[1], &ref[nv]);
+\end{verbatim}
+\end{tt}
+\normalfont
+
+In order to reduce the number of parameters, when dealing with high order polyhedra for example, you may concatenate a set of pointers to each vertices into one base address. The vertices will be loaded at consecutive addresses.
+
+To indicate that the following begin and end set of pointers should be considered as a table, you should replace the GmfInt parameter by GmtIntTab followed by the size of the table. Conversely, GmtLong may be replaced by GmfLongTab.
+
+In this example, the first GmfGetBlock reading hexahedra may be replaced by the second one:
+
+\begin{tt}
+\begin{verbatim}
+GmfGetBlock(MeshIndex, GmfVertices, 1, nh, 0, NULL, NULL,
+            GmfInt, &HexIdx[1][0],   &HexIdx[nh][0],
+            GmfInt, &HexIdx[1][1],   &HexIdx[nh][1],
+            GmfInt, &HexIdx[1][2],   &HexIdx[nh][2],
+            GmfInt, &HexIdx[1][3],   &HexIdx[nh][3],
+            GmfInt, &HexIdx[1][4],   &HexIdx[nh][4],
+            GmfInt, &HexIdx[1][5],   &HexIdx[nh][5],
+            GmfInt, &HexIdx[1][6],   &HexIdx[nh][6],
+            GmfInt, &HexIdx[1][7],   &HexIdx[nh][7],
+            GmfInt, &HexRef[1],      &HexRef[nh]);
+
+GmfGetBlock(MeshIndex, GmfVertices, 1, nh, 0, NULL, NULL,
+            GmfIntTab, 8, &HexIdx[1],   &HexIdx[nh],
+            GmfInt,       &HexRef[1],   &HexRef[nh]);
+
 \end{verbatim}
 \end{tt}
 \normalfont
@@ -752,10 +779,10 @@ Works exactly as GmfGetBlock exept that all lines are written, you cannot specif
 int ref[nv];
 double x[nv], y[nv], z[nv];
 
-GmfSetBlock(MeshIndex, GmfVertices, 1, nv, 0, NULL, FlipRefs, ref, \
-            GmfDouble, &x[1],   &x[nv], \
-            GmfDouble, &y[1],   &y[nv], \
-            GmfDouble, &z[1],   &z[nv], \
+GmfSetBlock(MeshIndex, GmfVertices, 1, nv, 0, NULL, FlipRefs, ref,
+            GmfDouble, &x[1],   &x[nv],
+            GmfDouble, &y[1],   &y[nv],
+            GmfDouble, &z[1],   &z[nv],
             GmfInt,    &ref[1], &ref[nv]);
 \end{verbatim}
 \end{tt}
