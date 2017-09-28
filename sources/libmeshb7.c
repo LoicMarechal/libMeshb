@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.30                               */
+/*                               LIBMESH V 7.31                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  sep 14 2017                                          */
+/*   Last modification:  sep 28 2017                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -134,8 +134,8 @@ int aio_error( const struct aiocb * aiocbp )
 // Set the file position and read a block of data
 int aio_read( struct aiocb * aiocbp )
 {
-   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0) \
-   &&  (fread(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes) \
+   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   &&  (fread(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
       aiocbp->aio_lio_opcode = 0;
@@ -156,8 +156,8 @@ size_t aio_return( struct aiocb * aiocbp )
 // Set the file position and write a block of data
 int aio_write( struct aiocb * aiocbp )
 {
-   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0) \
-   &&  (fwrite(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes) \
+   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   &&  (fwrite(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
       aiocbp->aio_lio_opcode = 0;
@@ -349,7 +349,8 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"HOSolAtPrismsP3",                          "i", "hr"},
    {"HOSolAtHexahedraQ1",                       "i", "hr"},
    {"HOSolAtHexahedraQ2",                       "i", "hr"},
-   {"HOSolAtHexahedraQ3",                       "i", "hr"}
+   {"HOSolAtHexahedraQ3",                       "i", "hr"},
+   {"BezierMode",                               "",  "i"}
 };
 
 #ifdef TRANSMESH
@@ -619,9 +620,9 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       // Write the mesh version and dimension
       if(msh->typ & Asc)
       {
-         fprintf(msh->hdl, "%s %d\n\n", \
+         fprintf(msh->hdl, "%s %d\n\n",
                GmfKwdFmt[ GmfVersionFormatted ][0], msh->ver);
-         fprintf(msh->hdl, "%s %d\n", \
+         fprintf(msh->hdl, "%s %d\n",
                GmfKwdFmt[ GmfDimension ][0], msh->dim);
       }
       else
@@ -766,7 +767,7 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
    kwd = &msh->KwdTab[ KwdCod ];
 
    // Read further arguments if this kw is a solution
-   if(!strcmp(GmfKwdFmt[ KwdCod ][2], "sr") \
+   if(!strcmp(GmfKwdFmt[ KwdCod ][2], "sr")
    || !strcmp(GmfKwdFmt[ KwdCod ][2], "hr"))
    {
       va_start(VarArg, NmbLin);
@@ -918,7 +919,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
                   }                     
                   else
                   {
-                     safe_fscanf(msh->hdl, "%lf", \
+                     safe_fscanf(msh->hdl, "%lf",
                               va_arg(VarArg, double *), msh->err);
                   }
                }
@@ -926,19 +927,19 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
                {
                   if(msh->ver <= 3)
                   {
-                     safe_fscanf(msh->hdl, "%d", \
+                     safe_fscanf(msh->hdl, "%d",
                         va_arg(VarArg, int *), msh->err);
                   }
                   else
                   {
                      // [Bruno] %ld -> INT64_T_FMT
-                     safe_fscanf(msh->hdl, INT64_T_FMT, \
+                     safe_fscanf(msh->hdl, INT64_T_FMT,
                               va_arg(VarArg, int64_t *), msh->err);
                   }
                }
                else if(kwd->fmt[i] == 'c')
                {
-                  safe_fgets( va_arg(VarArg, char *), \
+                  safe_fgets( va_arg(VarArg, char *),
                               WrdSiz * FilStrSiz, msh->hdl, msh->err);
                }
             }
@@ -1039,7 +1040,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
                else
                {
                   // [Bruno] %ld -> INT64_T_FMT
-                  fprintf( msh->hdl, INT64_T_FMT " ", \
+                  fprintf( msh->hdl, INT64_T_FMT " ",
                            VALF77(va_arg(VarArg, TYPF77(int64_t))));
                }
             }
@@ -1262,12 +1263,12 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 /* Bufferized asynchronous reading of all keyword's lines                     */
 /*----------------------------------------------------------------------------*/
 
-int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
-                                       TYPF77(int)     KwdCod, \
-                                       TYPF77(int64_t) BegIdx, \
-                                       TYPF77(int64_t) EndIdx, \
-                                       TYPF77(int)     MapTyp, \
-                                       void           *MapTab, \
+int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
+                                       TYPF77(int)     KwdCod,
+                                       TYPF77(int64_t) BegIdx,
+                                       TYPF77(int64_t) EndIdx,
+                                       TYPF77(int)     MapTyp,
+                                       void           *MapTab,
                                        void           *prc, ... )
 {
    char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
@@ -1673,12 +1674,12 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx, \
 /* Bufferized writing of all keyword's lines                                  */
 /*----------------------------------------------------------------------------*/
 
-int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx, \
-                                       TYPF77(int)     KwdCod, \
-                                       TYPF77(int64_t) BegIdx, \
-                                       TYPF77(int64_t) EndIdx, \
-                                       TYPF77(int)     MapTyp, \
-                                       void           *MapTab, \
+int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
+                                       TYPF77(int)     KwdCod,
+                                       TYPF77(int64_t) BegIdx,
+                                       TYPF77(int64_t) EndIdx,
+                                       TYPF77(int)     MapTyp,
+                                       void           *MapTab,
                                        void           *prc, ... )
 {
    char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
@@ -2166,7 +2167,7 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
    else
       kwd->NmbLin = 1;
 
-   if(!strcmp("sr", GmfKwdFmt[ KwdCod ][2]) \
+   if(!strcmp("sr", GmfKwdFmt[ KwdCod ][2])
    || !strcmp("hr", GmfKwdFmt[ KwdCod ][2]) )
    {
       if(msh->typ & Asc)
@@ -2557,7 +2558,7 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 
 #ifdef F77API
 
-int64_t APIF77(gmfopenmesh)(char *FilNam, int *mod, \
+int64_t APIF77(gmfopenmesh)(char *FilNam, int *mod,
                               int *ver, int *dim, int StrSiz)
 {
    int i;
@@ -2584,7 +2585,7 @@ int APIF77(gmfgotokwd)(int64_t *MshIdx, int *KwdIdx)
    return(GmfGotoKwd(*MshIdx, *KwdIdx));
 }
 
-int APIF77(gmfstatkwd)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp, \
+int APIF77(gmfstatkwd)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp,
                         int *SolSiz, int *TypTab)
 {
    if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
@@ -2593,7 +2594,7 @@ int APIF77(gmfstatkwd)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp, \
       return(GmfStatKwd(*MshIdx, *KwdIdx));
 }
 
-int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin, \
+int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
                         int *NmbTyp, int *TypTab)
 {
    if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
@@ -2657,147 +2658,147 @@ int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin, \
 /* Call a fortran thread with 1 to 20 arguments                               */
 /*----------------------------------------------------------------------------*/
 
-static void CalF77Prc(  int64_t BegIdx, int64_t EndIdx, \
+static void CalF77Prc(  int64_t BegIdx, int64_t EndIdx,
                         void *prc, int NmbArg, void **ArgTab )
 {
    switch(NmbArg)
    {
       case 1 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 1)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 1)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 1)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 1));
       }break;
 
       case 2 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 2)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 2)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 2)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 2));
       }break;
 
       case 3 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 3)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 3)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 3)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 3));
       }break;
 
       case 4 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 4)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 4)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 4)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 4));
       }break;
 
       case 5 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 5)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 5)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 5)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 5));
       }break;
 
       case 6 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 6)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 6)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 6)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 6));
       }break;
 
       case 7 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 7)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 7)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 7)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 7));
       }break;
 
       case 8 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 8)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 8)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 8)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 8));
       }break;
 
       case 9 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 9)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 9)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 9)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 9));
       }break;
 
       case 10 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 10)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 10)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 10)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 10));
       }break;
 
       case 11 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 11)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 11)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 11)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 11));
       }break;
 
       case 12 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 12)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 12)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 12)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 12));
       }break;
 
       case 13 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 13)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 13)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 13)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 13));
       }break;
 
       case 14 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 14)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 14)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 14)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 14));
       }break;
 
       case 15 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 15)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 15)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 15)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 15));
       }break;
 
       case 16 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 16)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 16)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 16)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 16));
       }break;
 
       case 17 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 17)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 17)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 17)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 17));
       }break;
 
       case 18 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 18)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 18)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 18)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 18));
       }break;
 
       case 19 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 19)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 19)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 19)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 19));
       }break;
 
       case 20 :
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 20)) = \
+         void (*prc1)(int64_t *, int64_t *, DUP(void *, 20)) =
             (void (*)(int64_t *, int64_t *, DUP(void *, 20)))prc;
          prc1(&BegIdx, &EndIdx, ARG(ArgTab, 20));
       }break;
