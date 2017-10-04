@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  sep 28 2017                                          */
+/*   Last modification:  oct 04 2017                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -2561,8 +2561,15 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 int64_t APIF77(gmfopenmesh)(char *FilNam, int *mod,
                               int *ver, int *dim, int StrSiz)
 {
-   int i;
+   int i=0;
    char TmpNam[ GmfStrSiz ];
+
+   if(StrSiz <= 0)
+      return(0);
+
+   // Trim trailing spaces from the fortran string
+   while(isspace(FilNam[ StrSiz-1 ]))
+      StrSiz--;
 
    for(i=0;i<StrSiz;i++)
       TmpNam[i] = FilNam[i];
