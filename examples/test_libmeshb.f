@@ -16,7 +16,8 @@ c     Open the quadrilateral mesh file for reading
 c     --------------------------------------------
 
 c     Open the mesh file and check the version and dimension
-      InpMsh = gmfopenmesh('../sample_meshes/quad.mesh',GmfRead,ver,dim)
+      InpMsh = gmfopenmesh('../sample_meshes/quad.mesh ',
+     +GmfRead,ver,dim)
       print*, 'input mesh :', InpMsh,'version:',ver,'dim:',dim
       if(InpMsh.eq.0) STOP ' InpMsh = 0'
       if(ver.le.1) STOP ' version <= 1'

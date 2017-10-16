@@ -199,14 +199,16 @@ int aio_write( struct aiocb * aiocbp )
 typedef struct
 {
    int typ, deg, NmbNod, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
-   int64_t NmbLin, pos;
+   int64_t NmbLin;
+   size_t pos;
    char fmt[ GmfMaxTyp*9 ];
 }KwdSct;
 
 typedef struct
 {
    int dim, ver, mod, typ, cod, FilDes;
-   int64_t NexKwdPos, siz, pos;
+   int64_t NexKwdPos, siz;
+   size_t pos;
    jmp_buf err;
    KwdSct KwdTab[ GmfMaxKwd + 1 ];
    FILE *hdl;
@@ -1275,14 +1277,14 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    char *UsrBas[ GmfMaxTyp ], *FilPos, *EndUsrDat;
    // [Bruno] "%lld" -> INT64_T_FMT
    char *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
-   int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], err, ret;
+   int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], err;
    int UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8}, *IntMapTab=NULL;
    int64_t BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx=0, RepCnt;
    int64_t *LngMapTab=NULL, OldIdx=0;
    float *FilPtrR32, *UsrPtrR32;
    double *FilPtrR64, *UsrPtrR64;
    void (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t UsrLen[ GmfMaxTyp ];
+   size_t UsrLen[ GmfMaxTyp ], ret;
    va_list VarArg;
    GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
    KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
@@ -1687,18 +1689,18 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    char *UsrBas[ GmfMaxTyp ], *EndUsrDat;
    int i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
    int UsrTyp[ GmfMaxTyp ], NmbBlk, b, SizTab[5] = {0,4,8,4,8};
-   int err, ret, *IntMapTab = NULL, RepCnt;
+   int err, *IntMapTab = NULL, RepCnt;
    int64_t *FilPtrI64, *UsrPtrI64, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
    int64_t *LngMapTab = NULL;
    float *FilPtrR32, *UsrPtrR32;
    double *FilPtrR64, *UsrPtrR64;
    void (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t UsrLen[ GmfMaxTyp ];
+   size_t UsrLen[ GmfMaxTyp ], ret;
    va_list VarArg;
    GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
    KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
-   //int64_t FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx), UsrNmbLin;
-   int64_t FilBegIdx = 1, FilEndIdx = kwd->NmbLin, UsrNmbLin, OldIdx=0;
+   int64_t FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
+   int64_t UsrNmbLin, OldIdx=0;
    struct aiocb aio;
 #ifdef F77API
    int NmbArg = 0;
@@ -1723,6 +1725,11 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    // Make sure it's not a simple information keyword
    if( (kwd->typ != RegKwd) && (kwd->typ != SolKwd) )
       return(0);
+
+   // Temporarily overwright the given begin and end values
+   // as arbitrary position block write is not yet implemented
+   FilBegIdx = 1;
+   FilEndIdx = kwd->NmbLin;
 
    // Check user's bounds
    if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > kwd->NmbLin) )
@@ -2430,7 +2437,7 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
 #ifdef WITH_AIO
       if(write(msh->FilDes, msh->blk, msh->pos) != msh->pos)
 #else      
-      if(fwrite(msh->blk, 1, (size_t)msh->pos, msh->hdl) != msh->pos)
+      if(fwrite(msh->blk, 1, msh->pos, msh->hdl) != msh->pos)
 #endif      
          longjmp(msh->err,-1);
 #endif      
