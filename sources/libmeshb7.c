@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.31                               */
+/*                               LIBMESH V 7.32                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  oct 04 2017                                          */
+/*   Last modification:  nov 29 2017                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -21,23 +21,23 @@
 
 // Add a final underscore to Fortran procedure names
 #ifdef F77_NO_UNDER_SCORE
-#define NAMF77(c,f) f
-#define APIF77(x) x
+#define NAMF77(c,f)  f
+#define APIF77(x)    x
 #else
-#define NAMF77(c,f) f ## _
-#define APIF77(x) x ## _
+#define NAMF77(c,f)  f ## _
+#define APIF77(x)    x ## _
 #endif
 
 // Pass parameters as pointers in Fortran
-#define VALF77(v) *v
-#define TYPF77(t) t*
+#define VALF77(v)    *v
+#define TYPF77(t)    t*
 
 #else
 
 // Pass parameters as values in C
-#define NAMF77(c,f) c
-#define VALF77(v) v
-#define TYPF77(t) t
+#define NAMF77(c,f)  c
+#define VALF77(v)    v
+#define TYPF77(t)    t
 
 #endif
 
@@ -87,10 +87,10 @@
 #include <sys/types.h>
 #include <wchar.h>
 
-#define OPEN_READ_FLAGS   O_RDONLY | _O_BINARY
-#define OPEN_WRITE_FLAGS  O_CREAT | O_WRONLY | O_TRUNC | _O_BINARY
-#define OPEN_READ_MODE   _S_IREAD
-#define OPEN_WRITE_MODE   _S_IREAD | S_IWRITE 
+#define OPEN_READ_FLAGS    O_RDONLY | _O_BINARY
+#define OPEN_WRITE_FLAGS   O_CREAT | O_WRONLY | O_TRUNC | _O_BINARY
+#define OPEN_READ_MODE     _S_IREAD
+#define OPEN_WRITE_MODE    _S_IREAD | S_IWRITE 
 
 #endif
 
@@ -178,18 +178,18 @@ int aio_write( struct aiocb * aiocbp )
 /* Defines                                                                    */
 /*----------------------------------------------------------------------------*/
 
-#define Asc 1
-#define Bin 2
-#define MshFil 4
-#define SolFil 8
-#define InfKwd 1
-#define RegKwd 2
-#define SolKwd 3
-#define CmtKwd 4
-#define WrdSiz 4
+#define Asc       1
+#define Bin       2
+#define MshFil    4
+#define SolFil    8
+#define InfKwd    1
+#define RegKwd    2
+#define SolKwd    3
+#define CmtKwd    4
+#define WrdSiz    4
 #define FilStrSiz 64
-#define BufSiz 10000
-#define MaxArg 20
+#define BufSiz    10000
+#define MaxArg    20
 
 
 /*----------------------------------------------------------------------------*/
@@ -198,25 +198,25 @@ int aio_write( struct aiocb * aiocbp )
 
 typedef struct
 {
-   int typ, deg, NmbNod, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
-   int64_t NmbLin;
-   size_t pos;
-   char fmt[ GmfMaxTyp*9 ];
+   int      typ, deg, NmbNod, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
+   int64_t  NmbLin;
+   size_t   pos;
+   char     fmt[ GmfMaxTyp*9 ];
 }KwdSct;
 
 typedef struct
 {
-   int dim, ver, mod, typ, cod, FilDes;
-   int64_t NexKwdPos, siz;
-   size_t pos;
-   jmp_buf err;
-   KwdSct KwdTab[ GmfMaxKwd + 1 ];
-   FILE *hdl;
-   int *IntBuf;
-   float *FltBuf;
-   char *buf;
-   char FilNam[ GmfStrSiz ];
-   double DblBuf[1000/8];
+   int      dim, ver, mod, typ, cod, FilDes;
+   int64_t  NexKwdPos, siz;
+   size_t   pos;
+   jmp_buf  err;
+   KwdSct   KwdTab[ GmfMaxKwd + 1 ];
+   FILE     *hdl;
+   int      *IntBuf;
+   float    *FltBuf;
+   char     *buf;
+   char     FilNam[ GmfStrSiz ];
+   double   DblBuf[1000/8];
    unsigned char blk[ BufSiz + 1000 ];
 }GmfMshSct;
 
@@ -352,7 +352,8 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"HOSolAtHexahedraQ1",                       "i", "hr"},
    {"HOSolAtHexahedraQ2",                       "i", "hr"},
    {"HOSolAtHexahedraQ3",                       "i", "hr"},
-   {"BezierMode",                               "",  "i"}
+   {"BezierMode",                               "",  "i"},
+   {"ByteFlow",                                 "i", "i"}
 };
 
 #ifdef TRANSMESH
@@ -414,10 +415,10 @@ static void    CalF77Prc(int64_t, int64_t, void *, int, void **);
 
 int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 {
-   int KwdCod, res, *PtrVer, *PtrDim;
-   int64_t MshIdx;
-   char str[ GmfStrSiz ];
-   va_list VarArg;
+   int      KwdCod, res, *PtrVer, *PtrDim;
+   int64_t  MshIdx;
+   char     str[ GmfStrSiz ];
+   va_list  VarArg;
    GmfMshSct *msh;
 
    /*---------------------*/
@@ -687,10 +688,10 @@ int GmfCloseMesh(int64_t MshIdx)
 
 int64_t GmfStatKwd(int64_t MshIdx, int KwdCod, ...)
 {
-   int i, *PtrNmbTyp, *PtrSolSiz, *TypTab, *PtrDeg, *PtrNmbNod;
-   GmfMshSct *msh = (GmfMshSct *)MshIdx;
-   KwdSct *kwd;
-   va_list VarArg;
+   int         i, *PtrNmbTyp, *PtrSolSiz, *TypTab, *PtrDeg, *PtrNmbNod;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd;
+   va_list     VarArg;
 
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
@@ -739,8 +740,8 @@ int64_t GmfStatKwd(int64_t MshIdx, int KwdCod, ...)
 
 int GmfGotoKwd(int64_t MshIdx, int KwdCod)
 {
-   GmfMshSct *msh = (GmfMshSct *)MshIdx;
-   KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
 
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) || !kwd->NmbLin )
       return(0);
@@ -755,11 +756,11 @@ int GmfGotoKwd(int64_t MshIdx, int KwdCod)
 
 int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 {
-   int i, *TypTab;
-   int64_t CurPos;
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *)MshIdx;
-   KwdSct *kwd;
+   int         i, *TypTab;
+   int64_t     CurPos;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd;
 
    RecBlk(msh, msh->buf, 0);
 
@@ -885,12 +886,12 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 
 int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 {
-   int i;
-   float *FltSolTab, FltVal, *PtrFlt;
-   double *DblSolTab, *PtrDbl;
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   int         i;
+   float       *FltSolTab, FltVal, *PtrFlt;
+   double      *DblSolTab, *PtrDbl;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
+   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
 
    if( (VALF77(KwdCod) < 1) || (VALF77(KwdCod) > GmfMaxKwd) )
       return(0);
@@ -1004,13 +1005,13 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 
 int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...)
 {
-   int i, pos, *IntBuf;
-   int64_t *LngBuf;
-   float *FltSolTab, *FltBuf;
-   double *DblSolTab, *DblBuf;
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   int         i, pos, *IntBuf;
+   int64_t     *LngBuf;
+   float       *FltSolTab, *FltBuf;
+   double      *DblSolTab, *DblBuf;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
+   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
 
    if( ( VALF77(KwdCod) < 1) || ( VALF77(KwdCod) > GmfMaxKwd) )
       return(0);
@@ -1142,13 +1143,13 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
 
 int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 {
-   char s[ WrdSiz * FilStrSiz ];
-   double d;
-   float f;
-   int i, a;
-   int64_t l;
-   GmfMshSct *InpMsh = (GmfMshSct *)InpIdx, *OutMsh = (GmfMshSct *)OutIdx;
-   KwdSct *kwd = &InpMsh->KwdTab[ KwdCod ];
+   char        s[ WrdSiz * FilStrSiz ];
+   double      d;
+   float       f;
+   int         i, a;
+   int64_t     l;
+   GmfMshSct   *InpMsh = (GmfMshSct *)InpIdx, *OutMsh = (GmfMshSct *)OutIdx;
+   KwdSct      *kwd = &InpMsh->KwdTab[ KwdCod ];
 
    // Save the current stack environment for longjmp
    if(setjmp(InpMsh->err) != 0)
@@ -1273,28 +1274,28 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
                                        void           *MapTab,
                                        void           *prc, ... )
 {
-   char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
-   char *UsrBas[ GmfMaxTyp ], *FilPos, *EndUsrDat;
-   // [Bruno] "%lld" -> INT64_T_FMT
-   char *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
-   int b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ], err;
-   int UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8}, *IntMapTab=NULL;
-   int64_t BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx=0, RepCnt;
-   int64_t *LngMapTab=NULL, OldIdx=0;
-   float *FilPtrR32, *UsrPtrR32;
-   double *FilPtrR64, *UsrPtrR64;
-   void (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t UsrLen[ GmfMaxTyp ], ret;
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
-   int64_t FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx), UsrNmbLin;
-   struct aiocb aio;
+   char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ], *FilPos, *EndUsrDat;
+   char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
+   char        *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
+   int         b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
+   int         UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8};
+   int         *IntMapTab = NULL, err;
+   float       *FilPtrR32, *UsrPtrR32;
+   double      *FilPtrR64, *UsrPtrR64;
+   int64_t     BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx = 0;
+   int64_t     *LngMapTab = NULL, OldIdx = 0, RepCnt, UsrNmbLin;
+   int64_t     FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
+   void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
+   size_t      UsrLen[ GmfMaxTyp ], ret;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
+   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   struct      aiocb aio;
 #ifdef F77API
-   int NmbArg = 0;
-   void *ArgTab[ MaxArg ];
+   int         NmbArg = 0;
+   void        *ArgTab[ MaxArg ];
 #else
-   char *UsrArg = NULL;
+   char        *UsrArg = NULL;
 #endif
 
    // Save the current stack environment for longjmp
@@ -1684,29 +1685,28 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
                                        void           *MapTab,
                                        void           *prc, ... )
 {
-   char *UsrDat[ GmfMaxTyp ], *FilBuf=NULL, *FrtBuf=NULL, *BckBuf=NULL;
-   char *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" }, *FilPos;
-   char *UsrBas[ GmfMaxTyp ], *EndUsrDat;
-   int i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int UsrTyp[ GmfMaxTyp ], NmbBlk, b, SizTab[5] = {0,4,8,4,8};
-   int err, *IntMapTab = NULL, RepCnt;
-   int64_t *FilPtrI64, *UsrPtrI64, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
-   int64_t *LngMapTab = NULL;
-   float *FilPtrR32, *UsrPtrR32;
-   double *FilPtrR64, *UsrPtrR64;
-   void (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t UsrLen[ GmfMaxTyp ], ret;
-   va_list VarArg;
-   GmfMshSct *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
-   int64_t FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
-   int64_t UsrNmbLin, OldIdx=0;
-   struct aiocb aio;
+   char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ], *EndUsrDat;
+   char        *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" }, *FilPos;
+   char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
+   int         i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
+   int         UsrTyp[ GmfMaxTyp ], NmbBlk, b, SizTab[5] = {0,4,8,4,8};
+   int         err, *IntMapTab = NULL, RepCnt;
+   float       *FilPtrR32, *UsrPtrR32;
+   double      *FilPtrR64, *UsrPtrR64;
+   int64_t     UsrNmbLin, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
+   int64_t     *FilPtrI64, *UsrPtrI64, *LngMapTab = NULL, OldIdx = 0;
+   int64_t     FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
+   void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
+   size_t      UsrLen[ GmfMaxTyp ], ret;
+   va_list     VarArg;
+   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
+   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   struct      aiocb aio;
 #ifdef F77API
-   int NmbArg = 0;
-   void *ArgTab[ MaxArg ];
+   int         NmbArg = 0;
+   void        *ArgTab[ MaxArg ];
 #else
-   char *UsrArg = NULL;
+   char        *UsrArg = NULL;
 #endif
 
    // Save the current stack environment for longjmp
@@ -2091,15 +2091,70 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
 
 #endif
 
+
+#ifndef F77API
+
+
+/*----------------------------------------------------------------------------*/
+/* Read an EGADS binary CAD and return the byte flow and its exact byte size  */
+/*----------------------------------------------------------------------------*/
+
+char *GmfReadByteFlow(int64_t MshIdx, int *NmbByt)
+{
+   int         i, cod, *WrdTab, NmbWrd;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+
+   if(!(NmbWrd = GmfStatKwd(MshIdx, GmfByteFlow)))
+      return(NULL);
+
+   if(!(WrdTab = malloc(NmbWrd * WrdSiz)))
+      return(NULL);
+
+   cod = msh->cod;
+   msh->cod = 1;
+
+   GmfGotoKwd(MshIdx, GmfByteFlow);
+   GmfGetLin(MshIdx, GmfByteFlow, NmbByt);
+
+   for(i=0;i<NmbWrd;i++)
+      GmfGetLin(MshIdx, GmfByteFlow, &WrdTab[i]);
+
+   msh->cod = cod;
+
+   return((char *)WrdTab);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* Write an EGADS binary CAD as an integer table whose first entry is the size*/
+/*----------------------------------------------------------------------------*/
+
+int GmfWriteByteFlow(int64_t MshIdx, char *BytTab, int NmbByt)
+{
+   int i, *WrdTab = (int *)BytTab, NmbWrd = NmbByt / WrdSiz + 1;
+
+   if(!GmfSetKwd(MshIdx, GmfByteFlow, NmbWrd + 1))
+      return(0);
+
+   GmfSetLin(MshIdx, GmfByteFlow, NmbByt);
+
+   for(i=0;i<NmbWrd;i++)
+      GmfSetLin(MshIdx, GmfByteFlow, WrdTab[i]);
+
+   return(1);
+}
+#endif
+
+
 /*----------------------------------------------------------------------------*/
 /* Find every kw present in a meshfile                                        */
 /*----------------------------------------------------------------------------*/
 
 static int ScaKwdTab(GmfMshSct *msh)
 {
-   int KwdCod, c;
+   int      KwdCod, c;
    int64_t  NexPos, EndPos;
-   char str[ GmfStrSiz ];
+   char     str[ GmfStrSiz ];
 
    if(msh->typ & Asc)
    {
@@ -2157,8 +2212,8 @@ static int ScaKwdTab(GmfMshSct *msh)
 
 static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 {
-   int i;
-   KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+   int      i;
+   KwdSct   *kwd = &msh->KwdTab[ KwdCod ];
 
    if(!strcmp("i", GmfKwdFmt[ KwdCod ][1]))
       if(msh->typ & Asc)
@@ -2229,10 +2284,10 @@ static void ScaKwdHdr(GmfMshSct *msh, int KwdCod)
 
 static void ExpFmt(GmfMshSct *msh, int KwdCod)
 {
-   int i, j, TmpSiz=0, IntWrd, FltWrd;
-   char chr;
-   const char *InpFmt = GmfKwdFmt[ KwdCod ][2];
-   KwdSct *kwd = &msh->KwdTab[ KwdCod ];
+   int         i, j, TmpSiz=0, IntWrd, FltWrd;
+   char        chr;
+   const char  *InpFmt = GmfKwdFmt[ KwdCod ][2];
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
 
    // Set the kwd's type
    if(!strlen(GmfKwdFmt[ KwdCod ][1]))
@@ -2351,8 +2406,8 @@ static void ScaDblWrd(GmfMshSct *msh, void *ptr)
 
 static int64_t GetPos(GmfMshSct *msh)
 {
-   int IntVal;
-   int64_t pos;
+   int      IntVal;
+   int64_t  pos;
 
    if(msh->ver >= 3)
       ScaDblWrd(msh, (unsigned char*)&pos);
@@ -2432,14 +2487,14 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
 #else      
       if(fwrite(msh->blk, 1, (size_t)msh->pos, msh->hdl) != msh->pos)
 #endif      
-         longjmp(msh->err,-1);
+         longjmp(msh->err, -1);
 #else      
 #ifdef WITH_AIO
       if(write(msh->FilDes, msh->blk, msh->pos) != msh->pos)
 #else      
       if(fwrite(msh->blk, 1, msh->pos, msh->hdl) != msh->pos)
 #endif      
-         longjmp(msh->err,-1);
+         longjmp(msh->err, -1);
 #endif      
       msh->pos = 0;
    }
@@ -2470,8 +2525,8 @@ static void SetPos(GmfMshSct *msh, int64_t pos)
 
 static void SwpWrd(char *wrd, int siz)
 {
-   char swp;
-   int i;
+   char  swp;
+   int   i;
 
    for(i=0;i<siz/2;i++)
    {
@@ -2565,11 +2620,11 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 
 #ifdef F77API
 
-int64_t APIF77(gmfopenmesh)(char *FilNam, int *mod,
-                              int *ver, int *dim, int StrSiz)
+int64_t APIF77(gmfopenmesh)(  char *FilNam, int *mod,
+                              int *ver, int *dim, int StrSiz )
 {
-   int i=0;
-   char TmpNam[ GmfStrSiz ];
+   int   i = 0;
+   char  TmpNam[ GmfStrSiz ];
 
    if(StrSiz <= 0)
       return(0);

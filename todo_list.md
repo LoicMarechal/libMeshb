@@ -22,4 +22,6 @@ Output: list of solutions keywords and particuliar field number.
 
 ## Indirect storage through a renumbering table for parallel reading.
 ## Keyword documentation updated.
-## H-gh-Order multiple solutions per element for DG.
+## High-Order multiple solutions per element for DG.
+## Added ByteFlow keyword to store an arbitrary sized byte array
+## Added two examples to read and write EGADS CAD models stores as byte flows

@@ -14,7 +14,7 @@ int main()
 
 
    // Open the "out.sol" mesh file
-   if(!(InpMsh = GmfOpenMesh("../sample_meshes/out.sol", GmfRead, &ver, &dim)))
+   if(!(InpMsh = GmfOpenMesh("/Users/marechal/tmp/TriangleP2_b.solb", GmfRead, &ver, &dim)))
       return(1);
 
    printf("InpMsh: idx = %lld, version = %d, dimension = %d\n", InpMsh, ver, dim);
@@ -26,6 +26,7 @@ int main()
    NmbSol = GmfStatKwd(InpMsh, GmfSolAtVertices, &NmbTyp, &SolSiz, TypTab);
    printf("NmbSol = %d, NmbTyp = %d, SolSiz = %d\n", NmbSol, NmbTyp, SolSiz);
    SolTab = malloc( (NmbSol+1) * SolSiz * sizeof(double));
+   printf("SolTab: %p -> %p\n", SolTab, SolTab+(NmbSol+1) * SolSiz * sizeof(double));
 
    // Solution field block reading
    GmfGetBlock(InpMsh, GmfSolAtVertices, 1, NmbSol, 0, NULL, NULL, \
