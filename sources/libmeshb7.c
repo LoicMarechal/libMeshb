@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.32                               */
+/*                               LIBMESH V 7.33                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  nov 29 2017                                          */
+/*   Last modification:  jan 09 2018                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -199,6 +199,7 @@ int aio_write( struct aiocb * aiocbp )
 typedef struct
 {
    int      typ, deg, NmbNod, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
+   int      *OrdTab;
    int64_t  NmbLin;
    size_t   pos;
    char     fmt[ GmfMaxTyp*9 ];
@@ -353,7 +354,21 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"HOSolAtHexahedraQ2",                       "i", "hr"},
    {"HOSolAtHexahedraQ3",                       "i", "hr"},
    {"BezierMode",                               "",  "i"},
-   {"ByteFlow",                                 "i", "i"}
+   {"ByteFlow",                                 "i", "i"},
+   {"EdgesP2Ordering",                          "i",  "i"},
+   {"EdgesP3Ordering",                          "i",  "i"},
+   {"TrianglesP2Ordering",                      "i",  "iii"},
+   {"TrianglesP3Ordering",                      "i",  "iii"},
+   {"QuadrilateralsQ2Ordering",                 "i",  "ii"},
+   {"QuadrilateralsQ3Ordering",                 "i",  "ii"},
+   {"TetrahedraP2Ordering",                     "i",  "iiii"},
+   {"TetrahedraP3Ordering",                     "i",  "iiii"},
+   {"PyramidsP2Ordering",                       "i",  "iii"},
+   {"PyramidsP3Ordering",                       "i",  "iii"},
+   {"PrismsP2Ordering",                         "i",  "iiii"},
+   {"PrismsP3Ordering",                         "i",  "iiii"},
+   {"HexahedraQ2Ordering",                      "i",  "iii"},
+   {"HexahedraQ3Ordering",                      "i",  "iii"}
 };
 
 #ifdef TRANSMESH
@@ -1277,7 +1292,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ], *FilPos, *EndUsrDat;
    char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
    char        *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
-   int         b, i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
+   int         b, i, j, k, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
    int         UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8};
    int         *IntMapTab = NULL, err;
    float       *FilPtrR32, *UsrPtrR32;
@@ -1582,12 +1597,18 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
                   if(msh->cod != 1)
                      SwpWrd(FilPos, SizTab[ FilTyp[j] ]);
 
-                  if(IntMapTab)
-                     UsrDat[j] = UsrBas[j] + (IntMapTab[ OldIdx ] - 1) * UsrLen[j];
-                  else if(LngMapTab)
-                     UsrDat[j] = UsrBas[j] + (LngMapTab[ OldIdx ] - 1) * UsrLen[j];
+                  // Reorder HO nodes on the fly
+                  if(kwd->OrdTab && (j != kwd->SolSiz-1))
+                     k = kwd->OrdTab[j];
                   else
-                     UsrDat[j] = UsrBas[j] + (OldIdx - 1) * UsrLen[j];
+                     k = j;
+
+                  if(IntMapTab)
+                     UsrDat[j] = UsrBas[k] + (IntMapTab[ OldIdx ] - 1) * UsrLen[k];
+                  else if(LngMapTab)
+                     UsrDat[j] = UsrBas[k] + (LngMapTab[ OldIdx ] - 1) * UsrLen[k];
+                  else
+                     UsrDat[j] = UsrBas[k] + (OldIdx - 1) * UsrLen[k];
 
                   if(FilTyp[j] == GmfInt)
                   {
@@ -1651,7 +1672,6 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
                   }
 
                   FilPos += SizTab[ FilTyp[j] ];
-                  UsrDat[j] += UsrLen[j];
                }
             }
 
@@ -2085,6 +2105,75 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
       free(BckBuf);
       free(FrtBuf);
    }
+
+   return(1);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
+{
+   int i, j, k, flg, NmbNod, NmbCrd;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd;
+
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
+      return(0);
+
+   kwd = &msh->KwdTab[ KwdCod ];
+
+   switch(KwdCod)
+   {
+      case GmfEdgesP2 :          NmbNod =  3; NmbCrd = 1; break;
+      case GmfEdgesP3 :          NmbNod =  4; NmbCrd = 1; break;
+      case GmfTrianglesP2 :      NmbNod =  6; NmbCrd = 3; break;
+      case GmfTrianglesP3 :      NmbNod = 10; NmbCrd = 3; break;
+      case GmfQuadrilateralsQ2 : NmbNod =  9; NmbCrd = 2; break;
+      case GmfQuadrilateralsQ3 : NmbNod = 16; NmbCrd = 2; break;
+      case GmfTetrahedraP2 :     NmbNod = 10; NmbCrd = 4; break;
+      case GmfTetrahedraP3 :     NmbNod = 20; NmbCrd = 4; break;
+      case GmfPyramidsP2 :       NmbNod = 14; NmbCrd = 3; break;
+      case GmfPyramidsP3 :       NmbNod = 30; NmbCrd = 3; break;
+      case GmfPrismsP2 :         NmbNod = 18; NmbCrd = 4; break;
+      case GmfPrismsP3 :         NmbNod = 40; NmbCrd = 4; break;
+      case GmfHexahedraQ2 :      NmbNod = 27; NmbCrd = 3; break;
+      case GmfHexahedraQ3 :      NmbNod = 64; NmbCrd = 3; break;
+      default : return(0);
+   }
+
+   if(kwd->OrdTab)
+      free(kwd->OrdTab);
+
+   if(!(kwd->OrdTab = malloc(NmbNod * sizeof(int))))
+      return(0);
+
+   for(i=0;i<NmbNod;i++)
+   {
+      //kwd->OrdTab[i] = -1;
+
+      for(j=0;j<NmbNod;j++)
+      {
+         flg = 1;
+
+         for(k=0;k<NmbCrd;k++)
+            if(BasTab[ i * NmbCrd + k ] != OrdTab[ j * NmbCrd + k ])
+            {
+               flg = 0;
+               break;
+            }
+
+         if(flg)
+            kwd->OrdTab[j] = i;
+      }
+
+      //if(kwd->OrdTab[i] == -1)
+         //return(0);
+   }
+
+   for(i=0;i<NmbNod;i++)
+      printf("%d : %d\n",i,kwd->OrdTab[i]);
 
    return(1);
 }

@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.32                               */
+/*                               LIBMESH V 7.33                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  nov 29 2017                                         */
+/*    Last modification:  jan 08 2018                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -171,6 +171,20 @@ enum GmfKwdCod
    GmfHOSolAtHexahedraQ3,
    GmfBezierMode,
    GmfByteFlow,
+   GmfEdgesP2Ordering,
+   GmfEdgesP3Ordering,
+   GmfTrianglesP2Ordering,
+   GmfTrianglesP3Ordering,
+   GmfQuadrilateralsQ2Ordering,
+   GmfQuadrilateralsQ3Ordering,
+   GmfTetrahedraP2Ordering,
+   GmfTetrahedraP3Ordering,
+   GmfPyramidsP2Ordering,
+   GmfPyramidsP3Ordering,
+   GmfPrismsP2Ordering,
+   GmfPrismsP3Ordering,
+   GmfHexahedraQ2Ordering,
+   GmfHexahedraQ3Ordering,
    GmfLastKeyword
 };
 
@@ -183,17 +197,18 @@ extern "C" {
 /* Public procedures                                                          */
 /*----------------------------------------------------------------------------*/
 
-extern int64_t GmfOpenMesh       (const char *, int, ...);
-extern int     GmfCloseMesh      (int64_t);
-extern int64_t GmfStatKwd        (int64_t, int, ...);
-extern int     GmfSetKwd         (int64_t, int, int64_t, ...);
-extern int     GmfGotoKwd        (int64_t, int);
-extern int     GmfGetLin         (int64_t, int, ...);
-extern int     GmfSetLin         (int64_t, int, ...);
-extern int     GmfGetBlock       (int64_t, int, int64_t, int64_t, int, void *, void *, ...);
-extern int     GmfSetBlock       (int64_t, int, int64_t, int64_t, int, void *, void *, ...);
-extern char   *GmfReadByteFlow   (int64_t, int *);
-extern int     GmfWriteByteFlow  (int64_t, char *, int);
+extern int64_t GmfOpenMesh          (const char *, int, ...);
+extern int     GmfCloseMesh         (int64_t);
+extern int64_t GmfStatKwd           (int64_t, int, ...);
+extern int     GmfSetKwd            (int64_t, int, int64_t, ...);
+extern int     GmfGotoKwd           (int64_t, int);
+extern int     GmfGetLin            (int64_t, int, ...);
+extern int     GmfSetLin            (int64_t, int, ...);
+extern int     GmfGetBlock          (int64_t, int, int64_t, int64_t, int, void *, void *, ...);
+extern int     GmfSetBlock          (int64_t, int, int64_t, int64_t, int, void *, void *, ...);
+extern char   *GmfReadByteFlow      (int64_t, int *);
+extern int     GmfWriteByteFlow     (int64_t, char *, int);
+extern int     GmfSetHONodesOrdering(int64_t, int, int *, int *);
 
 
 /*----------------------------------------------------------------------------*/

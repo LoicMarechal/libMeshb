@@ -36,9 +36,9 @@
 
 \begin{flushright}
 \Large Lo\"ic MAR\'ECHAL / INRIA, Gamma Project\\
-\Large September 2017 \\
-\normalsize Document v1.81 \\
-\normalsize Library v7.30
+\Large January 2018 \\
+\normalsize Document v1.82 \\
+\normalsize Library v7.33
 \end{flushright}
 
 \end{titlepage}
@@ -696,7 +696,7 @@ the index returned by GmfOpenMesh() must be provided.
 \paragraph{arguments:} as many values of the required type of data as stated by the keyword definition (see section \ref{keywords}) should be provided.
 
 
-\subsection{GmfSetBlock}
+\subsection{GmfGetBlock}
 GmfGetBlock() is a variable arguments command, it reads all the lines of data from the file and stores each items in the provided pointers to user's data structures. The user's data structure has to be fully described in order for the library to fill all the lines automatically.
 
 \begin{tt}
@@ -721,7 +721,7 @@ the index returned by GmfOpenMesh() must be provided.
 
 \paragraph{RenumberingMap:} pointer to a renumbering table that gives the position to store each mesh entity in the user's table (for example: give the old to new renumbering through a Hilbert curve).
 
-\paragraph{Procedure:} pointer to an optinal user's procedure that will be called in  parallel after each block has been read. If a procedure is given, a second pointer on user's data must be provided right after.
+\paragraph{Procedure:} pointer to an optional user's procedure that will be called in  parallel after each block has been read. If a procedure is given, a second pointer on user's data must be provided right after.
 
 \paragraph{arguments:} for each type of data as stated by the keyword definition (see section \ref{keywords}), three arguments must be provided. First, the user's type of data in which the file's data will be stored (four kinds are available: GmfFloat, GmfDouble, GmfInt and GmfLong). Second, a pointer to the first line of this data type in the user's structure. Third, the same pointer but on the last line. The example below is more telling.
 
@@ -770,9 +770,9 @@ GmfGetBlock(MeshIndex, GmfVertices, 1, nh, 0, NULL, NULL,
 
 
 \subsection{GmfSetBlock}
-Works exactly as GmfGetBlock exept that all lines are written, you cannot specify starting and ending lines in the file since concurrent writing is not supported for now. Note that you still need to set the keyword first with the help of GmfSetKwd() prior to writing the whole data lines with GmfSetBlock().
+Works exactly as GmfGetBlock except that all lines are written, you cannot specify starting and ending lines in the file since concurrent writing is not supported for now. Note that you still need to set the keyword first with the help of GmfSetKwd() prior to writing the whole data lines with GmfSetBlock().
 
-\paragraph{Example:} applying a preprocesing function on vertices before writing them on disk.
+\paragraph{Example:} applying a preprocessing function on vertices before writing them on disk.
 
 \begin{tt}
 \begin{verbatim}
@@ -804,6 +804,54 @@ FlipRefs(int64_t begin, int64_t end, void *data)
 \end{verbatim}
 \end{tt}
 \normalfont
+
+
+\subsection{GmfSetHONodesOrdering}
+This command sets a special high-order nodes ordering for the specified element.
+There is, unfortunately, as many HO node ordering in each kinds of elements as there are programers !
+It is then useless to try to find a common node ordering in any high-order element so it was decided to add a new set of keywords (like GmfTrianglesP2Ordering), that map the sequential finite element ordering with the Bezier indices.
+When reading a HO mesh, you may provide the libMeshb with your own ordering table, as defined bellow, along with the one that you may have found in the processed mesh file, so that the GmfGetBlock() function will transparently reorder the nodes with each elements in your own way.
+
+\begin{tt}
+\begin{verbatim}
+int GmfSetHONodesOrdering( int64_t MeshIndex, int Keyword,
+                           int *YourOrder, int *FileOrdering );
+\end{verbatim}
+\end{tt}
+\normalfont
+
+\paragraph{MeshIdx:}
+the index returned by GmfOpenMesh() must be provided.
+
+\paragraph{KeyWord:} code of the keyword whose lines of data are to be read.
+
+\paragraph{YourOrder:} a pointer to your ordering table.
+
+\paragraph{FileOrdering:} a pointer to the ordering table found in the mesh file.
+
+\paragraph{Example:} reading and reordering Q2 quads.
+
+This example reads the ordering information stored in the \emph{GmfQuadrilateralsQ2Ordering} keyword, calls the \emph{GmfSetHONodesOrdering()} procedure to link the required ordering with that from the file, and finally reads the Q2 quads.
+
+\begin{tt}
+\begin{verbatim}
+int quad[nq];
+int FileOrdering[9][2];
+int MyOrdering[9][2] = {
+   {0,0}, {1,0}, {2,0},
+   {0,1}, {1,1}, {2,1},
+   {0,2}, {1,2}, {2,2} };
+
+GmfGetBlock(MeshIndex, GmfQuadrilateralsQ2Ordering, 1, 9, 0, NULL,
+            NULL, GmfIntTab, 9, FileOrdering[0], FileOrdering[8]);
+GmfSetHONodesOrdering(  MeshIndex, GmfQuadrilateralsQ2,
+                        MyOrdering, FileOrdering );
+GmfGetBlock(MeshIndex, GmfQ2Quadrilaterals, 1, nq, 0, NULL,
+            NULL, GmfIntTable, 9, &quad[1], &quad[nq]);
+\end{verbatim}
+\end{tt}
+\normalfont
+
 
 
 %
@@ -880,7 +928,7 @@ data & description \\
 
 \multicolumn{2}{|l|}{Polyhedra} \\
 \hline
-9 integers & Arbitrary polyhedron: can store up to 32 polygonal face indices and a reference. Useless indices are set to 0. Caution: indices point to faces, not to vertices as other volumic elements do. \\
+9 integers & Arbitrary polyhedron: can store up to 32 polygonal face indices and a reference. Useless indices are set to 0. Caution: indices point to faces, not to vertices as other volume elements do. \\
 \hline\hline
 
 \multicolumn{2}{|l|}{Prisms} \\
@@ -1016,17 +1064,17 @@ data & description \\
 
 \multicolumn{2}{|l|}{VerticesOnGeometricEdges} \\
 \hline
-2 integers and 2 reals & index of a vertex and the edge index in the geomtric support mesh it is projected on followed by the barycentric position on this edge and the distance from it \\
+2 integers and 2 reals & index of a vertex and the edge index in the geometric support mesh it is projected on followed by the barycentric position on this edge and the distance from it \\
 \hline\hline
 
 \multicolumn{2}{|l|}{VerticesOnGeometricQuadrilaterals} \\
 \hline
-2 integers and 3 reals & index of a vertex and the quad index in the geomtric support mesh it is projected on followed by the barycentric position on this quad and the distance from it \\
+2 integers and 3 reals & index of a vertex and the quad index in the geometric support mesh it is projected on followed by the barycentric position on this quad and the distance from it \\
 \hline\hline
 
 \multicolumn{2}{|l|}{VerticesOnGeometricTriangles} \\
 \hline
-2 integers and 3 reals & index of a vertex and the triangle index in the geomtric support mesh it is projected on followed by the barycentric position on this triangle and the distance from it \\
+2 integers and 3 reals & index of a vertex and the triangle index in the geometric support mesh it is projected on followed by the barycentric position on this triangle and the distance from it \\
 \hline\hline
 
 \multicolumn{2}{|l|}{VerticesOnGeometricVertices} \\
@@ -1053,17 +1101,27 @@ data & description \\
 
 \multicolumn{2}{|l|}{EdgesP2} \\
 \hline
-4 integers & two vertex nodes first then the middle node index a finaly the reference \\
+4 integers & two vertex nodes first then the middle node index a finally the reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{EdgesP2Ordering} \\
+\hline
+1 integer & one single Bezier index for each of the three vertices \\
 \hline\hline
 
 \multicolumn{2}{|l|}{EdgesP3} \\
 \hline
-5 integers & two vertex nodes first then the two middle nodes index a finaly the reference \\
+5 integers & two vertex nodes first then the two middle nodes index a finally the reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{EdgesP3Ordering} \\
+\hline
+1 integer & one single Bezier index for each of the four vertices \\
 \hline\hline
 
 \multicolumn{2}{|l|}{EdgesP4} \\
 \hline
-6 integers & two vertex nodes first then the three middle nodes index a finaly the reference \\
+6 integers & two vertex nodes first then the three middle nodes index a finally the reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ExtraVerticesAtEdges} \\
@@ -1101,9 +1159,19 @@ $n$ integers & the first integer points to a P1 triangle and the remaining $n-1$
 28 integers & 27 vertex indices and a reference \\
 \hline\hline
 
+\multicolumn{2}{|l|}{HexahedraQ2Ordering} \\
+\hline
+3 integers & a set of three Bezier indices for each of the 27 vertices \\
+\hline\hline
+
 \multicolumn{2}{|l|}{PrismsP2} \\
 \hline
 19 integers & 18 vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PrismsP2Ordering} \\
+\hline
+4 integers & a set of four Bezier indices for each of the 18 vertices \\
 \hline\hline
 
 \multicolumn{2}{|l|}{PyramidsP2} \\
@@ -1111,14 +1179,29 @@ $n$ integers & the first integer points to a P1 triangle and the remaining $n-1$
 15 integers & 14 vertex indices and a reference \\
 \hline\hline
 
+\multicolumn{2}{|l|}{PyramidsP2Ordering} \\
+\hline
+3 integers & a set of three Bezier indices for each of the 14 vertices \\
+\hline\hline
+
 \multicolumn{2}{|l|}{QuadrilateralsQ2} \\
 \hline
 10 integers & 9 vertex indices and a reference \\
 \hline\hline
 
+\multicolumn{2}{|l|}{QuadrilateralsQ2Ordering} \\
+\hline
+2 integers & a set of two Bezier indices for each of the 9 vertices \\
+\hline\hline
+
 \multicolumn{2}{|l|}{QuadrilateralsQ3} \\
 \hline
 17 integers & 16 vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{QuadrilateralsQ3Ordering} \\
+\hline
+2 integers & a set of two Bezier indices for each of the 16 vertices \\
 \hline\hline
 
 \multicolumn{2}{|l|}{QuadrilateralsQ4} \\
@@ -1131,14 +1214,29 @@ $n$ integers & the first integer points to a P1 triangle and the remaining $n-1$
 11 integers & 10 vertex indices and a reference \\
 \hline\hline
 
+\multicolumn{2}{|l|}{TetrahedraP2Ordering} \\
+\hline
+4 integers & a set of four Bezier indices for each of the 10 vertices \\
+\hline\hline
+
 \multicolumn{2}{|l|}{TrianglesP2} \\
 \hline
 7 integers & 6 vertex indices and a reference \\
 \hline\hline
 
+\multicolumn{2}{|l|}{TrianglesP2Ordering} \\
+\hline
+3 integers & a set of three Bezier indices for each of the 6 vertices \\
+\hline\hline
+
 \multicolumn{2}{|l|}{TrianglesP3} \\
 \hline
 11 integers & 10 vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{TrianglesP3Ordering} \\
+\hline
+3 integers & a set of three Bezier indices for each of the 10 vertices \\
 \hline\hline
 
 \multicolumn{2}{|l|}{TrianglesP4} \\
@@ -1222,7 +1320,7 @@ SolSize * reals & as many reals as stated in the DSolAtVertices keyword header \
 
 \multicolumn{2}{|l|}{SolAtEdges} \\
 \hline
-SolSize * reals & as many reals as stated in the DSolAtVertices keyword header \\
+SolSize * reals & as many reals as stated in the DSolAtEdges keyword header \\
 \hline\hline
 
 \multicolumn{2}{|l|}{SolAtHexahedra} \\
