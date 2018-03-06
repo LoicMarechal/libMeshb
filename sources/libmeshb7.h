@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.33                               */
+/*                               LIBMESH V 7.35                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  jan 08 2018                                         */
+/*    Last modification:  jan 15 2018                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -185,6 +185,20 @@ enum GmfKwdCod
    GmfPrismsP3Ordering,
    GmfHexahedraQ2Ordering,
    GmfHexahedraQ3Ordering,
+   GmfEdgesP1Ordering,
+   GmfEdgesP4Ordering,
+   GmfTrianglesP1Ordering,
+   GmfTrianglesP4Ordering,
+   GmfQuadrilateralsQ1Ordering,
+   GmfQuadrilateralsQ4Ordering,
+   GmfTetrahedraP1Ordering,
+   GmfTetrahedraP4Ordering,
+   GmfPyramidsP1Ordering,
+   GmfPyramidsP4Ordering,
+   GmfPrismsP1Ordering,
+   GmfPrismsP4Ordering,
+   GmfHexahedraQ1Ordering,
+   GmfHexahedraQ4Ordering,
    GmfLastKeyword
 };
 

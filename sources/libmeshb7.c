@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.33                               */
+/*                               LIBMESH V 7.35                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jan 09 2018                                          */
+/*   Last modification:  mar 06 2018                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -368,7 +368,21 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"PrismsP2Ordering",                         "i",  "iiii"},
    {"PrismsP3Ordering",                         "i",  "iiii"},
    {"HexahedraQ2Ordering",                      "i",  "iii"},
-   {"HexahedraQ3Ordering",                      "i",  "iii"}
+   {"HexahedraQ3Ordering",                      "i",  "iii"},
+   {"EdgesP1Ordering",                          "i",  "i"},
+   {"EdgesP4Ordering",                          "i",  "i"},
+   {"TrianglesP1Ordering",                      "i",  "iii"},
+   {"TrianglesP4Ordering",                      "i",  "iii"},
+   {"QuadrilateralsQ1Ordering",                 "i",  "ii"},
+   {"QuadrilateralsQ4Ordering",                 "i",  "ii"},
+   {"TetrahedraP1Ordering",                     "i",  "iiii"},
+   {"TetrahedraP4Ordering",                     "i",  "iiii"},
+   {"PyramidsP1Ordering",                       "i",  "iii"},
+   {"PyramidsP4Ordering",                       "i",  "iii"},
+   {"PrismsP1Ordering",                         "i",  "iiii"},
+   {"PrismsP4Ordering",                         "i",  "iiii"},
+   {"HexahedraQ1Ordering",                      "i",  "iii"},
+   {"HexahedraQ4Ordering",                      "i",  "iii"}
 };
 
 #ifdef TRANSMESH
@@ -1469,13 +1483,19 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
       for(i=1;i<=FilEndIdx;i++)
          for(j=0;j<kwd->SolSiz;j++)
          {
-            safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] ], UsrDat[j], msh->err);
+            // Reorder HO nodes on the fly
+            if(kwd->OrdTab && (j != kwd->SolSiz-1))
+               k = kwd->OrdTab[j];
+            else
+               k = j;
+
+            safe_fscanf(msh->hdl, StrTab[ UsrTyp[k] ], UsrDat[k], msh->err);
 
             // Move to the next user's data line only when the desired
             // begining position in the ascii file has been reached since
             // we cannot move directly to an arbitrary position
             if(i >= FilBegIdx)
-               UsrDat[j] += UsrLen[j];
+               UsrDat[k] += UsrLen[k];
          }
 
       // Call the user's preprocessing procedure
@@ -2111,6 +2131,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
 
 
 /*----------------------------------------------------------------------------*/
+/* Map two HO element's nodes numbering orders                                */
 /*----------------------------------------------------------------------------*/
 
 int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
@@ -2124,6 +2145,7 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
 
    kwd = &msh->KwdTab[ KwdCod ];
 
+   // Find the Bezier indices dimension according to the element's kind
    switch(KwdCod)
    {
       case GmfEdgesP2 :          NmbNod =  3; NmbCrd = 1; break;
@@ -2143,16 +2165,16 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
       default : return(0);
    }
 
+   // Free and rebuild the mapping table it there were already one
    if(kwd->OrdTab)
       free(kwd->OrdTab);
 
    if(!(kwd->OrdTab = malloc(NmbNod * sizeof(int))))
       return(0);
 
+   // Find the corresponding Bezier coordinates from the source table
    for(i=0;i<NmbNod;i++)
    {
-      //kwd->OrdTab[i] = -1;
-
       for(j=0;j<NmbNod;j++)
       {
          flg = 1;
@@ -2167,9 +2189,6 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
          if(flg)
             kwd->OrdTab[j] = i;
       }
-
-      //if(kwd->OrdTab[i] == -1)
-         //return(0);
    }
 
    for(i=0;i<NmbNod;i++)
