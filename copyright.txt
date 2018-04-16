@@ -1,10 +1,12 @@
-All libMeshb code is Copyright 2001 - by Loïc Maréchal, Inria.
+All libMeshb code is Copyright 2001-2018 - by Loïc Maréchal / INRIA.
 This program is a free software.
-You can redistribute it and/or modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
+You can redistribute it and/or modify it under the terms of the MIT License
+as published by the Open Source Initiative.
  
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the MIT License for more details.
  
-You should have received a copy of the GNU Lesser General Public License along with this program as the file LICENSE_lgpl.txt; if not, please see :
-http://www.gnu.org/licenses/lgpl.txt
+You should have received a copy of the MIT License along with this program
+as the file LICENSE.txt; if not, please see:
+https://opensource.org/licenses/MIT
