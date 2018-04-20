@@ -43,7 +43,7 @@ add_subdirectory (sources)
 add_subdirectory (examples)
 add_subdirectory (utilities)
 
-install (FILES LICENSE copyright.txt DESTINATION share/libMeshb)
+install (FILES LICENSE.txt copyright.txt DESTINATION share/libMeshb)
 install (DIRECTORY sample_meshes DESTINATION share/libMeshb)
 
 
