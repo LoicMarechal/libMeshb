@@ -1288,6 +1288,82 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 
 #endif
 
+
+
+/*----------------------------------------------------------------------------*/
+/* Read a full line from the current kwd and store the results in tables      */
+/*----------------------------------------------------------------------------*/
+
+int GmfGetLinTab( int64_t  MshIdx, int  KwdCod,
+                  int64_t *IntTab, int *IntCpt,
+                  double  *DblTab, int *DblCpt,
+                  char    *str,    int *StrLen )
+{
+   int         i, IntVal;
+   float       FltVal;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
+
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
+      return(0);
+
+   // Save the current stack environment for longjmp
+   if(setjmp(msh->err) != 0)
+      return(0);
+
+   *IntCpt = *DblCpt = *StrLen = 0;
+
+   if(msh->typ & Asc)
+   {
+      for(i=0;i<kwd->SolSiz;i++)
+      {
+         if(kwd->fmt[i] == 'r')
+            safe_fscanf(msh->hdl, "%lf",  &DblTab[ (*DblCpt)++ ], msh->err);
+         else if(kwd->fmt[i] == 'i')
+            safe_fscanf(msh->hdl, "%lld", &IntTab[ (*IntCpt)++ ], msh->err);
+         else if(kwd->fmt[i] == 'c')
+         {
+            safe_fgets(str, WrdSiz * FilStrSiz, msh->hdl, msh->err);
+            *StrLen = strlen(str);
+         }
+      }
+   }
+   else
+   {
+      for(i=0;i<kwd->SolSiz;i++)
+      {
+         if(kwd->fmt[i] == 'r')
+         {
+            if(msh->ver <= 1)
+            {
+               ScaWrd(msh, (unsigned char *)&FltVal);
+               DblTab[ (*DblCpt)++ ] = FltVal;
+            }
+            else
+               ScaDblWrd(msh, (unsigned char *)&DblTab[ (*DblCpt)++ ]);
+         }
+         else if(kwd->fmt[i] == 'i')
+         {
+            if(msh->ver <= 3)
+            {
+               ScaWrd(msh, (unsigned char *)&IntVal);
+               IntTab[ (*IntCpt)++ ] = IntVal;
+            }
+            else
+               ScaDblWrd(msh, (unsigned char *)&IntTab[ (*IntCpt)++ ]);
+         }
+         else if(kwd->fmt[i] == 'c')
+         {
+            safe_fgets(str, WrdSiz * FilStrSiz, msh->hdl, msh->err);
+            *StrLen = strlen(str);
+         }
+      }
+   }
+
+   return(1);
+}
+
+
 // [Bruno] Made asynchronous I/O optional
 #ifndef WITHOUT_AIO
 

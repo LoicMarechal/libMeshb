@@ -218,6 +218,7 @@ extern int     GmfSetKwd            (int64_t, int, int64_t, ...);
 extern int     GmfGotoKwd           (int64_t, int);
 extern int     GmfGetLin            (int64_t, int, ...);
 extern int     GmfSetLin            (int64_t, int, ...);
+extern int     GmfGetLinTab         (int64_t, int, int64_t *, int *, double  *, int *, char *, int *);
 extern int     GmfGetBlock          (int64_t, int, int64_t, int64_t, int, void *, void *, ...);
 extern int     GmfSetBlock          (int64_t, int, int64_t, int64_t, int, void *, void *, ...);
 extern char   *GmfReadByteFlow      (int64_t, int *);
