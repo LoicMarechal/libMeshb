@@ -42,7 +42,11 @@ int main()
 
    for(i=1;i<=NmbVer;i++)
    {
-      GmfGetLinTab(InpMsh, GmfVertices, IntTab, &NmbInt, DblTab, &NmbDbl, str, &StrSiz);
+      GmfGetLinTab(  InpMsh, GmfVertices,
+                     IntTab, &NmbInt,
+                     DblTab, &NmbDbl,
+                     str, &StrSiz );
+
       VerTab[i][0] = DblTab[0];
       VerTab[i][1] = DblTab[1];
       VerTab[i][2] = DblTab[2];
@@ -54,7 +58,11 @@ int main()
 
    for(i=1;i<=NmbQad;i++)
    {
-      GmfGetLinTab(InpMsh, GmfQuadrilaterals, IntTab, &NmbInt, DblTab, &NmbDbl, str, &StrSiz);
+      GmfGetLinTab(  InpMsh, GmfQuadrilaterals,
+                     IntTab, &NmbInt,
+                     DblTab, &NmbDbl,
+                     str, &StrSiz );
+
       QadTab[i][0] = IntTab[0];
       QadTab[i][1] = IntTab[1];
       QadTab[i][2] = IntTab[2];
@@ -77,8 +85,14 @@ int main()
    GmfSetKwd(OutMsh, GmfVertices, NmbVer);
 
    for(i=1;i<=NmbVer;i++)
-      GmfSetLin(  OutMsh, GmfVertices, VerTab[i][0], \
-                  VerTab[i][1], VerTab[i][2], RefTab[i] );
+   {
+      DblTab[0] = VerTab[i][0];
+      DblTab[1] = VerTab[i][1];
+      DblTab[2] = VerTab[i][2];
+      IntTab[0] = RefTab[i];
+
+      GmfSetLinTab(OutMsh, GmfVertices, IntTab, DblTab, str);
+   }
 
    // Write the triangles
    GmfSetKwd(OutMsh, GmfTriangles, 2*NmbQad);
@@ -86,10 +100,19 @@ int main()
    // Split each quad into two triangles on the fly
    for(i=1;i<=NmbQad;i++)
    {
-      GmfSetLin(  OutMsh, GmfTriangles, QadTab[i][0], \
-                  QadTab[i][1], QadTab[i][2], QadTab[i][4] );
-      GmfSetLin(  OutMsh, GmfTriangles, QadTab[i][0], \
-                  QadTab[i][2], QadTab[i][3], QadTab[i][4] );
+      IntTab[0] = QadTab[i][0];
+      IntTab[1] = QadTab[i][1];
+      IntTab[2] = QadTab[i][2];
+      IntTab[3] = QadTab[i][4];
+
+      GmfSetLinTab(OutMsh, GmfTriangles, IntTab, DblTab, str);
+
+      IntTab[0] = QadTab[i][0];
+      IntTab[1] = QadTab[i][2];
+      IntTab[2] = QadTab[i][3];
+      IntTab[3] = QadTab[i][4];
+
+      GmfSetLinTab(OutMsh, GmfTriangles, IntTab, DblTab, str);
    }
 
    // Do not forget to close the mesh file

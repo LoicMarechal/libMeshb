@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.35                               */
+/*                               LIBMESH V 7.36                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  mar 06 2018                                          */
+/*   Last modification:  may 24 2018                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -1289,7 +1289,6 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 #endif
 
 
-
 /*----------------------------------------------------------------------------*/
 /* Read a full line from the current kwd and store the results in tables      */
 /*----------------------------------------------------------------------------*/
@@ -1358,6 +1357,92 @@ int GmfGetLinTab( int64_t  MshIdx, int  KwdCod,
             *StrLen = strlen(str);
          }
       }
+   }
+
+   return(1);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* Write a full line from the current kwd                                     */
+/*----------------------------------------------------------------------------*/
+
+int GmfSetLinTab( int64_t  MshIdx, int KwdCod,
+                  int64_t *LngTab, double *DblTab, char *str )
+{
+   int         i, pos, *IntBuf, DblCpt = 0, LngCpt = 0;
+   float       *FltBuf;
+   double      DblVal, *DblBuf;
+   int64_t     LngVal, *LngBuf;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
+
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
+      return(0);
+
+   if(msh->typ & Asc)
+   {
+      for(i=0;i<kwd->SolSiz;i++)
+      {
+         if(kwd->fmt[i] == 'r')
+            fprintf(msh->hdl, "%lf ",  DblTab[ DblCpt++ ]);
+         else if(kwd->fmt[i] == 'i')
+            fprintf(msh->hdl, "%lld ", LngTab[ LngCpt++ ]);
+         else if(kwd->fmt[i] == 'c')
+            fprintf(msh->hdl, "%s ", str);
+      }
+
+      fprintf(msh->hdl, "\n");
+   }
+   else
+   {
+      pos = 0;
+
+      for(i=0;i<kwd->SolSiz;i++)
+      {
+         if(kwd->fmt[i] == 'r')
+         {
+            DblVal = DblTab[ DblCpt++ ];
+
+            if(msh->ver <= 1)
+            {
+               FltBuf = (void *)&msh->buf[ pos ];
+               *FltBuf = (float)DblVal;
+               pos += 4;
+            }
+            else
+            {
+               DblBuf = (void *)&msh->buf[ pos ];
+               *DblBuf = DblVal;
+               pos += 8;
+            }
+         }
+         else if(kwd->fmt[i] == 'i')
+         {
+            LngVal = LngTab[ LngCpt++ ];
+
+            if(msh->ver <= 3)
+            {
+               IntBuf = (void *)&msh->buf[ pos ];
+               *IntBuf = (int)LngVal;
+               pos += 4;
+            }
+            else
+            {
+               LngBuf = (void *)&msh->buf[ pos ];
+               *LngBuf = LngVal;
+               pos += 8;
+            }
+         }
+         else if(kwd->fmt[i] == 'c')
+         {
+            memset(&msh->buf[ pos ], 0, FilStrSiz * WrdSiz);
+            strncpy(&msh->buf[ pos ], str, FilStrSiz * WrdSiz);
+            pos += FilStrSiz;
+         }
+      }
+
+      RecBlk(msh, msh->buf, kwd->NmbWrd);
    }
 
    return(1);
