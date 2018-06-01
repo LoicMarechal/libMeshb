@@ -1310,8 +1310,12 @@ int GmfGetLinTab( int64_t  MshIdx, int  KwdCod,
    if(setjmp(msh->err) != 0)
       return(0);
 
+   // Return the nuber of entities read to the user
    *IntCpt = *DblCpt = *StrLen = 0;
 
+   // Instead of reading each argument pointer separately,
+   // all integers are stored in the LngTab and double values in the DblTab
+   // And the counters are incremented each time
    if(msh->typ & Asc)
    {
       for(i=0;i<kwd->SolSiz;i++)
@@ -1380,6 +1384,9 @@ int GmfSetLinTab( int64_t  MshIdx, int KwdCod,
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
 
+   // Instead of reading each argument pointer separately,
+   // all integers are stored in the LngTab and double values in the DblTab
+   // And the counters are incremented each time
    if(msh->typ & Asc)
    {
       for(i=0;i<kwd->SolSiz;i++)

@@ -78,7 +78,7 @@ int main()
    /* Write the triangle mesh           */
    /*-----------------------------------*/
 
-   if(!(OutMsh = GmfOpenMesh("tri.mesh", GmfWrite, ver, dim)))
+   if(!(OutMsh = GmfOpenMesh("tri.meshb", GmfWrite, ver, dim)))
       return(1);
 
    // Write the vertices
