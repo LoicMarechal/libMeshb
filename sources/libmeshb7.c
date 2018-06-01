@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.35                               */
+/*                               LIBMESH V 7.36                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  mar 06 2018                                          */
+/*   Last modification:  jun 01 2018                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -94,6 +94,16 @@
 
 #endif
 
+
+#if defined(_WIN64)
+#define MYFTELL(s) (int64_t)_ftelli64(s)
+#define MYFSEEK(s,o,w) _fseeki64(s,(__int64)o,w)
+#else
+#define MYFTELL(s) ftell(s)
+#define MYFSEEK(s,o,w) fseek(s,o,w)
+#endif
+
+
 #include <errno.h>
 #include <libmeshb7.h>
 
@@ -134,7 +144,7 @@ int aio_error( const struct aiocb * aiocbp )
 // Set the file position and read a block of data
 int aio_read( struct aiocb * aiocbp )
 {
-   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   if( (MYFSEEK(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
    &&  (fread(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
@@ -156,7 +166,7 @@ size_t aio_return( struct aiocb * aiocbp )
 // Set the file position and write a block of data
 int aio_write( struct aiocb * aiocbp )
 {
-   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   if( (MYFSEEK(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
    &&  (fwrite(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
@@ -1287,6 +1297,174 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 }
 
 #endif
+
+
+/*----------------------------------------------------------------------------*/
+/* Read a full line from the current kwd and store the results in tables      */
+/*----------------------------------------------------------------------------*/
+
+int GmfGetLinTab( int64_t  MshIdx, int  KwdCod,
+                  int64_t *IntTab, int *IntCpt,
+                  double  *DblTab, int *DblCpt,
+                  char    *str,    int *StrLen )
+{
+   int         i, IntVal;
+   float       FltVal;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
+
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
+      return(0);
+
+   // Save the current stack environment for longjmp
+   if(setjmp(msh->err) != 0)
+      return(0);
+
+   // Return the nuber of entities read to the user
+   *IntCpt = *DblCpt = *StrLen = 0;
+
+   // Instead of reading each argument pointer separately,
+   // all integers are stored in the LngTab and double values in the DblTab
+   // And the counters are incremented each time
+   if(msh->typ & Asc)
+   {
+      for(i=0;i<kwd->SolSiz;i++)
+      {
+         if(kwd->fmt[i] == 'r')
+            safe_fscanf(msh->hdl, "%lf",  &DblTab[ (*DblCpt)++ ], msh->err);
+         else if(kwd->fmt[i] == 'i')
+            safe_fscanf(msh->hdl, "%lld", &IntTab[ (*IntCpt)++ ], msh->err);
+         else if(kwd->fmt[i] == 'c')
+         {
+            safe_fgets(str, WrdSiz * FilStrSiz, msh->hdl, msh->err);
+            *StrLen = strlen(str);
+         }
+      }
+   }
+   else
+   {
+      for(i=0;i<kwd->SolSiz;i++)
+      {
+         if(kwd->fmt[i] == 'r')
+         {
+            if(msh->ver <= 1)
+            {
+               ScaWrd(msh, (unsigned char *)&FltVal);
+               DblTab[ (*DblCpt)++ ] = FltVal;
+            }
+            else
+               ScaDblWrd(msh, (unsigned char *)&DblTab[ (*DblCpt)++ ]);
+         }
+         else if(kwd->fmt[i] == 'i')
+         {
+            if(msh->ver <= 3)
+            {
+               ScaWrd(msh, (unsigned char *)&IntVal);
+               IntTab[ (*IntCpt)++ ] = IntVal;
+            }
+            else
+               ScaDblWrd(msh, (unsigned char *)&IntTab[ (*IntCpt)++ ]);
+         }
+         else if(kwd->fmt[i] == 'c')
+         {
+            safe_fgets(str, WrdSiz * FilStrSiz, msh->hdl, msh->err);
+            *StrLen = strlen(str);
+         }
+      }
+   }
+
+   return(1);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* Write a full line from the current kwd                                     */
+/*----------------------------------------------------------------------------*/
+
+int GmfSetLinTab( int64_t  MshIdx, int KwdCod,
+                  int64_t *LngTab, double *DblTab, char *str )
+{
+   int         i, pos, *IntBuf, DblCpt = 0, LngCpt = 0;
+   float       *FltBuf;
+   double      DblVal, *DblBuf;
+   int64_t     LngVal, *LngBuf;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
+
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
+      return(0);
+
+   // Instead of reading each argument pointer separately,
+   // all integers are stored in the LngTab and double values in the DblTab
+   // And the counters are incremented each time
+   if(msh->typ & Asc)
+   {
+      for(i=0;i<kwd->SolSiz;i++)
+      {
+         if(kwd->fmt[i] == 'r')
+            fprintf(msh->hdl, "%lf ",  DblTab[ DblCpt++ ]);
+         else if(kwd->fmt[i] == 'i')
+            fprintf(msh->hdl, "%lld ", LngTab[ LngCpt++ ]);
+         else if(kwd->fmt[i] == 'c')
+            fprintf(msh->hdl, "%s ", str);
+      }
+
+      fprintf(msh->hdl, "\n");
+   }
+   else
+   {
+      pos = 0;
+
+      for(i=0;i<kwd->SolSiz;i++)
+      {
+         if(kwd->fmt[i] == 'r')
+         {
+            DblVal = DblTab[ DblCpt++ ];
+
+            if(msh->ver <= 1)
+            {
+               FltBuf = (void *)&msh->buf[ pos ];
+               *FltBuf = (float)DblVal;
+               pos += 4;
+            }
+            else
+            {
+               DblBuf = (void *)&msh->buf[ pos ];
+               *DblBuf = DblVal;
+               pos += 8;
+            }
+         }
+         else if(kwd->fmt[i] == 'i')
+         {
+            LngVal = LngTab[ LngCpt++ ];
+
+            if(msh->ver <= 3)
+            {
+               IntBuf = (void *)&msh->buf[ pos ];
+               *IntBuf = (int)LngVal;
+               pos += 4;
+            }
+            else
+            {
+               LngBuf = (void *)&msh->buf[ pos ];
+               *LngBuf = LngVal;
+               pos += 8;
+            }
+         }
+         else if(kwd->fmt[i] == 'c')
+         {
+            memset(&msh->buf[ pos ], 0, FilStrSiz * WrdSiz);
+            strncpy(&msh->buf[ pos ], str, FilStrSiz * WrdSiz);
+            pos += FilStrSiz;
+         }
+      }
+
+      RecBlk(msh, msh->buf, kwd->NmbWrd);
+   }
+
+   return(1);
+}
+
 
 // [Bruno] Made asynchronous I/O optional
 #ifndef WITHOUT_AIO
@@ -2591,14 +2769,14 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
        * so there is probably no problem.
        */
 #ifdef WITH_AIO
-      if((int64_t)write(msh->FilDes, msh->blk, (int)msh->pos) != msh->pos)
+      if(write(msh->FilDes, msh->blk, (int)msh->pos) != (ssize_t)msh->pos)
 #else      
       if(fwrite(msh->blk, 1, (size_t)msh->pos, msh->hdl) != msh->pos)
 #endif      
          longjmp(msh->err, -1);
 #else      
 #ifdef WITH_AIO
-      if(write(msh->FilDes, msh->blk, msh->pos) != msh->pos)
+      if(write(msh->FilDes, msh->blk, msh->pos) != (ssize_t)msh->pos)
 #else      
       if(fwrite(msh->blk, 1, msh->pos, msh->hdl) != msh->pos)
 #endif      
@@ -2651,14 +2829,14 @@ static void SwpWrd(char *wrd, int siz)
 
 static int SetFilPos(GmfMshSct *msh, int64_t pos)
 {
-   if(msh->typ & Bin)
 #ifdef WITH_AIO
+   if(msh->typ & Bin)
       return((lseek(msh->FilDes, (off_t)pos, 0) != -1));
-#else
-      return((fseek(msh->hdl, (off_t)pos, SEEK_SET) == 0));
-#endif
    else
-      return((fseek(msh->hdl, (off_t)pos, SEEK_SET) == 0));
+      return((MYFSEEK(msh->hdl, (off_t)pos, SEEK_SET) == 0));
+#else
+   return((MYFSEEK(msh->hdl, (off_t)pos, SEEK_SET) == 0));
+#endif
 }
 
 
@@ -2668,14 +2846,14 @@ static int SetFilPos(GmfMshSct *msh, int64_t pos)
 
 static int64_t GetFilPos(GmfMshSct *msh)
 {
-   if(msh->typ & Bin)
 #ifdef WITH_AIO
+   if(msh->typ & Bin)
       return(lseek(msh->FilDes, 0, 1));
-#else
-      return(ftell(msh->hdl));
-#endif
    else
-      return(ftell(msh->hdl));
+      return(MYFTELL(msh->hdl));
+#else
+   return(MYFTELL(msh->hdl));
+#endif
 }
 
 
@@ -2694,27 +2872,27 @@ static int64_t GetFilSiz(GmfMshSct *msh)
       EndPos = lseek(msh->FilDes, 0, 2);
       lseek(msh->FilDes, (off_t)CurPos, 0);
 #else
-      CurPos = ftell(msh->hdl);
+      CurPos = MYFTELL(msh->hdl);
 
-      if(fseek(msh->hdl, 0, SEEK_END) != 0)
+      if(MYFSEEK(msh->hdl, 0, SEEK_END) != 0)
          longjmp(msh->err, -1);
 
-      EndPos = ftell(msh->hdl);
+      EndPos = MYFTELL(msh->hdl);
 
-      if(fseek(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
+      if(MYFSEEK(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
          longjmp(msh->err, -1);
 #endif
    }
    else
    {
-      CurPos = ftell(msh->hdl);
+      CurPos = MYFTELL(msh->hdl);
 
-      if(fseek(msh->hdl, 0, SEEK_END) != 0)
+      if(MYFSEEK(msh->hdl, 0, SEEK_END) != 0)
          longjmp(msh->err, -1);
 
-      EndPos = ftell(msh->hdl);
+      EndPos = MYFTELL(msh->hdl);
 
-      if(fseek(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
+      if(MYFSEEK(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
          longjmp(msh->err, -1);
    }
 
