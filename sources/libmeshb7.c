@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.36                               */
+/*                               LIBMESH V 7.37                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jun 01 2018                                          */
+/*   Last modification:  jun 11 2018                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -217,7 +217,7 @@ typedef struct
 
 typedef struct
 {
-   int      dim, ver, mod, typ, cod, FilDes;
+   int      dim, ver, mod, typ, cod, FilDes, FltSiz;
    int64_t  NexKwdPos, siz;
    size_t   pos;
    jmp_buf  err;
@@ -392,7 +392,8 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"PrismsP1Ordering",                         "i",  "iiii"},
    {"PrismsP4Ordering",                         "i",  "iiii"},
    {"HexahedraQ1Ordering",                      "i",  "iii"},
-   {"HexahedraQ4Ordering",                      "i",  "iii"}
+   {"HexahedraQ4Ordering",                      "i",  "iii"},
+   {"FloatingPointPrecision",                   "",   "i"}
 };
 
 #ifdef TRANSMESH
@@ -599,6 +600,12 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       (*PtrVer) = msh->ver;
       (*PtrDim) = msh->dim;
 
+      // Set default real numbers size
+      if(msh->ver == 1)
+         msh->FltSiz = 32;
+      else
+         msh->FltSiz = 64;
+
       /*------------*/
       /* KW READING */
       /*------------*/
@@ -632,6 +639,12 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 
       if( (msh->dim != 2) && (msh->dim != 3) )
          longjmp(msh->err, -1);
+
+      // Set default real numbers size
+      if(msh->ver == 1)
+         msh->FltSiz = 32;
+      else
+         msh->FltSiz = 64;
 
       // Create the mesh file
       if(msh->typ & Bin) 
@@ -952,7 +965,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
             {
                if(kwd->fmt[i] == 'r')
                {
-                  if(msh->ver <= 1)
+                  if(msh->FltSiz == 32)
                   {
                      safe_fscanf(msh->hdl, "%f", &FltVal, msh->err);
                      PtrDbl = va_arg(VarArg, double *);
@@ -990,7 +1003,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
          {
             for(i=0;i<kwd->SolSiz;i++)
                if(kwd->fmt[i] == 'r')
-                  if(msh->ver <= 1)
+                  if(msh->FltSiz == 32)
                      ScaWrd(msh, (unsigned char *)va_arg(VarArg, float *));
                   else
                      ScaDblWrd(msh, (unsigned char *)va_arg(VarArg, double *));
@@ -1007,7 +1020,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 
       case SolKwd :
       {
-         if(msh->ver == 1)
+         if(msh->FltSiz == 32)
          {
             FltSolTab = va_arg(VarArg, float *);
 
@@ -1066,7 +1079,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
          {
             if(kwd->fmt[i] == 'r')
             {
-               if(msh->ver <= 1)
+               if(msh->FltSiz == 32)
 #ifdef F77API
                   fprintf(msh->hdl, "%g ", *(va_arg(VarArg, float *)));
 #else
@@ -1098,7 +1111,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
          {
             if(kwd->fmt[i] == 'r')
             {
-               if(msh->ver <= 1)
+               if(msh->FltSiz == 32)
                {
                   FltBuf = (void *)&msh->buf[ pos ];
 #ifdef F77API
@@ -1143,7 +1156,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
    }
    else
    {
-      if(msh->ver == 1)
+      if(msh->FltSiz == 32)
       {
          FltSolTab = va_arg(VarArg, float *);
 
@@ -1198,7 +1211,7 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
    {
       if(kwd->fmt[i] == 'r')
       {
-         if(InpMsh->ver == 1)
+         if(InpMsh->FltSiz == 32)
          {
             if(InpMsh->typ & Asc)
                safe_fscanf(InpMsh->hdl, "%f", &f, InpMsh->err);
@@ -1217,7 +1230,7 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
             f = (float)d;
          }
 
-         if(OutMsh->ver == 1)
+         if(OutMsh->FltSiz == 32)
             if(OutMsh->typ & Asc)
                fprintf(OutMsh->hdl, "%g ", (double)f);
             else
@@ -1347,7 +1360,7 @@ int GmfGetLinTab( int64_t  MshIdx, int  KwdCod,
       {
          if(kwd->fmt[i] == 'r')
          {
-            if(msh->ver <= 1)
+            if(msh->FltSiz == 32)
             {
                ScaWrd(msh, (unsigned char *)&FltVal);
                DblTab[ (*DblCpt)++ ] = FltVal;
@@ -1421,7 +1434,7 @@ int GmfSetLinTab( int64_t  MshIdx, int KwdCod,
          {
             DblVal = DblTab[ DblCpt++ ];
 
-            if(msh->ver <= 1)
+            if(msh->FltSiz == 32)
             {
                FltBuf = (void *)&msh->buf[ pos ];
                *FltBuf = (float)DblVal;
@@ -1636,7 +1649,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    for(i=0;i<kwd->SolSiz;i++)
    {
       if(kwd->fmt[i] == 'r')
-         if(msh->ver <= 1)
+         if(msh->FltSiz == 32)
             FilTyp[i] = GmfFloat;
          else
             FilTyp[i] = GmfDouble;
@@ -2060,7 +2073,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    for(i=0;i<kwd->SolSiz;i++)
    {
       if(kwd->fmt[i] == 'r')
-         if(msh->ver <= 1)
+         if(msh->FltSiz == 32)
             FilTyp[i] = GmfFloat;
          else
             FilTyp[i] = GmfDouble;
@@ -2619,7 +2632,7 @@ static void ExpFmt(GmfMshSct *msh, int KwdCod)
          kwd->fmt[ kwd->SolSiz++ ] = chr;
    }
 
-   if(msh->ver <= 1)
+   if(msh->FltSiz == 32)
       FltWrd = 1;
    else
       FltWrd = 2;
@@ -2897,6 +2910,43 @@ static int64_t GetFilSiz(GmfMshSct *msh)
    }
 
    return(EndPos);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+int GmfGetFloatPrecision(int64_t MshIdx)
+{
+   int FltSiz;
+   GmfMshSct *msh = (GmfMshSct *)MshIdx;
+
+   if(GmfStatKwd(MshIdx, GmfFloatingPointPrecision))
+   {
+      GmfGotoKwd(MshIdx, GmfFloatingPointPrecision);
+      GmfGetLin(MshIdx, GmfFloatingPointPrecision, &FltSiz);
+
+      if(FltSiz == 32 || FltSiz == 64)
+         msh->FltSiz = FltSiz;
+   }
+
+   return(msh->FltSiz);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
+{
+   GmfMshSct *msh = (GmfMshSct *)MshIdx;
+
+   if(FltSiz != 32 && FltSiz != 64)
+      return;
+
+   msh->FltSiz = FltSiz;
+   GmfSetKwd(MshIdx, GmfFloatingPointPrecision, 1);
+   GmfSetLin(MshIdx, GmfFloatingPointPrecision, FltSiz);
 }
 
 

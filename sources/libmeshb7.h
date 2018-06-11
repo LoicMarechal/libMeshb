@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.35                               */
+/*                               LIBMESH V 7.37                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  jan 15 2018                                         */
+/*    Last modification:  jun 11 2018                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -199,6 +199,7 @@ enum GmfKwdCod
    GmfPrismsP4Ordering,
    GmfHexahedraQ1Ordering,
    GmfHexahedraQ4Ordering,
+   GmfFloatingPointPrecision,
    GmfLastKeyword
 };
 
@@ -223,6 +224,8 @@ extern int     GmfSetBlock          (int64_t, int, int64_t, int64_t, int, void *
 extern char   *GmfReadByteFlow      (int64_t, int *);
 extern int     GmfWriteByteFlow     (int64_t, char *, int);
 extern int     GmfSetHONodesOrdering(int64_t, int, int *, int *);
+extern int     GmfGetFloatPrecision (int64_t);
+extern void    GmfSetFloatPrecision (int64_t, int);
 
 
 /*----------------------------------------------------------------------------*/
