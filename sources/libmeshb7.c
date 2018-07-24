@@ -2442,6 +2442,44 @@ int GmfWriteByteFlow(int64_t MshIdx, char *BytTab, int NmbByt)
 
    return(1);
 }
+
+
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+int GmfGetFloatPrecision(int64_t MshIdx)
+{
+   int FltSiz;
+   GmfMshSct *msh = (GmfMshSct *)MshIdx;
+
+   if(GmfStatKwd(MshIdx, GmfFloatingPointPrecision))
+   {
+      GmfGotoKwd(MshIdx, GmfFloatingPointPrecision);
+      GmfGetLin(MshIdx, GmfFloatingPointPrecision, &FltSiz);
+
+      if(FltSiz == 32 || FltSiz == 64)
+         msh->FltSiz = FltSiz;
+   }
+
+   return(msh->FltSiz);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+
+void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
+{
+   GmfMshSct *msh = (GmfMshSct *)MshIdx;
+
+   if(FltSiz != 32 && FltSiz != 64)
+      return;
+
+   msh->FltSiz = FltSiz;
+   GmfSetKwd(MshIdx, GmfFloatingPointPrecision, 1);
+   GmfSetLin(MshIdx, GmfFloatingPointPrecision, FltSiz);
+}
+
 #endif
 
 
@@ -2910,43 +2948,6 @@ static int64_t GetFilSiz(GmfMshSct *msh)
    }
 
    return(EndPos);
-}
-
-
-/*----------------------------------------------------------------------------*/
-/*----------------------------------------------------------------------------*/
-
-int GmfGetFloatPrecision(int64_t MshIdx)
-{
-   int FltSiz;
-   GmfMshSct *msh = (GmfMshSct *)MshIdx;
-
-   if(GmfStatKwd(MshIdx, GmfFloatingPointPrecision))
-   {
-      GmfGotoKwd(MshIdx, GmfFloatingPointPrecision);
-      GmfGetLin(MshIdx, GmfFloatingPointPrecision, &FltSiz);
-
-      if(FltSiz == 32 || FltSiz == 64)
-         msh->FltSiz = FltSiz;
-   }
-
-   return(msh->FltSiz);
-}
-
-
-/*----------------------------------------------------------------------------*/
-/*----------------------------------------------------------------------------*/
-
-void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
-{
-   GmfMshSct *msh = (GmfMshSct *)MshIdx;
-
-   if(FltSiz != 32 && FltSiz != 64)
-      return;
-
-   msh->FltSiz = FltSiz;
-   GmfSetKwd(MshIdx, GmfFloatingPointPrecision, 1);
-   GmfSetLin(MshIdx, GmfFloatingPointPrecision, FltSiz);
 }
 
 
