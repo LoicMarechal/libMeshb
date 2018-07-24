@@ -2382,9 +2382,6 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
       }
    }
 
-   for(i=0;i<NmbNod;i++)
-      printf("%d : %d\n",i,kwd->OrdTab[i]);
-
    return(1);
 }
 
