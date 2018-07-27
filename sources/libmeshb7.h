@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.37                               */
+/*                               LIBMESH V 7.38                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  jun 11 2018                                         */
+/*    Last modification:  jul 27 2018                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -200,6 +200,13 @@ enum GmfKwdCod
    GmfHexahedraQ1Ordering,
    GmfHexahedraQ4Ordering,
    GmfFloatingPointPrecision,
+   GmfHOSolAtEdgesP4,
+   GmfHOSolAtTrianglesP4,
+   GmfHOSolAtQuadrilateralsQ4,
+   GmfHOSolAtTetrahedraP4,
+   GmfHOSolAtPyramidsP4,
+   GmfHOSolAtPrismsP4,
+   GmfHOSolAtHexahedraQ4,
    GmfLastKeyword
 };
 

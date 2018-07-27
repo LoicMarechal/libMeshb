@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.37                               */
+/*                               LIBMESH V 7.38                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jun 11 2018                                          */
+/*   Last modification:  jul 27 2018                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -393,6 +393,13 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"PrismsP4Ordering",                         "i",  "iiii"},
    {"HexahedraQ1Ordering",                      "i",  "iii"},
    {"HexahedraQ4Ordering",                      "i",  "iii"},
+   {"HOSolAtEdgesP4",                           "i", "hr"},
+   {"HOSolAtTrianglesP4",                       "i", "hr"},
+   {"HOSolAtQuadrilateralsQ4",                  "i", "hr"},
+   {"HOSolAtTetrahedraP4",                      "i", "hr"},
+   {"HOSolAtPyramidsP4",                        "i", "hr"},
+   {"HOSolAtPrismsP4",                          "i", "hr"},
+   {"HOSolAtHexahedraQ4",                       "i", "hr"},
    {"FloatingPointPrecision",                   "",   "i"}
 };
 
