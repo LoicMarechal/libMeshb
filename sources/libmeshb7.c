@@ -336,7 +336,7 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"DRefGroups",                               "i", "iii"},
    {"TetrahedraP3",                             "i", "iiiiiiiiiiiiiiiiiiiii"},
    {"TetrahedraP4",                             "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"HexahedraQ3",                              "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"HexahedraQ3",                              "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
    {"HexahedraQ4",                              "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
    {"PyramidsP3",                               "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
    {"PyramidsP4",                               "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
