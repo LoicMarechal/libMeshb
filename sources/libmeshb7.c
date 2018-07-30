@@ -2348,18 +2348,25 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
    {
       case GmfEdgesP2 :          NmbNod =  3; NmbCrd = 1; break;
       case GmfEdgesP3 :          NmbNod =  4; NmbCrd = 1; break;
+      case GmfEdgesP4 :          NmbNod =  5; NmbCrd = 1; break;
       case GmfTrianglesP2 :      NmbNod =  6; NmbCrd = 3; break;
       case GmfTrianglesP3 :      NmbNod = 10; NmbCrd = 3; break;
+      case GmfTrianglesP4 :      NmbNod = 15; NmbCrd = 3; break;
       case GmfQuadrilateralsQ2 : NmbNod =  9; NmbCrd = 2; break;
       case GmfQuadrilateralsQ3 : NmbNod = 16; NmbCrd = 2; break;
+      case GmfQuadrilateralsQ4 : NmbNod = 25; NmbCrd = 2; break;
       case GmfTetrahedraP2 :     NmbNod = 10; NmbCrd = 4; break;
       case GmfTetrahedraP3 :     NmbNod = 20; NmbCrd = 4; break;
+      case GmfTetrahedraP4 :     NmbNod = 35; NmbCrd = 4; break;
       case GmfPyramidsP2 :       NmbNod = 14; NmbCrd = 3; break;
       case GmfPyramidsP3 :       NmbNod = 30; NmbCrd = 3; break;
+      case GmfPyramidsP4 :       NmbNod = 55; NmbCrd = 3; break;
       case GmfPrismsP2 :         NmbNod = 18; NmbCrd = 4; break;
       case GmfPrismsP3 :         NmbNod = 40; NmbCrd = 4; break;
+      case GmfPrismsP4 :         NmbNod = 75; NmbCrd = 4; break;
       case GmfHexahedraQ2 :      NmbNod = 27; NmbCrd = 3; break;
       case GmfHexahedraQ3 :      NmbNod = 64; NmbCrd = 3; break;
+      case GmfHexahedraQ4 :      NmbNod =125; NmbCrd = 3; break;
       default : return(0);
    }
 
