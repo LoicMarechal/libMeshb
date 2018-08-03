@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.38                               */
+/*                               LIBMESH V 7.39                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  jul 27 2018                                         */
+/*    Last modification:  aug 03 2018                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -207,6 +207,41 @@ enum GmfKwdCod
    GmfHOSolAtPyramidsP4,
    GmfHOSolAtPrismsP4,
    GmfHOSolAtHexahedraQ4,
+   GmfHOSolAtEdgesP1NodesPositions,
+   GmfHOSolAtEdgesP2NodesPositions,
+   GmfHOSolAtEdgesP3NodesPositions,
+   GmfHOSolAtEdgesP4NodesPositions,
+   GmfHOSolAtTrianglesP1NodesPositions,
+   GmfHOSolAtTrianglesP2NodesPositions,
+   GmfHOSolAtTrianglesP3NodesPositions,
+   GmfHOSolAtTrianglesP4NodesPositions,
+   GmfHOSolAtQuadrilateralsQ1NodesPositions,
+   GmfHOSolAtQuadrilateralsQ2NodesPositions,
+   GmfHOSolAtQuadrilateralsQ3NodesPositions,
+   GmfHOSolAtQuadrilateralsQ4NodesPositions,
+   GmfHOSolAtTetrahedraP1NodesPositions,
+   GmfHOSolAtTetrahedraP2NodesPositions,
+   GmfHOSolAtTetrahedraP3NodesPositions,
+   GmfHOSolAtTetrahedraP4NodesPositions,
+   GmfHOSolAtPyramidsP1NodesPositions,
+   GmfHOSolAtPyramidsP2NodesPositions,
+   GmfHOSolAtPyramidsP3NodesPositions,
+   GmfHOSolAtPyramidsP4NodesPositions,
+   GmfHOSolAtPrismsP1NodesPositions,
+   GmfHOSolAtPrismsP2NodesPositions,
+   GmfHOSolAtPrismsP3NodesPositions,
+   GmfHOSolAtPrismsP4NodesPositions,
+   GmfHOSolAtHexahedraQ1NodesPositions,
+   GmfHOSolAtHexahedraQ2NodesPositions,
+   GmfHOSolAtHexahedraQ3NodesPositions,
+   GmfHOSolAtHexahedraQ4NodesPositions,
+   GmfEdgesReferenceElement,         
+   GmfTriangleReferenceElement,      
+   GmfQuadrilateralReferenceElement, 
+   GmfTetrahedronReferenceElement,   
+   GmfPyramidReferenceElement,       
+   GmfPrismReferenceElement,         
+   GmfHexahedronReferenceElement,    
    GmfLastKeyword
 };
 

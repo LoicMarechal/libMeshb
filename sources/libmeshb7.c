@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.38                               */
+/*                               LIBMESH V 7.39                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jul 27 2018                                          */
+/*   Last modification:  aug 03 2018                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -365,34 +365,34 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"HOSolAtHexahedraQ3",                       "i", "hr"},
    {"BezierMode",                               "",  "i"},
    {"ByteFlow",                                 "i", "i"},
-   {"EdgesP2Ordering",                          "i",  "i"},
-   {"EdgesP3Ordering",                          "i",  "i"},
-   {"TrianglesP2Ordering",                      "i",  "iii"},
-   {"TrianglesP3Ordering",                      "i",  "iii"},
-   {"QuadrilateralsQ2Ordering",                 "i",  "ii"},
-   {"QuadrilateralsQ3Ordering",                 "i",  "ii"},
-   {"TetrahedraP2Ordering",                     "i",  "iiii"},
-   {"TetrahedraP3Ordering",                     "i",  "iiii"},
-   {"PyramidsP2Ordering",                       "i",  "iii"},
-   {"PyramidsP3Ordering",                       "i",  "iii"},
-   {"PrismsP2Ordering",                         "i",  "iiii"},
-   {"PrismsP3Ordering",                         "i",  "iiii"},
-   {"HexahedraQ2Ordering",                      "i",  "iii"},
-   {"HexahedraQ3Ordering",                      "i",  "iii"},
-   {"EdgesP1Ordering",                          "i",  "i"},
-   {"EdgesP4Ordering",                          "i",  "i"},
-   {"TrianglesP1Ordering",                      "i",  "iii"},
-   {"TrianglesP4Ordering",                      "i",  "iii"},
-   {"QuadrilateralsQ1Ordering",                 "i",  "ii"},
-   {"QuadrilateralsQ4Ordering",                 "i",  "ii"},
-   {"TetrahedraP1Ordering",                     "i",  "iiii"},
-   {"TetrahedraP4Ordering",                     "i",  "iiii"},
-   {"PyramidsP1Ordering",                       "i",  "iii"},
-   {"PyramidsP4Ordering",                       "i",  "iii"},
-   {"PrismsP1Ordering",                         "i",  "iiii"},
-   {"PrismsP4Ordering",                         "i",  "iiii"},
-   {"HexahedraQ1Ordering",                      "i",  "iii"},
-   {"HexahedraQ4Ordering",                      "i",  "iii"},
+   {"EdgesP2Ordering",                          "i", "i"},
+   {"EdgesP3Ordering",                          "i", "i"},
+   {"TrianglesP2Ordering",                      "i", "iii"},
+   {"TrianglesP3Ordering",                      "i", "iii"},
+   {"QuadrilateralsQ2Ordering",                 "i", "ii"},
+   {"QuadrilateralsQ3Ordering",                 "i", "ii"},
+   {"TetrahedraP2Ordering",                     "i", "iiii"},
+   {"TetrahedraP3Ordering",                     "i", "iiii"},
+   {"PyramidsP2Ordering",                       "i", "iii"},
+   {"PyramidsP3Ordering",                       "i", "iii"},
+   {"PrismsP2Ordering",                         "i", "iiii"},
+   {"PrismsP3Ordering",                         "i", "iiii"},
+   {"HexahedraQ2Ordering",                      "i", "iii"},
+   {"HexahedraQ3Ordering",                      "i", "iii"},
+   {"EdgesP1Ordering",                          "i", "i"},
+   {"EdgesP4Ordering",                          "i", "i"},
+   {"TrianglesP1Ordering",                      "i", "iii"},
+   {"TrianglesP4Ordering",                      "i", "iii"},
+   {"QuadrilateralsQ1Ordering",                 "i", "ii"},
+   {"QuadrilateralsQ4Ordering",                 "i", "ii"},
+   {"TetrahedraP1Ordering",                     "i", "iiii"},
+   {"TetrahedraP4Ordering",                     "i", "iiii"},
+   {"PyramidsP1Ordering",                       "i", "iii"},
+   {"PyramidsP4Ordering",                       "i", "iii"},
+   {"PrismsP1Ordering",                         "i", "iiii"},
+   {"PrismsP4Ordering",                         "i", "iiii"},
+   {"HexahedraQ1Ordering",                      "i", "iii"},
+   {"HexahedraQ4Ordering",                      "i", "iii"},
    {"HOSolAtEdgesP4",                           "i", "hr"},
    {"HOSolAtTrianglesP4",                       "i", "hr"},
    {"HOSolAtQuadrilateralsQ4",                  "i", "hr"},
@@ -400,7 +400,42 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"HOSolAtPyramidsP4",                        "i", "hr"},
    {"HOSolAtPrismsP4",                          "i", "hr"},
    {"HOSolAtHexahedraQ4",                       "i", "hr"},
-   {"FloatingPointPrecision",                   "",   "i"}
+   {"FloatingPointPrecision",                   "",  "i"},
+   {"HOSolAtEdgesP1NodesPositions",             "i", "rr"},
+   {"HOSolAtEdgesP2NodesPositions",             "i", "rr"},
+   {"HOSolAtEdgesP3NodesPositions",             "i", "rr"},
+   {"HOSolAtEdgesP4NodesPositions",             "i", "rr"},
+   {"HOSolAtTrianglesP1NodesPositions",         "i", "rrr"},
+   {"HOSolAtTrianglesP2NodesPositions",         "i", "rrr"},
+   {"HOSolAtTrianglesP3NodesPositions",         "i", "rrr"},
+   {"HOSolAtTrianglesP4NodesPositions",         "i", "rrr"},
+   {"HOSolAtQuadrilateralsQ1NodesPositions",    "i", "rr"},
+   {"HOSolAtQuadrilateralsQ2NodesPositions",    "i", "rr"},
+   {"HOSolAtQuadrilateralsQ3NodesPositions",    "i", "rr"},
+   {"HOSolAtQuadrilateralsQ4NodesPositions",    "i", "rr"},
+   {"HOSolAtTetrahedraP1NodesPositions",        "i", "rrrr"},
+   {"HOSolAtTetrahedraP2NodesPositions",        "i", "rrrr"},
+   {"HOSolAtTetrahedraP3NodesPositions",        "i", "rrrr"},
+   {"HOSolAtTetrahedraP4NodesPositions",        "i", "rrrr"},
+   {"HOSolAtPyramidsP1NodesPositions",          "i", "rrr"},
+   {"HOSolAtPyramidsP2NodesPositions",          "i", "rrr"},
+   {"HOSolAtPyramidsP3NodesPositions",          "i", "rrr"},
+   {"HOSolAtPyramidsP4NodesPositions",          "i", "rrr"},
+   {"HOSolAtPrismsP1NodesPositions",            "i", "rrrr"},
+   {"HOSolAtPrismsP2NodesPositions",            "i", "rrrr"},
+   {"HOSolAtPrismsP3NodesPositions",            "i", "rrrr"},
+   {"HOSolAtPrismsP4NodesPositions",            "i", "rrrr"},
+   {"HOSolAtHexahedraQ1NodesPositions",         "i", "rrr"},
+   {"HOSolAtHexahedraQ2NodesPositions",         "i", "rrr"},
+   {"HOSolAtHexahedraQ3NodesPositions",         "i", "rrr"},
+   {"HOSolAtHexahedraQ4NodesPositions",         "i", "rrr"},
+   {"EdgesReferenceElement",                    "",  "drdr"},
+   {"TriangleReferenceElement",                 "",  "drdrdr"},
+   {"QuadrilateralReferenceElement",            "",  "drdrdrdr"},
+   {"TetrahedronReferenceElement",              "",  "drdrdrdr"},
+   {"PyramidReferenceElement",                  "",  "drdrdrdrdr"},
+   {"PrismReferenceElement",                    "",  "drdrdrdrdrdr"},
+   {"HexahedronReferenceElement",               "",  "drdrdrdrdrdrdrdr"}
 };
 
 #ifdef TRANSMESH
@@ -2456,6 +2491,8 @@ int GmfWriteByteFlow(int64_t MshIdx, char *BytTab, int NmbByt)
 
 
 /*----------------------------------------------------------------------------*/
+/* Override the floating point precision deduced form the file version        */
+/* with the one read from the GmfFloatingPointPrecision field                 */
 /*----------------------------------------------------------------------------*/
 
 int GmfGetFloatPrecision(int64_t MshIdx)
@@ -2477,6 +2514,7 @@ int GmfGetFloatPrecision(int64_t MshIdx)
 
 
 /*----------------------------------------------------------------------------*/
+/* Set the floating point precision arbitrarily, regardless the file version  */
 /*----------------------------------------------------------------------------*/
 
 void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
