@@ -36,8 +36,8 @@
 
 \begin{flushright}
 \Large Lo\"ic MAR\'ECHAL / INRIA, Gamma Project\\
-\Large January 2018 \\
-\normalsize Document v1.82 \\
+\Large November 2018 \\
+\normalsize Document v1.83 \\
 \normalsize Library v7.33
 \end{flushright}
 
@@ -49,7 +49,7 @@
 \tableofcontents
 \vfill
 
-\footnotesize{Cover picture: A variety of magnetic tape drives from the 1970’s including the famous DECtapes.}
+\footnotesize{Cover pictures: A variety of magnetic tape drives from the 1970s including the famous DECtapes.}
 \normalsize
 
 \clearpage
@@ -62,14 +62,14 @@
 \section{Introduction}
 
 \subsection{What is the Gamma Mesh Format ?}
-The Gamma Mesh Format (GMF) and the associated library \emph{libMeshb} provide programers of simulation and meshing softwares with an easy way to store their meshes and physical solutions.
+The Gamma Mesh Format (GMF) and the associated library \emph{libMeshb} provide programmers of simulation and meshing softwares with an easy way to store their meshes and physical solutions.
 
 The GMF features more than 90 kinds of data types, ranging from vertex to polyhedron or normal vectors to matricial solution fields.
 
 The \emph{libMeshb} provides a convenient way to move data between those files, via keyword tags, and the user's own structures.
 
 
-\subsection{An evolutive keyword based format}
+\subsection{An evolving keyword based format}
 The GMF is a keyword based file format, meaning that a mesh file consists of a list of keywords, each followed by its data. No keyword is mandatory and a file may contain any combination of them. Furthermore, new keywords may be added while keeping upward and backward compatibility.
 
 It means that older files can be accessed by newer version of the library and vice versa.
@@ -84,22 +84,22 @@ Fortran APIs are also available: ``libmeshb7.ins'' for F77 and F90.
 
 
 \subsection{ASCII vs. Binary}
-GMF files can be stored in ascii or binary format (differentiated with \emph{.mesh} or \emph{.meshb} extensions).
+GMF files can be stored in ASCII or binary format (differentiated with \emph{.mesh} or \emph{.meshb} extensions).
 
 This choice is transparent from a user's point of view and a routine reading GMF files will work on both kinds of storage.
 The library determining the right access method depending on the file extension.
 
-It is advised to use ascii for debugging purpose only, when a file needs to be hand-written or checked by a human eye. Otherwise, when performance, compactness and portability are of concerns, binary is the way to go.
+It is advised to use ASCII for debugging purpose only when a file needs to be hand-written or checked by a human eye. Otherwise, when performance, compactness and portability are of concerns, binary is the way to go.
 
 
 \subsubsection{Size does matter}
-Binary files have a slightly smaller footprint than their ascii counterparts (typically 30\% less). Not only does it save space on hard drives, but it allows for faster transfer as well.
+Binary files have a slightly smaller footprint than their ASCII counterparts (typically 30\% less). Not only does it save space on hard drives, but it allows for faster transfer as well.
 
 
 \subsubsection{About performance}
-Great care has been taken on performance issues when creating the \emph{libMeshb}. When dealing with binary files, reading and writing throughputs will only be limited by the speed of the physical media where those files are located. Speed ranging from 20 MB/s to 60 MB/s can be achieved with hard drives and 10 MB/s or 100 MB/s with fast ethernet and gigabit ethernet networks, respectively.
+Great care has been taken on performance issues when creating the \emph{libMeshb}. When dealing with binary files, reading and writing throughput will only be limited by the speed of the physical media where those files are located. Speed ranging from 20 MB/s to 60 MB/s can be achieved with hard drives and 10 MB/s or 100 MB/s with fast ethernet and gigabit ethernet networks, respectively.
 
-The \emph{libMeshb} performs very poorly in ascii mode, which is more processor bound rather than hard-drive bound. Don't expect more than 5 or 10 MB/s throughputs.
+The \emph{libMeshb} performs very poorly in ASCII mode, which is more processor bound rather than hard-drive bound. Don't expect more than 5 or 10 MB/s throughput.
 
 \subsubsection{Compatibility issue: little vs. big endian}
 When it comes to binary storage, the compatibility problem posed by endianness always comes to mind.
@@ -108,24 +108,24 @@ Some processors like PowerPc or SPARC are called big endian because of the way t
 
 The other ones, like i86 (Intel core2, AMD opteron) or itanium, store bytes in the reverse order and are called little endian.
 
-Consequently, a binary word written by a big endian processor cannot de read by a little endian one, and vice versa. This problem can be easily overcome by reversing bytes order when reading misoriented data. The \emph{libMeshb} handles this compatibility issue via a control word that indicates which endian a mesh file was written in.
+Consequently, a binary word written by a big endian processor cannot be read by a little endian one, and vice versa. This problem can be easily overcome by reversing bytes order when reading inverted data. The \emph{libMeshb} handles this compatibility issue via a control word that indicates which endian a mesh file was written in.
 
-You may then use binary files as safely as ascii ones.
+You may then use binary files as safely as ASCII ones.
 
 \subsection{Mesh and Sol files}
-For the sake of understanding, different extensions must be given to files containing mesh related keywords, \emph{.mesh} or \emph{.meshb}, and files containing physical solution keywords, \emph{.sol} or \emph{.solb}.
+For the sake of understanding, different extensions must be given to files containing mesh related keywords \emph{.mesh} or \emph{.meshb}, and files containing physical solution keywords \emph{.sol} or \emph{.solb}.
 
 \subsection{File versions}
-Over the years, the library had to adapt to ever increasing system capabilities, henceforth, modification to the binary file format had to be done. As of today, there are three revisions of the meshb format:
+Over the years, the library had to adapt to ever-increasing system capabilities, henceforth, modification to the binary file format had to be done. As of today, there are three revisions of the meshb format:
 \medskip
 
 \begin{tabular}{|r|r|r|r|}
 \hline
 Version & Size of integers & Size of reals & Maximum size of file \\
 \hline
-1 & 32 bits & 32 bits & 2 Giga Bytes \\
+1 & 32 bits & 32 bits & 2 Gigabytes \\
 \hline
-2 & 32 bits & 64 bits & 2 Giga Bytes \\
+2 & 32 bits & 64 bits & 2 Gigabytes \\
 \hline
 3 & 32 bits & 64 bits & 8 Exa Bytes \\
 \hline
@@ -136,16 +136,16 @@ Version & Size of integers & Size of reals & Maximum size of file \\
 
 Although the \emph{libMeshb} still handles versions 1 and 2 for the sake of compatibility, it is strongly advised to create version 3 or 4 files since most computers are now 64-bit capable.
 
-A word of caution: great care must be taken when setting the library's arguments type. Regardless of the file version, some arguments are mandatory 32 bits integers like the open mode tag, mesh dimension or the file version. Even in "full 64 bits" version 4 mesh file format, only the number of lines given or set by the GmfSetKeyword() of GmfStatKeyword() commands and vertex indices used by elements field are using 64 bits integers.
+A word of caution: great care must be taken when setting the library's arguments type. Regardless of the file version, some arguments are mandatory 32-bit integers like the open mode tag, mesh dimension or the file version. Even in "full 64 bits" version 4 mesh file format, only the number of lines given or set by the GmfSetKeyword() of GmfStatKeyword() commands and vertex indices used by elements field are using 64 bit integers.
 
-The 64 bits integer data type used by the library is the \emph{int64\_t}, which is defined in the standard include file \emph{stdint.h}. In case your system is too old to support 64 bits pointers and integers, you may define \emph{int64\_t} as a regular 32 bits \emph{int}. The library will be aware of it and will still be able to handle version 1 or 2 files.
+The 64-bit integer data type used by the library is the \emph{int64\_t}, which is defined in the standard include file \emph{stdint.h}. In case your system is too old to support 64-bit pointers and integers, you may define \emph{int64\_t} as a regular 32-bit \emph{int}. The library will be aware of it and will still be able to handle version 1 or 2 files.
 
 
 %
 % 2 / QUICKSTART
 %
 
-\section{Quick-start}
+\section{Quick start}
 
 This section will guide you through three simple examples from which you may easily cut and paste to build your own code.
 
@@ -157,7 +157,7 @@ Reading a mesh is a two-step scheme:
 
 \begin{enumerate}
 \item opening and checking the file and allocating data structures according to its content
-\item reading fields of interest (vertices, elements, etc...) and storing them in the previously allocated structures
+\item reading fields of interest (vertices, elements, etc.) and storing them in the previously allocated structures
 \end{enumerate}
 
 \subsubsection{Open, check and allocate a mesh}
@@ -254,13 +254,13 @@ GmfCloseMesh( idx );
 Writing a mesh is also a two-step scheme:
 
 \begin{enumerate}
-\item creating a empty mesh file with the right version and dimension
-\item writing every fields (vertices, elements, etc...)
+\item creating an empty mesh file with the right version and dimension
+\item writing every field (vertices, elements, etc.)
 \end{enumerate}
 
 \subsubsection{Creating and defining a mesh}
 
-Mesh name, version and dimension must be provided at creation time. Creating a mesh following version 1 (single precision real numbers) in three dimensions named testcase.meshb runs this way:
+Mesh name, version and the dimension must be provided at creation time. Creating a mesh following version 1 (single precision real numbers) in three dimensions named testcase.meshb runs this way:
 
 \begin{tt}
 \begin{verbatim}
@@ -399,7 +399,7 @@ this string must contain the path and the mesh name with its extension (meshes/m
 must be set to GmfRead.
 
 \paragraph{Version:}
-will be set to the value read from file, which may range from 1 to 3.
+will be set to the value read from the file, which may range from 1 to 3.
 
 \begin{enumerate}
 	\item real numbers in the whole file are written in single precision (32 bits)
@@ -408,10 +408,10 @@ will be set to the value read from file, which may range from 1 to 3.
 \end{enumerate}
 
 \paragraph{Dimension:}
-will be set to the value read from file, only dimensions 2 and 3 are supported.
+will be set to the value read from the file, only dimensions 2 and 3 are supported.
 
 \paragraph{Returns:}
-Zero on failure or the opened mesh index otherwise. This index should be properly stored since it must be provided to any further \emph{libMeshb} commands working on this file.
+Zero on failure or the open mesh index otherwise. This index should be properly stored since it must be provided to any further \emph{libMeshb} commands working on this file.
 
 \paragraph{Example:} open a mesh file and print its version and dimension.
 
@@ -455,9 +455,9 @@ must be provided at file creation, see \emph{Reading mode} for version values.
 must be provided at file creation, only dimensions 2 and 3 are supported.
 
 \paragraph{Returns:}
-zero on failure or the opened mesh index otherwise. This index should be properly stored since it must be provided to any further \emph{libMeshb} commands working on this file.
+zero on failure or the open mesh index otherwise. This index should be properly stored since it must be provided to any further \emph{libMeshb} commands working on this file.
 
-\paragraph{Example:} create a new three dimensional mesh file storing double precision numbers.
+\paragraph{Example:} create a new three-dimensional mesh file storing double precision numbers.
 
 \begin{tt}
 \begin{verbatim}
@@ -516,7 +516,7 @@ else
 \normalfont
 
 \subsubsection{Getting information on a solution keyword}
-In this case, additional information will be provided: the number of fields per solution, the number of real numbers a solution line occupies and a table of solutions types.
+In this case, additional information will be provided: the number of fields per solution, the number of real numbers a solution line occupies and a table of solution types.
 
 \begin{tt}
 \begin{verbatim}
@@ -641,7 +641,7 @@ the index returned by GmfOpenMesh() must be provided.
 
 
 \subsection{GmfGetLin}
-GmfGetLin() is a variable arguments command, it reads one line of data from the file and stores each items in the provided pointers to user's data structures.
+GmfGetLin() is a variable argument command, it reads one line of data from the file and stores each item in the provided pointers to users' data structures.
 
 \begin{tt}
 \begin{verbatim}
@@ -677,7 +677,7 @@ else
 
 
 \subsection{GmfSetLin}
-This commands works pretty much like GmfGetLin(), but arguments are given directly instead of pointers.
+This command works pretty much like GmfGetLin(), but arguments are given directly instead of pointers.
 
 \begin{tt}
 \begin{verbatim}
@@ -697,7 +697,7 @@ the index returned by GmfOpenMesh() must be provided.
 
 
 \subsection{GmfGetBlock}
-GmfGetBlock() is a variable arguments command, it reads all the lines of data from the file and stores each items in the provided pointers to user's data structures. The user's data structure has to be fully described in order for the library to fill all the lines automatically.
+GmfGetBlock() is a variable argument command, it reads all the lines of data from the file and stores each item in the provided pointers to users' data structures. The user's data structure has to be fully described in order for the library to fill all the lines automatically.
 
 \begin{tt}
 \begin{verbatim}
@@ -721,7 +721,7 @@ the index returned by GmfOpenMesh() must be provided.
 
 \paragraph{RenumberingMap:} pointer to a renumbering table that gives the position to store each mesh entity in the user's table (for example: give the old to new renumbering through a Hilbert curve).
 
-\paragraph{Procedure:} pointer to an optional user's procedure that will be called in  parallel after each block has been read. If a procedure is given, a second pointer on user's data must be provided right after.
+\paragraph{Procedure:} pointer to an optional user's procedure that will be called in  parallel after each block has been read. If a procedure is given, a second pointer on users' data must be provided right after.
 
 \paragraph{arguments:} for each type of data as stated by the keyword definition (see section \ref{keywords}), three arguments must be provided. First, the user's type of data in which the file's data will be stored (four kinds are available: GmfFloat, GmfDouble, GmfInt and GmfLong). Second, a pointer to the first line of this data type in the user's structure. Third, the same pointer but on the last line. The example below is more telling.
 
@@ -741,7 +741,7 @@ GmfGetBlock(MeshIndex, GmfVertices, 1, nv, 0, NULL, NULL,
 \end{tt}
 \normalfont
 
-In order to reduce the number of parameters, when dealing with high order polyhedra for example, you may concatenate a set of pointers to each vertices into one base address. The vertices will be loaded at consecutive addresses.
+In order to reduce the number of parameters, when dealing with high order polyhedra for example, you may concatenate a set of pointers to each vertex into one base address. The vertices will be loaded at consecutive addresses.
 
 To indicate that the following begin and end set of pointers should be considered as a table, you should replace the GmfInt parameter by GmtIntTab followed by the size of the table. Conversely, GmtLong may be replaced by GmfLongTab.
 
@@ -772,7 +772,7 @@ GmfGetBlock(MeshIndex, GmfVertices, 1, nh, 0, NULL, NULL,
 \subsection{GmfSetBlock}
 Works exactly as GmfGetBlock except that all lines are written, you cannot specify starting and ending lines in the file since concurrent writing is not supported for now. Note that you still need to set the keyword first with the help of GmfSetKwd() prior to writing the whole data lines with GmfSetBlock().
 
-\paragraph{Example:} applying a preprocessing function on vertices before writing them on disk.
+\paragraph{Example:} applying a pre-processing function on vertices before writing them on the disk.
 
 \begin{tt}
 \begin{verbatim}
@@ -808,14 +808,14 @@ FlipRefs(int64_t begin, int64_t end, void *data)
 
 \subsection{GmfSetHONodesOrdering}
 This command sets a special high-order nodes ordering for the specified element.
-There is, unfortunately, as many HO node ordering in each kinds of elements as there are programers !
+There is, unfortunately, as many HO nodes ordering in each kind of elements as there are programmers !
 It is then useless to try to find a common node ordering in any high-order element so it was decided to add a new set of keywords (like GmfTrianglesP2Ordering), that map the sequential finite element ordering with the Bezier indices.
-When reading a HO mesh, you may provide the libMeshb with your own ordering table, as defined bellow, along with the one that you may have found in the processed mesh file, so that the GmfGetBlock() function will transparently reorder the nodes with each elements in your own way.
+When reading a HO mesh, you may provide the libMeshb with your own ordering table, as defined below, along with the one that you may have found in the processed mesh file, so that the GmfGetBlock() function will transparently reorder the nodes with each element in your own way.
 
 \begin{tt}
 \begin{verbatim}
 int GmfSetHONodesOrdering( int64_t MeshIndex, int Keyword,
-                           int *YourOrder, int *FileOrdering );
+                           int *YourOrdering, int *FileOrdering );
 \end{verbatim}
 \end{tt}
 \normalfont
@@ -883,7 +883,7 @@ data & description \\
 
 \multicolumn{2}{|l|}{Comments} \\
 \hline
-1 string & each strings cannot exceed 256 characters including the trailing 0 \\
+1 string & each string cannot exceed 256 characters including the trailing 0 \\
 \hline\hline
 
 \multicolumn{2}{|l|}{Corners} \\
@@ -928,7 +928,7 @@ data & description \\
 
 \multicolumn{2}{|l|}{Polyhedra} \\
 \hline
-9 integers & Arbitrary polyhedron: can store up to 32 polygonal face indices and a reference. Useless indices are set to 0. Caution: indices point to faces, not to vertices as other volume elements do. \\
+9 integers & Arbitrary polyhedra: can store up to 32 polygonal face indices and a reference. Useless indices are set to 0. Caution: indices point to faces, not to vertices as other volume elements do. \\
 \hline\hline
 
 \multicolumn{2}{|l|}{Prisms} \\
@@ -948,22 +948,22 @@ data & description \\
 
 \multicolumn{2}{|l|}{RequiredEdges} \\
 \hline
-1 integer & edge index: this edge is required can not be modified \\
+1 integer & edge index: this edge is required cannot be modified \\
 \hline\hline
 
 \multicolumn{2}{|l|}{RequiredQuadrilaterals} \\
 \hline
-1 integer & quad index: this quad is required can not be modified \\
+1 integer & quad index: this quad is required cannot be modified \\
 \hline\hline
 
 \multicolumn{2}{|l|}{RequiredTriangles} \\
 \hline
-1 integer & triangle index: this triangle is required can not be modified \\
+1 integer & triangle index: this triangle is required cannot be modified \\
 \hline\hline
 
 \multicolumn{2}{|l|}{RequiredVertices} \\
 \hline
-1 integer & vertex index: this vertex is required can not be modified \\
+1 integer & vertex index: this vertex is required cannot be modified \\
 \hline\hline
 
 \multicolumn{2}{|l|}{Ridges} \\
@@ -1101,7 +1101,7 @@ data & description \\
 
 \multicolumn{2}{|l|}{EdgesP2} \\
 \hline
-4 integers & two vertex nodes first then the middle node index a finally the reference \\
+4 integers & two vertex nodes first then the middle node index and finally the reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{EdgesP2Ordering} \\
@@ -1111,7 +1111,7 @@ data & description \\
 
 \multicolumn{2}{|l|}{EdgesP3} \\
 \hline
-5 integers & two vertex nodes first then the two middle nodes index a finally the reference \\
+5 integers & two vertex nodes first then the two middle nodes index and finally the reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{EdgesP3Ordering} \\
@@ -1121,7 +1121,7 @@ data & description \\
 
 \multicolumn{2}{|l|}{EdgesP4} \\
 \hline
-6 integers & two vertex nodes first then the three middle nodes index a finally the reference \\
+6 integers & two vertex nodes first then the three middle nodes index and finally the reference \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ExtraVerticesAtEdges} \\
@@ -1315,7 +1315,7 @@ SolSize * reals & as many reals as stated in the DSolAtVertices keyword header \
 
 \multicolumn{2}{|l|}{ISolAtVertices} \\
 \hline
-1 integer & there must be as many ISolAtVertices as there are Vertices in a mesh, each ISolAtVertices line pointing implicitly to the respective vertex. The integer is an index pointing to a solutions field in the DSolAtVertices table. \\
+1 integer & there must be as many ISolAtVertices as there are Vertices in a mesh, each ISolAtVertices line pointing implicitly to the respective vertex. The integer is an index pointing to a solution field in the DSolAtVertices table. \\
 \hline\hline
 
 \multicolumn{2}{|l|}{SolAtEdges} \\
@@ -1380,7 +1380,7 @@ data & description \\
 
 \multicolumn{2}{|l|}{BoundingBox} \\
 \hline
-4 or 6 reals & the box coordinates bounding the whole mesh: $x_{min}$, $x_{max}$, $y_{min}$, $y_{max}$ and $z_{min}$ and $z_{max}$ (in three dimensional case only) \\
+4 or 6 reals & the box coordinates bounding the whole mesh: $x_{min}$, $x_{max}$, $y_{min}$, $y_{max}$ and $z_{min}$ and $z_{max}$ (in the three-dimensional case only) \\
 \hline\hline
 
 \multicolumn{2}{|l|}{CoarseHexahedra} \\
@@ -1390,12 +1390,12 @@ data & description \\
 
 \multicolumn{2}{|l|}{DRefGroups} \\
 \hline
-1 string and 3 integers & name of the super group, group index, type of elements and number of references included \\
+1 string and 3 integers & name of the supergroup, group index, type of elements and number of references included \\
 \hline\hline
 
 \multicolumn{2}{|l|}{IRefGroups} \\
 \hline
-2 integers & element keyword and element index \\
+2 integers & element keyword and elements index \\
 \hline\hline
 
 \multicolumn{2}{|l|}{Iterations} \\
