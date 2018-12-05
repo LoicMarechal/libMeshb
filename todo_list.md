@@ -27,6 +27,12 @@ test_libmeshb_p2_sol.c
 ## Add F77 API to GmfSetHONodesOrdering
 An easy one.
 
+## Add IHOSol* + DHOSol* for each element kinds
+for example :
+"IHOSolAtVertices",                           "i", "ii" // ii = degree + index in DSol
+"DHOSolAtVertices",                           "i", "hr" // High Order solution
+
+
 # DONE
 
 ## Indirect storage through a renumbering table for parallel reading.
