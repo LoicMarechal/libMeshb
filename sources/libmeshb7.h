@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.39                               */
+/*                               LIBMESH V 7.40                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  aug 03 2018                                         */
+/*    Last modification:  dec 05 2018                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -169,7 +169,7 @@ enum GmfKwdCod
    GmfHOSolAtHexahedraQ1,
    GmfHOSolAtHexahedraQ2,
    GmfHOSolAtHexahedraQ3,
-   GmfBezierMode,
+   GmfBezierBasis,
    GmfByteFlow,
    GmfEdgesP2Ordering,
    GmfEdgesP3Ordering,

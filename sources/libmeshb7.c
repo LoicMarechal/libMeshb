@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.39                               */
+/*                               LIBMESH V 7.40                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  aug 03 2018                                          */
+/*   Last modification:  dec 05 2018                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -363,7 +363,7 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"HOSolAtHexahedraQ1",                       "i", "hr"},
    {"HOSolAtHexahedraQ2",                       "i", "hr"},
    {"HOSolAtHexahedraQ3",                       "i", "hr"},
-   {"BezierMode",                               "",  "i"},
+   {"BezierBasis",                              "",  "i"},
    {"ByteFlow",                                 "i", "i"},
    {"EdgesP2Ordering",                          "i", "i"},
    {"EdgesP3Ordering",                          "i", "i"},
@@ -429,13 +429,13 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"HOSolAtHexahedraQ2NodesPositions",         "i", "rrr"},
    {"HOSolAtHexahedraQ3NodesPositions",         "i", "rrr"},
    {"HOSolAtHexahedraQ4NodesPositions",         "i", "rrr"},
-   {"EdgesReferenceElement",                    "",  "drdr"},
-   {"TriangleReferenceElement",                 "",  "drdrdr"},
-   {"QuadrilateralReferenceElement",            "",  "drdrdrdr"},
-   {"TetrahedronReferenceElement",              "",  "drdrdrdr"},
-   {"PyramidReferenceElement",                  "",  "drdrdrdrdr"},
-   {"PrismReferenceElement",                    "",  "drdrdrdrdrdr"},
-   {"HexahedronReferenceElement",               "",  "drdrdrdrdrdrdrdr"}
+   {"EdgesReferenceElement",                    "",  "rr"},
+   {"TriangleReferenceElement",                 "",  "rrrrrr"},
+   {"QuadrilateralReferenceElement",            "",  "rrrrrrrr"},
+   {"TetrahedronReferenceElement",              "",  "rrrrrrrrrrrr"},
+   {"PyramidReferenceElement",                  "",  "rrrrrrrrrrrrrrr"},
+   {"PrismReferenceElement",                    "",  "rrrrrrrrrrrrrrrrrr"},
+   {"HexahedronReferenceElement",               "",  "rrrrrrrrrrrrrrrrrrrrrrrr"}
 };
 
 #ifdef TRANSMESH
