@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.35                               */
+/*                               LIBMESH V 7.40                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  mar 06 2018                                          */
+/*   Last modification:  dec 05 2018                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -94,6 +94,16 @@
 
 #endif
 
+
+#if defined(_WIN64)
+#define MYFTELL(s) (int64_t)_ftelli64(s)
+#define MYFSEEK(s,o,w) _fseeki64(s,(__int64)o,w)
+#else
+#define MYFTELL(s) ftell(s)
+#define MYFSEEK(s,o,w) fseek(s,o,w)
+#endif
+
+
 #include <errno.h>
 #include <libmeshb7.h>
 
@@ -134,7 +144,7 @@ int aio_error( const struct aiocb * aiocbp )
 // Set the file position and read a block of data
 int aio_read( struct aiocb * aiocbp )
 {
-   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   if( (MYFSEEK(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
    &&  (fread(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
@@ -156,7 +166,7 @@ size_t aio_return( struct aiocb * aiocbp )
 // Set the file position and write a block of data
 int aio_write( struct aiocb * aiocbp )
 {
-   if( (fseek(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   if( (MYFSEEK(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
    &&  (fwrite(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
@@ -207,7 +217,7 @@ typedef struct
 
 typedef struct
 {
-   int      dim, ver, mod, typ, cod, FilDes;
+   int      dim, ver, mod, typ, cod, FilDes, FltSiz;
    int64_t  NexKwdPos, siz;
    size_t   pos;
    jmp_buf  err;
@@ -326,7 +336,7 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"DRefGroups",                               "i", "iii"},
    {"TetrahedraP3",                             "i", "iiiiiiiiiiiiiiiiiiiii"},
    {"TetrahedraP4",                             "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
-   {"HexahedraQ3",                              "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
+   {"HexahedraQ3",                              "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
    {"HexahedraQ4",                              "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
    {"PyramidsP3",                               "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
    {"PyramidsP4",                               "i", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"},
@@ -353,36 +363,79 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"HOSolAtHexahedraQ1",                       "i", "hr"},
    {"HOSolAtHexahedraQ2",                       "i", "hr"},
    {"HOSolAtHexahedraQ3",                       "i", "hr"},
-   {"BezierMode",                               "",  "i"},
+   {"BezierBasis",                              "",  "i"},
    {"ByteFlow",                                 "i", "i"},
-   {"EdgesP2Ordering",                          "i",  "i"},
-   {"EdgesP3Ordering",                          "i",  "i"},
-   {"TrianglesP2Ordering",                      "i",  "iii"},
-   {"TrianglesP3Ordering",                      "i",  "iii"},
-   {"QuadrilateralsQ2Ordering",                 "i",  "ii"},
-   {"QuadrilateralsQ3Ordering",                 "i",  "ii"},
-   {"TetrahedraP2Ordering",                     "i",  "iiii"},
-   {"TetrahedraP3Ordering",                     "i",  "iiii"},
-   {"PyramidsP2Ordering",                       "i",  "iii"},
-   {"PyramidsP3Ordering",                       "i",  "iii"},
-   {"PrismsP2Ordering",                         "i",  "iiii"},
-   {"PrismsP3Ordering",                         "i",  "iiii"},
-   {"HexahedraQ2Ordering",                      "i",  "iii"},
-   {"HexahedraQ3Ordering",                      "i",  "iii"},
-   {"EdgesP1Ordering",                          "i",  "i"},
-   {"EdgesP4Ordering",                          "i",  "i"},
-   {"TrianglesP1Ordering",                      "i",  "iii"},
-   {"TrianglesP4Ordering",                      "i",  "iii"},
-   {"QuadrilateralsQ1Ordering",                 "i",  "ii"},
-   {"QuadrilateralsQ4Ordering",                 "i",  "ii"},
-   {"TetrahedraP1Ordering",                     "i",  "iiii"},
-   {"TetrahedraP4Ordering",                     "i",  "iiii"},
-   {"PyramidsP1Ordering",                       "i",  "iii"},
-   {"PyramidsP4Ordering",                       "i",  "iii"},
-   {"PrismsP1Ordering",                         "i",  "iiii"},
-   {"PrismsP4Ordering",                         "i",  "iiii"},
-   {"HexahedraQ1Ordering",                      "i",  "iii"},
-   {"HexahedraQ4Ordering",                      "i",  "iii"}
+   {"EdgesP2Ordering",                          "i", "i"},
+   {"EdgesP3Ordering",                          "i", "i"},
+   {"TrianglesP2Ordering",                      "i", "iii"},
+   {"TrianglesP3Ordering",                      "i", "iii"},
+   {"QuadrilateralsQ2Ordering",                 "i", "ii"},
+   {"QuadrilateralsQ3Ordering",                 "i", "ii"},
+   {"TetrahedraP2Ordering",                     "i", "iiii"},
+   {"TetrahedraP3Ordering",                     "i", "iiii"},
+   {"PyramidsP2Ordering",                       "i", "iii"},
+   {"PyramidsP3Ordering",                       "i", "iii"},
+   {"PrismsP2Ordering",                         "i", "iiii"},
+   {"PrismsP3Ordering",                         "i", "iiii"},
+   {"HexahedraQ2Ordering",                      "i", "iii"},
+   {"HexahedraQ3Ordering",                      "i", "iii"},
+   {"EdgesP1Ordering",                          "i", "i"},
+   {"EdgesP4Ordering",                          "i", "i"},
+   {"TrianglesP1Ordering",                      "i", "iii"},
+   {"TrianglesP4Ordering",                      "i", "iii"},
+   {"QuadrilateralsQ1Ordering",                 "i", "ii"},
+   {"QuadrilateralsQ4Ordering",                 "i", "ii"},
+   {"TetrahedraP1Ordering",                     "i", "iiii"},
+   {"TetrahedraP4Ordering",                     "i", "iiii"},
+   {"PyramidsP1Ordering",                       "i", "iii"},
+   {"PyramidsP4Ordering",                       "i", "iii"},
+   {"PrismsP1Ordering",                         "i", "iiii"},
+   {"PrismsP4Ordering",                         "i", "iiii"},
+   {"HexahedraQ1Ordering",                      "i", "iii"},
+   {"HexahedraQ4Ordering",                      "i", "iii"},
+   {"HOSolAtEdgesP4",                           "i", "hr"},
+   {"HOSolAtTrianglesP4",                       "i", "hr"},
+   {"HOSolAtQuadrilateralsQ4",                  "i", "hr"},
+   {"HOSolAtTetrahedraP4",                      "i", "hr"},
+   {"HOSolAtPyramidsP4",                        "i", "hr"},
+   {"HOSolAtPrismsP4",                          "i", "hr"},
+   {"HOSolAtHexahedraQ4",                       "i", "hr"},
+   {"FloatingPointPrecision",                   "",  "i"},
+   {"HOSolAtEdgesP1NodesPositions",             "i", "rr"},
+   {"HOSolAtEdgesP2NodesPositions",             "i", "rr"},
+   {"HOSolAtEdgesP3NodesPositions",             "i", "rr"},
+   {"HOSolAtEdgesP4NodesPositions",             "i", "rr"},
+   {"HOSolAtTrianglesP1NodesPositions",         "i", "rrr"},
+   {"HOSolAtTrianglesP2NodesPositions",         "i", "rrr"},
+   {"HOSolAtTrianglesP3NodesPositions",         "i", "rrr"},
+   {"HOSolAtTrianglesP4NodesPositions",         "i", "rrr"},
+   {"HOSolAtQuadrilateralsQ1NodesPositions",    "i", "rr"},
+   {"HOSolAtQuadrilateralsQ2NodesPositions",    "i", "rr"},
+   {"HOSolAtQuadrilateralsQ3NodesPositions",    "i", "rr"},
+   {"HOSolAtQuadrilateralsQ4NodesPositions",    "i", "rr"},
+   {"HOSolAtTetrahedraP1NodesPositions",        "i", "rrrr"},
+   {"HOSolAtTetrahedraP2NodesPositions",        "i", "rrrr"},
+   {"HOSolAtTetrahedraP3NodesPositions",        "i", "rrrr"},
+   {"HOSolAtTetrahedraP4NodesPositions",        "i", "rrrr"},
+   {"HOSolAtPyramidsP1NodesPositions",          "i", "rrr"},
+   {"HOSolAtPyramidsP2NodesPositions",          "i", "rrr"},
+   {"HOSolAtPyramidsP3NodesPositions",          "i", "rrr"},
+   {"HOSolAtPyramidsP4NodesPositions",          "i", "rrr"},
+   {"HOSolAtPrismsP1NodesPositions",            "i", "rrrr"},
+   {"HOSolAtPrismsP2NodesPositions",            "i", "rrrr"},
+   {"HOSolAtPrismsP3NodesPositions",            "i", "rrrr"},
+   {"HOSolAtPrismsP4NodesPositions",            "i", "rrrr"},
+   {"HOSolAtHexahedraQ1NodesPositions",         "i", "rrr"},
+   {"HOSolAtHexahedraQ2NodesPositions",         "i", "rrr"},
+   {"HOSolAtHexahedraQ3NodesPositions",         "i", "rrr"},
+   {"HOSolAtHexahedraQ4NodesPositions",         "i", "rrr"},
+   {"EdgesReferenceElement",                    "",  "rr"},
+   {"TriangleReferenceElement",                 "",  "rrrrrr"},
+   {"QuadrilateralReferenceElement",            "",  "rrrrrrrr"},
+   {"TetrahedronReferenceElement",              "",  "rrrrrrrrrrrr"},
+   {"PyramidReferenceElement",                  "",  "rrrrrrrrrrrrrrr"},
+   {"PrismReferenceElement",                    "",  "rrrrrrrrrrrrrrrrrr"},
+   {"HexahedronReferenceElement",               "",  "rrrrrrrrrrrrrrrrrrrrrrrr"}
 };
 
 #ifdef TRANSMESH
@@ -589,6 +642,12 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       (*PtrVer) = msh->ver;
       (*PtrDim) = msh->dim;
 
+      // Set default real numbers size
+      if(msh->ver == 1)
+         msh->FltSiz = 32;
+      else
+         msh->FltSiz = 64;
+
       /*------------*/
       /* KW READING */
       /*------------*/
@@ -622,6 +681,12 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 
       if( (msh->dim != 2) && (msh->dim != 3) )
          longjmp(msh->err, -1);
+
+      // Set default real numbers size
+      if(msh->ver == 1)
+         msh->FltSiz = 32;
+      else
+         msh->FltSiz = 64;
 
       // Create the mesh file
       if(msh->typ & Bin) 
@@ -942,7 +1007,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
             {
                if(kwd->fmt[i] == 'r')
                {
-                  if(msh->ver <= 1)
+                  if(msh->FltSiz == 32)
                   {
                      safe_fscanf(msh->hdl, "%f", &FltVal, msh->err);
                      PtrDbl = va_arg(VarArg, double *);
@@ -980,7 +1045,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
          {
             for(i=0;i<kwd->SolSiz;i++)
                if(kwd->fmt[i] == 'r')
-                  if(msh->ver <= 1)
+                  if(msh->FltSiz == 32)
                      ScaWrd(msh, (unsigned char *)va_arg(VarArg, float *));
                   else
                      ScaDblWrd(msh, (unsigned char *)va_arg(VarArg, double *));
@@ -997,7 +1062,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 
       case SolKwd :
       {
-         if(msh->ver == 1)
+         if(msh->FltSiz == 32)
          {
             FltSolTab = va_arg(VarArg, float *);
 
@@ -1056,7 +1121,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
          {
             if(kwd->fmt[i] == 'r')
             {
-               if(msh->ver <= 1)
+               if(msh->FltSiz == 32)
 #ifdef F77API
                   fprintf(msh->hdl, "%g ", *(va_arg(VarArg, float *)));
 #else
@@ -1088,7 +1153,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
          {
             if(kwd->fmt[i] == 'r')
             {
-               if(msh->ver <= 1)
+               if(msh->FltSiz == 32)
                {
                   FltBuf = (void *)&msh->buf[ pos ];
 #ifdef F77API
@@ -1133,7 +1198,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
    }
    else
    {
-      if(msh->ver == 1)
+      if(msh->FltSiz == 32)
       {
          FltSolTab = va_arg(VarArg, float *);
 
@@ -1188,7 +1253,7 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
    {
       if(kwd->fmt[i] == 'r')
       {
-         if(InpMsh->ver == 1)
+         if(InpMsh->FltSiz == 32)
          {
             if(InpMsh->typ & Asc)
                safe_fscanf(InpMsh->hdl, "%f", &f, InpMsh->err);
@@ -1207,7 +1272,7 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
             f = (float)d;
          }
 
-         if(OutMsh->ver == 1)
+         if(OutMsh->FltSiz == 32)
             if(OutMsh->typ & Asc)
                fprintf(OutMsh->hdl, "%g ", (double)f);
             else
@@ -1287,6 +1352,174 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 }
 
 #endif
+
+
+/*----------------------------------------------------------------------------*/
+/* Read a full line from the current kwd and store the results in tables      */
+/*----------------------------------------------------------------------------*/
+
+int GmfGetLinTab( int64_t  MshIdx, int  KwdCod,
+                  int64_t *IntTab, int *IntCpt,
+                  double  *DblTab, int *DblCpt,
+                  char    *str,    int *StrLen )
+{
+   int         i, IntVal;
+   float       FltVal;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
+
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
+      return(0);
+
+   // Save the current stack environment for longjmp
+   if(setjmp(msh->err) != 0)
+      return(0);
+
+   // Return the nuber of entities read to the user
+   *IntCpt = *DblCpt = *StrLen = 0;
+
+   // Instead of reading each argument pointer separately,
+   // all integers are stored in the LngTab and double values in the DblTab
+   // And the counters are incremented each time
+   if(msh->typ & Asc)
+   {
+      for(i=0;i<kwd->SolSiz;i++)
+      {
+         if(kwd->fmt[i] == 'r')
+            safe_fscanf(msh->hdl, "%lf",  &DblTab[ (*DblCpt)++ ], msh->err);
+         else if(kwd->fmt[i] == 'i')
+            safe_fscanf(msh->hdl, "%lld", &IntTab[ (*IntCpt)++ ], msh->err);
+         else if(kwd->fmt[i] == 'c')
+         {
+            safe_fgets(str, WrdSiz * FilStrSiz, msh->hdl, msh->err);
+            *StrLen = strlen(str);
+         }
+      }
+   }
+   else
+   {
+      for(i=0;i<kwd->SolSiz;i++)
+      {
+         if(kwd->fmt[i] == 'r')
+         {
+            if(msh->FltSiz == 32)
+            {
+               ScaWrd(msh, (unsigned char *)&FltVal);
+               DblTab[ (*DblCpt)++ ] = FltVal;
+            }
+            else
+               ScaDblWrd(msh, (unsigned char *)&DblTab[ (*DblCpt)++ ]);
+         }
+         else if(kwd->fmt[i] == 'i')
+         {
+            if(msh->ver <= 3)
+            {
+               ScaWrd(msh, (unsigned char *)&IntVal);
+               IntTab[ (*IntCpt)++ ] = IntVal;
+            }
+            else
+               ScaDblWrd(msh, (unsigned char *)&IntTab[ (*IntCpt)++ ]);
+         }
+         else if(kwd->fmt[i] == 'c')
+         {
+            safe_fgets(str, WrdSiz * FilStrSiz, msh->hdl, msh->err);
+            *StrLen = strlen(str);
+         }
+      }
+   }
+
+   return(1);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* Write a full line from the current kwd                                     */
+/*----------------------------------------------------------------------------*/
+
+int GmfSetLinTab( int64_t  MshIdx, int KwdCod,
+                  int64_t *LngTab, double *DblTab, char *str )
+{
+   int         i, pos, *IntBuf, DblCpt = 0, LngCpt = 0;
+   float       *FltBuf;
+   double      DblVal, *DblBuf;
+   int64_t     LngVal, *LngBuf;
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
+
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
+      return(0);
+
+   // Instead of reading each argument pointer separately,
+   // all integers are stored in the LngTab and double values in the DblTab
+   // And the counters are incremented each time
+   if(msh->typ & Asc)
+   {
+      for(i=0;i<kwd->SolSiz;i++)
+      {
+         if(kwd->fmt[i] == 'r')
+            fprintf(msh->hdl, "%lf ",  DblTab[ DblCpt++ ]);
+         else if(kwd->fmt[i] == 'i')
+            fprintf(msh->hdl, "%lld ", LngTab[ LngCpt++ ]);
+         else if(kwd->fmt[i] == 'c')
+            fprintf(msh->hdl, "%s ", str);
+      }
+
+      fprintf(msh->hdl, "\n");
+   }
+   else
+   {
+      pos = 0;
+
+      for(i=0;i<kwd->SolSiz;i++)
+      {
+         if(kwd->fmt[i] == 'r')
+         {
+            DblVal = DblTab[ DblCpt++ ];
+
+            if(msh->FltSiz == 32)
+            {
+               FltBuf = (void *)&msh->buf[ pos ];
+               *FltBuf = (float)DblVal;
+               pos += 4;
+            }
+            else
+            {
+               DblBuf = (void *)&msh->buf[ pos ];
+               *DblBuf = DblVal;
+               pos += 8;
+            }
+         }
+         else if(kwd->fmt[i] == 'i')
+         {
+            LngVal = LngTab[ LngCpt++ ];
+
+            if(msh->ver <= 3)
+            {
+               IntBuf = (void *)&msh->buf[ pos ];
+               *IntBuf = (int)LngVal;
+               pos += 4;
+            }
+            else
+            {
+               LngBuf = (void *)&msh->buf[ pos ];
+               *LngBuf = LngVal;
+               pos += 8;
+            }
+         }
+         else if(kwd->fmt[i] == 'c')
+         {
+            memset(&msh->buf[ pos ], 0, FilStrSiz * WrdSiz);
+            strncpy(&msh->buf[ pos ], str, FilStrSiz * WrdSiz);
+            pos += FilStrSiz;
+         }
+      }
+
+      RecBlk(msh, msh->buf, kwd->NmbWrd);
+   }
+
+   return(1);
+}
+
 
 // [Bruno] Made asynchronous I/O optional
 #ifndef WITHOUT_AIO
@@ -1458,7 +1691,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    for(i=0;i<kwd->SolSiz;i++)
    {
       if(kwd->fmt[i] == 'r')
-         if(msh->ver <= 1)
+         if(msh->FltSiz == 32)
             FilTyp[i] = GmfFloat;
          else
             FilTyp[i] = GmfDouble;
@@ -1882,7 +2115,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    for(i=0;i<kwd->SolSiz;i++)
    {
       if(kwd->fmt[i] == 'r')
-         if(msh->ver <= 1)
+         if(msh->FltSiz == 32)
             FilTyp[i] = GmfFloat;
          else
             FilTyp[i] = GmfDouble;
@@ -2150,18 +2383,25 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
    {
       case GmfEdgesP2 :          NmbNod =  3; NmbCrd = 1; break;
       case GmfEdgesP3 :          NmbNod =  4; NmbCrd = 1; break;
+      case GmfEdgesP4 :          NmbNod =  5; NmbCrd = 1; break;
       case GmfTrianglesP2 :      NmbNod =  6; NmbCrd = 3; break;
       case GmfTrianglesP3 :      NmbNod = 10; NmbCrd = 3; break;
+      case GmfTrianglesP4 :      NmbNod = 15; NmbCrd = 3; break;
       case GmfQuadrilateralsQ2 : NmbNod =  9; NmbCrd = 2; break;
       case GmfQuadrilateralsQ3 : NmbNod = 16; NmbCrd = 2; break;
+      case GmfQuadrilateralsQ4 : NmbNod = 25; NmbCrd = 2; break;
       case GmfTetrahedraP2 :     NmbNod = 10; NmbCrd = 4; break;
       case GmfTetrahedraP3 :     NmbNod = 20; NmbCrd = 4; break;
+      case GmfTetrahedraP4 :     NmbNod = 35; NmbCrd = 4; break;
       case GmfPyramidsP2 :       NmbNod = 14; NmbCrd = 3; break;
       case GmfPyramidsP3 :       NmbNod = 30; NmbCrd = 3; break;
+      case GmfPyramidsP4 :       NmbNod = 55; NmbCrd = 3; break;
       case GmfPrismsP2 :         NmbNod = 18; NmbCrd = 4; break;
       case GmfPrismsP3 :         NmbNod = 40; NmbCrd = 4; break;
+      case GmfPrismsP4 :         NmbNod = 75; NmbCrd = 4; break;
       case GmfHexahedraQ2 :      NmbNod = 27; NmbCrd = 3; break;
       case GmfHexahedraQ3 :      NmbNod = 64; NmbCrd = 3; break;
+      case GmfHexahedraQ4 :      NmbNod =125; NmbCrd = 3; break;
       default : return(0);
    }
 
@@ -2190,9 +2430,6 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
             kwd->OrdTab[j] = i;
       }
    }
-
-   for(i=0;i<NmbNod;i++)
-      printf("%d : %d\n",i,kwd->OrdTab[i]);
 
    return(1);
 }
@@ -2251,6 +2488,47 @@ int GmfWriteByteFlow(int64_t MshIdx, char *BytTab, int NmbByt)
 
    return(1);
 }
+
+
+/*----------------------------------------------------------------------------*/
+/* Override the floating point precision deduced form the file version        */
+/* with the one read from the GmfFloatingPointPrecision field                 */
+/*----------------------------------------------------------------------------*/
+
+int GmfGetFloatPrecision(int64_t MshIdx)
+{
+   int FltSiz;
+   GmfMshSct *msh = (GmfMshSct *)MshIdx;
+
+   if(GmfStatKwd(MshIdx, GmfFloatingPointPrecision))
+   {
+      GmfGotoKwd(MshIdx, GmfFloatingPointPrecision);
+      GmfGetLin(MshIdx, GmfFloatingPointPrecision, &FltSiz);
+
+      if(FltSiz == 32 || FltSiz == 64)
+         msh->FltSiz = FltSiz;
+   }
+
+   return(msh->FltSiz);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* Set the floating point precision arbitrarily, regardless the file version  */
+/*----------------------------------------------------------------------------*/
+
+void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
+{
+   GmfMshSct *msh = (GmfMshSct *)MshIdx;
+
+   if(FltSiz != 32 && FltSiz != 64)
+      return;
+
+   msh->FltSiz = FltSiz;
+   GmfSetKwd(MshIdx, GmfFloatingPointPrecision, 1);
+   GmfSetLin(MshIdx, GmfFloatingPointPrecision, FltSiz);
+}
+
 #endif
 
 
@@ -2441,7 +2719,7 @@ static void ExpFmt(GmfMshSct *msh, int KwdCod)
          kwd->fmt[ kwd->SolSiz++ ] = chr;
    }
 
-   if(msh->ver <= 1)
+   if(msh->FltSiz == 32)
       FltWrd = 1;
    else
       FltWrd = 2;
@@ -2591,14 +2869,14 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
        * so there is probably no problem.
        */
 #ifdef WITH_AIO
-      if((int64_t)write(msh->FilDes, msh->blk, (int)msh->pos) != msh->pos)
+      if(write(msh->FilDes, msh->blk, (int)msh->pos) != (ssize_t)msh->pos)
 #else      
       if(fwrite(msh->blk, 1, (size_t)msh->pos, msh->hdl) != msh->pos)
 #endif      
          longjmp(msh->err, -1);
 #else      
 #ifdef WITH_AIO
-      if(write(msh->FilDes, msh->blk, msh->pos) != msh->pos)
+      if(write(msh->FilDes, msh->blk, msh->pos) != (ssize_t)msh->pos)
 #else      
       if(fwrite(msh->blk, 1, msh->pos, msh->hdl) != msh->pos)
 #endif      
@@ -2651,14 +2929,14 @@ static void SwpWrd(char *wrd, int siz)
 
 static int SetFilPos(GmfMshSct *msh, int64_t pos)
 {
-   if(msh->typ & Bin)
 #ifdef WITH_AIO
+   if(msh->typ & Bin)
       return((lseek(msh->FilDes, (off_t)pos, 0) != -1));
-#else
-      return((fseek(msh->hdl, (off_t)pos, SEEK_SET) == 0));
-#endif
    else
-      return((fseek(msh->hdl, (off_t)pos, SEEK_SET) == 0));
+      return((MYFSEEK(msh->hdl, (off_t)pos, SEEK_SET) == 0));
+#else
+   return((MYFSEEK(msh->hdl, (off_t)pos, SEEK_SET) == 0));
+#endif
 }
 
 
@@ -2668,14 +2946,14 @@ static int SetFilPos(GmfMshSct *msh, int64_t pos)
 
 static int64_t GetFilPos(GmfMshSct *msh)
 {
-   if(msh->typ & Bin)
 #ifdef WITH_AIO
+   if(msh->typ & Bin)
       return(lseek(msh->FilDes, 0, 1));
-#else
-      return(ftell(msh->hdl));
-#endif
    else
-      return(ftell(msh->hdl));
+      return(MYFTELL(msh->hdl));
+#else
+   return(MYFTELL(msh->hdl));
+#endif
 }
 
 
@@ -2694,27 +2972,27 @@ static int64_t GetFilSiz(GmfMshSct *msh)
       EndPos = lseek(msh->FilDes, 0, 2);
       lseek(msh->FilDes, (off_t)CurPos, 0);
 #else
-      CurPos = ftell(msh->hdl);
+      CurPos = MYFTELL(msh->hdl);
 
-      if(fseek(msh->hdl, 0, SEEK_END) != 0)
+      if(MYFSEEK(msh->hdl, 0, SEEK_END) != 0)
          longjmp(msh->err, -1);
 
-      EndPos = ftell(msh->hdl);
+      EndPos = MYFTELL(msh->hdl);
 
-      if(fseek(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
+      if(MYFSEEK(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
          longjmp(msh->err, -1);
 #endif
    }
    else
    {
-      CurPos = ftell(msh->hdl);
+      CurPos = MYFTELL(msh->hdl);
 
-      if(fseek(msh->hdl, 0, SEEK_END) != 0)
+      if(MYFSEEK(msh->hdl, 0, SEEK_END) != 0)
          longjmp(msh->err, -1);
 
-      EndPos = ftell(msh->hdl);
+      EndPos = MYFTELL(msh->hdl);
 
-      if(fseek(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
+      if(MYFSEEK(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
          longjmp(msh->err, -1);
    }
 

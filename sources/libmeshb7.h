@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.35                               */
+/*                               LIBMESH V 7.40                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  jan 15 2018                                         */
+/*    Last modification:  dec 05 2018                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -169,7 +169,7 @@ enum GmfKwdCod
    GmfHOSolAtHexahedraQ1,
    GmfHOSolAtHexahedraQ2,
    GmfHOSolAtHexahedraQ3,
-   GmfBezierMode,
+   GmfBezierBasis,
    GmfByteFlow,
    GmfEdgesP2Ordering,
    GmfEdgesP3Ordering,
@@ -199,6 +199,49 @@ enum GmfKwdCod
    GmfPrismsP4Ordering,
    GmfHexahedraQ1Ordering,
    GmfHexahedraQ4Ordering,
+   GmfFloatingPointPrecision,
+   GmfHOSolAtEdgesP4,
+   GmfHOSolAtTrianglesP4,
+   GmfHOSolAtQuadrilateralsQ4,
+   GmfHOSolAtTetrahedraP4,
+   GmfHOSolAtPyramidsP4,
+   GmfHOSolAtPrismsP4,
+   GmfHOSolAtHexahedraQ4,
+   GmfHOSolAtEdgesP1NodesPositions,
+   GmfHOSolAtEdgesP2NodesPositions,
+   GmfHOSolAtEdgesP3NodesPositions,
+   GmfHOSolAtEdgesP4NodesPositions,
+   GmfHOSolAtTrianglesP1NodesPositions,
+   GmfHOSolAtTrianglesP2NodesPositions,
+   GmfHOSolAtTrianglesP3NodesPositions,
+   GmfHOSolAtTrianglesP4NodesPositions,
+   GmfHOSolAtQuadrilateralsQ1NodesPositions,
+   GmfHOSolAtQuadrilateralsQ2NodesPositions,
+   GmfHOSolAtQuadrilateralsQ3NodesPositions,
+   GmfHOSolAtQuadrilateralsQ4NodesPositions,
+   GmfHOSolAtTetrahedraP1NodesPositions,
+   GmfHOSolAtTetrahedraP2NodesPositions,
+   GmfHOSolAtTetrahedraP3NodesPositions,
+   GmfHOSolAtTetrahedraP4NodesPositions,
+   GmfHOSolAtPyramidsP1NodesPositions,
+   GmfHOSolAtPyramidsP2NodesPositions,
+   GmfHOSolAtPyramidsP3NodesPositions,
+   GmfHOSolAtPyramidsP4NodesPositions,
+   GmfHOSolAtPrismsP1NodesPositions,
+   GmfHOSolAtPrismsP2NodesPositions,
+   GmfHOSolAtPrismsP3NodesPositions,
+   GmfHOSolAtPrismsP4NodesPositions,
+   GmfHOSolAtHexahedraQ1NodesPositions,
+   GmfHOSolAtHexahedraQ2NodesPositions,
+   GmfHOSolAtHexahedraQ3NodesPositions,
+   GmfHOSolAtHexahedraQ4NodesPositions,
+   GmfEdgesReferenceElement,         
+   GmfTriangleReferenceElement,      
+   GmfQuadrilateralReferenceElement, 
+   GmfTetrahedronReferenceElement,   
+   GmfPyramidReferenceElement,       
+   GmfPrismReferenceElement,         
+   GmfHexahedronReferenceElement,    
    GmfLastKeyword
 };
 
@@ -223,6 +266,8 @@ extern int     GmfSetBlock          (int64_t, int, int64_t, int64_t, int, void *
 extern char   *GmfReadByteFlow      (int64_t, int *);
 extern int     GmfWriteByteFlow     (int64_t, char *, int);
 extern int     GmfSetHONodesOrdering(int64_t, int, int *, int *);
+extern int     GmfGetFloatPrecision (int64_t);
+extern void    GmfSetFloatPrecision (int64_t, int);
 
 
 /*----------------------------------------------------------------------------*/

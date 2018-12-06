@@ -17,6 +17,21 @@ Add a procedure that would search for a string among comments.
 Input: keyword name, physical property, free comment, wildcards.
 Output: list of solutions keywords and particuliar field number.
 
+## Arbitrary reference element
+Add a set of keywords for each kind of elements that stores the number of vertices and their barycentric coordinates.
+
+## Convert HO examples to Fortran
+test_libmeshb_HO.c
+test_libmeshb_p2_sol.c
+
+## Add F77 API to GmfSetHONodesOrdering
+An easy one.
+
+## Add IHOSol* + DHOSol* for each element kinds
+for example :
+"IHOSolAtVertices",                           "i", "ii" // ii = degree + index in DSol
+"DHOSolAtVertices",                           "i", "hr" // High Order solution
+
 
 # DONE
 

@@ -36,9 +36,15 @@
 
 \begin{flushright}
 \Large Lo\"ic MAR\'ECHAL / INRIA, Gamma Project\\
+<<<<<<< HEAD
 \Large November 2018 \\
 \normalsize Document v1.83 \\
 \normalsize Library v7.33
+=======
+\Large December 2018 \\
+\normalsize Document v1.90 \\
+\normalsize Library v7.40
+>>>>>>> release/V1.4
 \end{flushright}
 
 \end{titlepage}
@@ -62,9 +68,13 @@
 \section{Introduction}
 
 \subsection{What is the Gamma Mesh Format ?}
+<<<<<<< HEAD
 The Gamma Mesh Format (GMF) and the associated library \emph{libMeshb} provide programmers of simulation and meshing softwares with an easy way to store their meshes and physical solutions.
+=======
+The Gamma Mesh Format (GMF) and the associated library \emph{libMeshb} provide programmers of simulation and meshing software with an easy way to store their meshes and physical solutions.
+>>>>>>> release/V1.4
 
-The GMF features more than 90 kinds of data types, ranging from vertex to polyhedron or normal vectors to matricial solution fields.
+The GMF features more than 90 kinds of data types, ranging from vertex to polyhedron or normal vectors to matrix solution fields.
 
 The \emph{libMeshb} provides a convenient way to move data between those files, via keyword tags, and the user's own structures.
 
@@ -853,6 +863,95 @@ GmfGetBlock(MeshIndex, GmfQ2Quadrilaterals, 1, nq, 0, NULL,
 \normalfont
 
 
+\subsection{GmfReadByteFlow}
+Read a free byte flow from a mesh file.
+A buffer is allocated by the library and the pointer is returned by the procedure.
+It is up to the user to release this buffer memory.
+
+\begin{tt}
+\begin{verbatim}
+char *GmfReadByteFlow(int64_t MeshIndex, int *NumberOfBytes);
+\end{verbatim}
+\end{tt}
+\normalfont
+
+\paragraph{MeshIdx:}
+the index returned by GmfOpenMesh() must be provided.
+
+\paragraph{NumberOfBytes:} a pointer to an integer that will be set with the number of bytes read from the file.
+
+\paragraph{Returns:} NULL pointer if the memory could not be allocated or the data could not be read, or a pointer to the buffer containing the byte flow.
+
+This example reads an EGADS CAD model stored as a free byte flow.
+
+\begin{tt}
+\begin{verbatim}
+int NmbBytes;
+char *cad;
+// Read the egads tree stored as a raw byte flow
+cad = GmfReadByteFlow(InpMsh, &NmbBytes);
+\end{verbatim}
+\end{tt}
+\normalfont
+
+
+\subsection{GmfWriteByteFlow}
+Write a free byte flow from a mesh file.
+The table is stored in the mesh file as a series of four-byte integers under the \emph{ByteFlow} keyword.
+
+\begin{tt}
+\begin{verbatim}
+int GmfWriteByteFlow(int64_t MeshIndex, char *Data, int NumberOfBytes);
+\end{verbatim}
+\end{tt}
+\normalfont
+
+\paragraph{MeshIdx:}
+the index returned by GmfOpenMesh() must be provided.
+
+\paragraph{Data:} a pointer to the raw data that will be written to the file.
+
+\paragraph{NumberOfBytes:} the number of bytes to be written.
+
+\paragraph{Returns:} 0 in case of failure and 1 otherwise.
+
+
+\subsection{GmfGetFloatPrecision}
+Get the floating point numbers precision in bits.
+It may return only two different values: 32 or 64.
+
+\begin{tt}
+\begin{verbatim}
+int GmfGetFloatPrecision(int64_t MeshIndex);
+\end{verbatim}
+\end{tt}
+\normalfont
+
+\paragraph{MeshIdx:}
+the index returned by GmfOpenMesh() must be provided.
+
+\paragraph{Returns:} 32 for single precision real or 64 for double precision.
+
+
+\subsection{GmfSetFloatPrecision}
+Set the floating point numbers precision in bits.
+You may override the default value set according to the file version (32 bit for version 1 and 64 bit starting from version 2)
+The only va;id values are 32 or 64.
+
+\begin{tt}
+\begin{verbatim}
+void GmfSetFloatPrecision(int64_t MeshIndex, int NumberOfBits);
+\end{verbatim}
+\end{tt}
+\normalfont
+
+\paragraph{MeshIdx:}
+the index returned by GmfOpenMesh() must be provided.
+
+\paragraph{NumberOfBits:}
+the size of a floating point number in bits (32 or 64).
+
+
 
 %
 % 4 / KEYWORDS
@@ -864,7 +963,7 @@ GmfGetBlock(MeshIndex, GmfQ2Quadrilaterals, 1, nq, 0, NULL,
 
 \subsection{List of basic keywords}
 
-Those are topologic and geometric data types, commonly used in meshes such as vertices, triangles or normal vectors. Consequently they can only be used in \emph{.mesh} or \emph{.meshb} files.
+Those are topological and geometric data types, commonly used in meshes such as vertices, triangles or normal vectors. Consequently they can only be used in \emph{.mesh} or \emph{.meshb} files.
 
 They are made of a header, indicating the keyword code and the number of data lines stored in the file, followed by as many lines as stated.
 
@@ -896,9 +995,19 @@ data & description \\
 3 integers & vertex indices and a reference \\
 \hline\hline
 
+\multicolumn{2}{|l|}{EdgesP1Ordering} \\
+\hline
+1 integer & one single Bezier index for each of the five vertices \\
+\hline\hline
+
 \multicolumn{2}{|l|}{Hexahedra} \\
 \hline
 9 integers & vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HexahedraQ1Ordering} \\
+\hline
+3 integers & a set of three Bezier indices for each of the eight vertices \\
 \hline\hline
 
 \multicolumn{2}{|l|}{Normals} \\
@@ -908,12 +1017,12 @@ data & description \\
 
 \multicolumn{2}{|l|}{NormalAtQuadrilateralVertices} \\
 \hline
-4 integers & there must be as many NormalAtQuadrilateralVertices as there are Quadrilaterals in a mesh, each NormalAtQuadrilateralVertices line pointing implicitly to the respective quad. The four integers are associated with the quad vertices, they are indices pointing to a normal in the Normals table. \\
+4 integers & there must be as many NormalAtQuadrilateralVertices as there are quadrilaterals in a mesh, each NormalAtQuadrilateralVertices line pointing implicitly to the respective quad. The four integers are associated with the quad vertices, they are indices pointing to a normal in the normals table. \\
 \hline\hline
 
 \multicolumn{2}{|l|}{NormalAtTriangleVertices} \\
 \hline
-3 integers & there must be as many NormalAtTriangleVertices as there are Triangles in a mesh, each NormalAtTriangleVertices line pointing implicitly to the respective triangle. The three integers are associated with the triangle vertices, they are indices pointing to a normal in the Normals table. \\
+3 integers & there must be as many NormalAtTriangleVertices as there are triangles in a mesh, each NormalAtTriangleVertices line pointing implicitly to the respective triangle. The three integers are associated with the triangle vertices, they are indices pointing to a normal in the normals table. \\
 \hline\hline
 
 \multicolumn{2}{|l|}{NormalAtVertices} \\
@@ -936,14 +1045,29 @@ data & description \\
 7 integers & vertex indices and a reference \\
 \hline\hline
 
+\multicolumn{2}{|l|}{PrismsP1Ordering} \\
+\hline
+4 integers & a set of four Bezier indices for each of the six vertices \\
+\hline\hline
+
 \multicolumn{2}{|l|}{Pyramids} \\
 \hline
 6 integers & vertex indices and a reference \\
 \hline\hline
 
+\multicolumn{2}{|l|}{PyramidsP1Ordering} \\
+\hline
+3 integers & a set of three Bezier indices for each of the five vertices \\
+\hline\hline
+
 \multicolumn{2}{|l|}{Quadrilaterals} \\
 \hline
 5 integers & vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{QuadrilateralsQ1Ordering} \\
+\hline
+2 integers & a set of two Bezier indices for each of the four vertices \\
 \hline\hline
 
 \multicolumn{2}{|l|}{RequiredEdges} \\
@@ -984,16 +1108,26 @@ data & description \\
 \multicolumn{2}{|l|}{TangentAtVertices} \\
 \hline
 2 integers & first integer points to a vertex and the second one points to the associated tangent vector index \\
-\hline
+\hline\hline
 
 \multicolumn{2}{|l|}{Tetrahedra} \\
 \hline
 5 integers & vertex indices and a reference \\
 \hline\hline
 
+\multicolumn{2}{|l|}{TetrahedraP1Ordering} \\
+\hline
+4 integers & a set of four Bezier indices for each of the four vertices \\
+\hline\hline
+
 \multicolumn{2}{|l|}{Triangles} \\
 \hline
 4 integers & vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{TrianglesP1Ordering} \\
+\hline
+3 integers & a set of three Bezier indices for each of the three vertices \\
 \hline\hline
 
 \multicolumn{2}{|l|}{Vertices} \\
@@ -1080,7 +1214,7 @@ data & description \\
 \multicolumn{2}{|l|}{VerticesOnGeometricVertices} \\
 \hline
 2 integers & vertex index from the source mesh and the corresponding vertex index it is projected on in the geometric support mesh \\
-\hline\hline
+\hline
 
 \end{longtable}
 
@@ -1097,6 +1231,11 @@ data & description \\
 \multicolumn{2}{|l|}{keyword} \\
 \hline
 data & description \\
+\hline\hline
+
+\multicolumn{2}{|l|}{BezierBasis} \\
+\hline
+1 integer & if this flag is set to one, all vertex coordinates are considered as Bezier control points, not mid-points, which is the default mode \\
 \hline\hline
 
 \multicolumn{2}{|l|}{EdgesP2} \\
@@ -1122,6 +1261,14 @@ data & description \\
 \multicolumn{2}{|l|}{EdgesP4} \\
 \hline
 6 integers & two vertex nodes first then the three middle nodes index and finally the reference \\
+<<<<<<< HEAD
+=======
+\hline\hline
+
+\multicolumn{2}{|l|}{EdgesP4Ordering} \\
+\hline
+1 integer & one single Bezier index for each of the five vertices \\
+>>>>>>> release/V1.4
 \hline\hline
 
 \multicolumn{2}{|l|}{ExtraVerticesAtEdges} \\
@@ -1164,6 +1311,26 @@ $n$ integers & the first integer points to a P1 triangle and the remaining $n-1$
 3 integers & a set of three Bezier indices for each of the 27 vertices \\
 \hline\hline
 
+\multicolumn{2}{|l|}{HexahedraQ3} \\
+\hline
+65 integers & 64 vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HexahedraQ3Ordering} \\
+\hline
+3 integers & a set of three Bezier indices for each of the 64 vertices \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HexahedraQ4} \\
+\hline
+126 integers & 125 vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HexahedraQ4Ordering} \\
+\hline
+3 integers & a set of three Bezier indices for each of the 125 vertices \\
+\hline\hline
+
 \multicolumn{2}{|l|}{PrismsP2} \\
 \hline
 19 integers & 18 vertex indices and a reference \\
@@ -1174,6 +1341,26 @@ $n$ integers & the first integer points to a P1 triangle and the remaining $n-1$
 4 integers & a set of four Bezier indices for each of the 18 vertices \\
 \hline\hline
 
+\multicolumn{2}{|l|}{PrismsP3} \\
+\hline
+41 integers & 40 vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PrismsP3Ordering} \\
+\hline
+4 integers & a set of four Bezier indices for each of the 40 vertices \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PrismsP4} \\
+\hline
+76 integers & 75 vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PrismsP4Ordering} \\
+\hline
+4 integers & a set of four Bezier indices for each of the 75 vertices \\
+\hline\hline
+
 \multicolumn{2}{|l|}{PyramidsP2} \\
 \hline
 15 integers & 14 vertex indices and a reference \\
@@ -1182,6 +1369,26 @@ $n$ integers & the first integer points to a P1 triangle and the remaining $n-1$
 \multicolumn{2}{|l|}{PyramidsP2Ordering} \\
 \hline
 3 integers & a set of three Bezier indices for each of the 14 vertices \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PyramidsP3} \\
+\hline
+31 integers & 30 vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PyramidsP3Ordering} \\
+\hline
+3 integers & a set of three Bezier indices for each of the 30 vertices \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PyramidsP4} \\
+\hline
+56 integers & 55 vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PyramidsP4Ordering} \\
+\hline
+3 integers & a set of three Bezier indices for each of the 55 vertices \\
 \hline\hline
 
 \multicolumn{2}{|l|}{QuadrilateralsQ2} \\
@@ -1209,6 +1416,11 @@ $n$ integers & the first integer points to a P1 triangle and the remaining $n-1$
 26 integers & 25 vertex indices and a reference \\
 \hline\hline
 
+\multicolumn{2}{|l|}{QuadrilateralsQ4Ordering} \\
+\hline
+2 integers & a set of two Bezier indices for each of the 25 vertices \\
+\hline\hline
+
 \multicolumn{2}{|l|}{TetrahedraP2} \\
 \hline
 11 integers & 10 vertex indices and a reference \\
@@ -1217,6 +1429,26 @@ $n$ integers & the first integer points to a P1 triangle and the remaining $n-1$
 \multicolumn{2}{|l|}{TetrahedraP2Ordering} \\
 \hline
 4 integers & a set of four Bezier indices for each of the 10 vertices \\
+\hline\hline
+
+\multicolumn{2}{|l|}{TetrahedraP3} \\
+\hline
+21 integers & 20 vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{TetrahedraP3Ordering} \\
+\hline
+4 integers & a set of four Bezier indices for each of the 20 vertices \\
+\hline\hline
+
+\multicolumn{2}{|l|}{TetrahedraP4} \\
+\hline
+36 integers & 35 vertex indices and a reference \\
+\hline\hline
+
+\multicolumn{2}{|l|}{TetrahedraP4Ordering} \\
+\hline
+4 integers & a set of four Bezier indices for each of the 35 vertices \\
 \hline\hline
 
 \multicolumn{2}{|l|}{TrianglesP2} \\
@@ -1243,6 +1475,11 @@ $n$ integers & the first integer points to a P1 triangle and the remaining $n-1$
 \hline
 16 integers & 15 vertex indices and a reference \\
 \hline\hline
+
+\multicolumn{2}{|l|}{TrianglesP4Ordering} \\
+\hline
+3 integers & a set of three Bezier indices for each of the 15 vertices \\
+\hline
 
 \end{longtable}
 
@@ -1278,14 +1515,94 @@ data & description \\
 SolSize * reals & as many reals as stated in the DSolAtVertices keyword header \\
 \hline\hline
 
+\multicolumn{2}{|l|}{EdgesReferenceElement} \\
+\hline
+2 reals & one dimensional coordinates of the two reference edge vertices \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HexahedronReferenceElement} \\
+\hline
+24 reals & three dimensional coordinates of the eight reference hexahedron vertices \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtEdgesP1 $\rightarrow$ HOSolAtEdgesP4} \\
+\hline
+SolSize * reals & as many reals as returned by the GmfStatKwd() command which is the size of the solution field multiplied by the number of high order nodes (that may be different from the number of nodes of the supporting element kind)\\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtEdgesP1NodesPositions $\rightarrow$ HOSolAtEdgesP4NodesPositions} \\
+\hline
+2 reals & set of barycentric coordinates for each of the high order solution nodes \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtHexahedraQ1 $\rightarrow$ HOSolAtHexahedraQ4} \\
+\hline
+SolSize * reals & as many reals as returned by the GmfStatKwd() command which is the size of the solution field multiplied by the number of high order nodes (that may be different from the number of nodes of the supporting element kind)\\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtHexahedraQ1NodesPositions $\rightarrow$ HOSolAtHexahedraQ4NodesPositions} \\
+\hline
+3 reals & set of interpolating coordinates for each of the high order solution nodes \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtPrismsP1 $\rightarrow$ HOSolAtPrismsP4} \\
+\hline
+SolSize * reals & as many reals as returned by the GmfStatKwd() command which is the size of the solution field multiplied by the number of high order nodes (that may be different from the number of nodes of the supporting element kind)\\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtPrismsP1NodesPositions $\rightarrow$ HOSolAtPrismsP4NodesPositions} \\
+\hline
+4 reals & set of 3 barycentric coordinates and an interpolating coefficient for each of the high order solution nodes \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtPyramidsP1 $\rightarrow$ HOSolAtPyramidsP4} \\
+\hline
+SolSize * reals & as many reals as returned by the GmfStatKwd() command which is the size of the solution field multiplied by the number of high order nodes (that may be different from the number of nodes of the supporting element kind)\\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtPyramidsP1NodesPositions $\rightarrow$ HOSolAtPyramidsP4NodesPositions} \\
+\hline
+3 reals & set of interpolating coordinates for each of the high order solution nodes \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtQuadrilateralsQ1 $\rightarrow$ HOSolAtQuadrilateralsQ4} \\
+\hline
+SolSize * reals & as many reals as returned by the GmfStatKwd() command which is the size of the solution field multiplied by the number of high order nodes (that may be different from the number of nodes of the supporting element kind)\\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtQuadrilateralsQ1NodesPositions $\rightarrow$ HOSolAtQuadrilateralsQ4NodesPositions} \\
+\hline
+2 reals & set of interpolating coordinates for each of the high order solution nodes \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtTetrahedraP1 $\rightarrow$ HOSolAtTetrahedraP4} \\
+\hline
+SolSize * reals & as many reals as returned by the GmfStatKwd() command which is the size of the solution field multiplied by the number of high order nodes (that may be different from the number of nodes of the supporting element kind)\\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtTetrahedraP1NodesPositions $\rightarrow$ HOSolAtTetrahedraP4NodesPositions} \\
+\hline
+4 reals & set of barycentric coordinates for each of the high order solution nodes \\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtTrianglesP1 $\rightarrow$ HOSolAtTrianglesP4} \\
+\hline
+SolSize * reals & as many reals as returned by the GmfStatKwd() command which is the size of the solution field multiplied by the number of high order nodes (that may be different from the number of nodes of the supporting element kind)\\
+\hline\hline
+
+\multicolumn{2}{|l|}{HOSolAtTrianglesP1NodesPositions $\rightarrow$ HOSolAtTrianglesP4NodesPositions} \\
+\hline
+3 reals & set of barycentric coordinates for each of the high order solution nodes \\
+\hline\hline
+
 \multicolumn{2}{|l|}{ISolAtEdges} \\
 \hline
-2 integers & there must be as many ISolAtEdges as there are Edges in a mesh, each ISolAtEdges line pointing implicitly to the respective edge. The two integers are associated with the edge vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
+2 integers & there must be as many ISolAtEdges as there are edges in a mesh, each ISolAtEdges line pointing implicitly to the respective edge. The two integers are associated with the edge vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ISolAtHexahedra} \\
 \hline
-8 integers & there must be as many ISolAtHexahedra as there are Hexahedra in a mesh, each ISolAtHexahedra line pointing implicitly to the respective hex. The eight integers are associated with the hex vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
+8 integers & there must be as many ISolAtHexahedra as there are hexahedra in a mesh, each ISolAtHexahedra line pointing implicitly to the respective hex. The eight integers are associated with the hex vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ISolAtPyramids} \\
@@ -1300,22 +1617,41 @@ SolSize * reals & as many reals as stated in the DSolAtVertices keyword header \
 
 \multicolumn{2}{|l|}{ISolAtQuadrilaterals} \\
 \hline
-4 integers & there must be as many ISolAtQuadrilaterals as there are Quadrilaterals in a mesh, each ISolAtQuadrilaterals line pointing implicitly to the respective quad. The four integers are associated with the quad vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
+4 integers & there must be as many ISolAtQuadrilaterals as there are quadrilaterals in a mesh, each ISolAtQuadrilaterals line pointing implicitly to the respective quad. The four integers are associated with the quad vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ISolAtTetrahedra} \\
 \hline
-4 integers & there must be as many ISolAtTetrahedra as there are Tetrahedra in a mesh, each ISolAtTetrahedra line pointing implicitly to the respective tet. The four integers are associated with the tet vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
+4 integers & there must be as many ISolAtTetrahedra as there are tetrahedra in a mesh, each ISolAtTetrahedra line pointing implicitly to the respective tet. The four integers are associated with the tet vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ISolAtTriangles} \\
 \hline
-3 integers & there must be as many ISolAtTriangles as there are Triangles in a mesh, each ISolAtTriangles line pointing implicitly to the respective triangles. The three integers are associated with the triangle vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
+3 integers & there must be as many ISolAtTriangles as there are triangles in a mesh, each ISolAtTriangles line pointing implicitly to the respective triangles. The three integers are associated with the triangle vertices, they are indices pointing to solutions fields in the DSolAtVertices table. \\
 \hline\hline
 
 \multicolumn{2}{|l|}{ISolAtVertices} \\
 \hline
+<<<<<<< HEAD
 1 integer & there must be as many ISolAtVertices as there are Vertices in a mesh, each ISolAtVertices line pointing implicitly to the respective vertex. The integer is an index pointing to a solution field in the DSolAtVertices table. \\
+=======
+1 integer & there must be as many ISolAtVertices as there are vertices in a mesh, each ISolAtVertices line pointing implicitly to the respective vertex. The integer is an index pointing to a solution field in the DSolAtVertices table. \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PrismReferenceElement} \\
+\hline
+18 reals & three dimensional coordinates of the six reference prism vertices \\
+\hline\hline
+
+\multicolumn{2}{|l|}{PyramidReferenceElement} \\
+\hline
+15 reals & three dimensional coordinates of the five reference pyramid vertices \\
+\hline\hline
+
+\multicolumn{2}{|l|}{QuadrilateralReferenceElement} \\
+\hline
+8 reals & two dimensional coordinates of the four reference-quadrilateral vertices \\
+>>>>>>> release/V1.4
 \hline\hline
 
 \multicolumn{2}{|l|}{SolAtEdges} \\
@@ -1356,6 +1692,16 @@ SolSize * reals & as many reals as stated in the SolAtTriangles keyword header \
 \multicolumn{2}{|l|}{SolAtVertices} \\
 \hline
 SolSize * reals & as many reals as stated in the SolAtVertices keyword header \\
+\hline\hline
+
+\multicolumn{2}{|l|}{TetrahedronReferenceElement} \\
+\hline
+12 reals & three dimensional coordinates of the four reference tetrahedron vertices \\
+\hline\hline
+
+\multicolumn{2}{|l|}{TriangleReferenceElement} \\
+\hline
+6 reals & two dimensional coordinates of the three reference triangle vertices \\
 \hline
 
 \end{longtable}
@@ -1378,6 +1724,11 @@ data & description \\
 1 real & threshold angle for automatic sharp features detection, in degrees\\
 \hline\hline
 
+\multicolumn{2}{|l|}{ByteFlow} \\
+\hline
+1 integer & this keyword's purpose is to store free byte flow whose meaning is the user's responsibility, the number of bytes is round up to 4 as the flow is stored in a four-byte integers table \\
+\hline\hline
+
 \multicolumn{2}{|l|}{BoundingBox} \\
 \hline
 4 or 6 reals & the box coordinates bounding the whole mesh: $x_{min}$, $x_{max}$, $y_{min}$, $y_{max}$ and $z_{min}$ and $z_{max}$ (in the three-dimensional case only) \\
@@ -1391,6 +1742,14 @@ data & description \\
 \multicolumn{2}{|l|}{DRefGroups} \\
 \hline
 1 string and 3 integers & name of the supergroup, group index, type of elements and number of references included \\
+<<<<<<< HEAD
+=======
+\hline\hline
+
+\multicolumn{2}{|l|}{FloatingPointPrecision} \\
+\hline
+1 integer & set the real number precision in bits to either 32 or 64, regardless of the file version \\
+>>>>>>> release/V1.4
 \hline\hline
 
 \multicolumn{2}{|l|}{IRefGroups} \\
@@ -1406,12 +1765,12 @@ data & description \\
 \multicolumn{2}{|l|}{PrivateTable} \\
 \hline
 1 integer & free form table \\
-\hline
+\hline\hline
 
 \multicolumn{2}{|l|}{SubDomainFromGeom} \\
 \hline
 3 integers & triangle index, orientation (+1 or -1) and subdomain reference \\
-\hline
+\hline\hline
 
 \multicolumn{2}{|l|}{Time} \\
 \hline
