@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  dec 05 2018                                          */
+/*   Last modification:  dec 18 2018                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -3056,6 +3056,44 @@ int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab));
    else
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin));
+}
+
+int APIF77(gmfreadbyteflow)(int64_t *MshIdx, char *BytFlo, int *NmbByt)
+{
+   int TmpNmb;
+   char *TmpFlo;
+
+   TmpFlo = GmfReadByteFlow(*MshIdx, &TmpNmb);
+
+   if(!TmpFlo || NmbByt <= 0 || !BytFlo || TmpNmb > *NmbByt)
+      return(0);
+
+   *NmbByt = TmpNmb;
+   memcpy(BytFlo, TmpFlo, *NmbByt);
+   free(TmpFlo);
+
+   return(TmpNmb);
+}
+
+int APIF77(gmfwritebyteflow)(int64_t *MshIdx, char *BytFlo, int *NmbByt)
+{
+   return(GmfWriteByteFlow(*MshIdx, BytFlo, *NmbByt));
+}
+
+int APIF77(gmfsethonodesordering)(int64_t *MshIdx, int *KwdCod, int *BasTab, int *OrdTab)
+{
+   return(GmfSetHONodesOrdering(*MshIdx, *KwdCod, BasTab, OrdTab));
+}
+
+int APIF77(gmfgetfloatprecision)(int64_t *MshIdx)
+{
+   return(GmfGetFloatPrecision(*MshIdx));
+}
+
+int APIF77(gmfsetfloatprecision)(int64_t *MshIdx, int *FltSiz)
+{
+   GmfSetFloatPrecision(*MshIdx, *FltSiz);
+   return(0);
 }
 
 

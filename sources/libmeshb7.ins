@@ -2,14 +2,14 @@
 
 c----------------------------------------------------------
 c
-c                     LIBMESH V 7.26
+c                     LIBMESH V 7.40
 c 
 c----------------------------------------------------------
 c
 c   Description:         handles .meshb file format I/O
 c   Author:              Loic MARECHAL
 c   Creation date:       dec 08 2015
-c   Last modification:   mar 15 2017
+c   Last modification:   dec 18 2018
 c
 c----------------------------------------------------------
 
@@ -24,6 +24,11 @@ c     Procedures definition
       external gmfsetlin
       external gmfgetblock
       external gmfsetblock
+      external gmfreadbyteflow
+      external gmfwritebyteflow
+      external gmfsethonodesordering
+      external gmfgetfloatprecision
+      external gmfsetfloatprecision
 
       integer*8 gmfopenmesh
       integer gmfclosemesh
@@ -34,6 +39,11 @@ c     Procedures definition
       integer gmfsetlin
       integer gmfgetblock
       integer gmfsetblock
+      integer gmfreadbyteflow
+      integer gmfwritebyteflow
+      integer gmfsethonodesordering
+      integer gmfgetfloatprecision
+      integer gmfsetfloatprecision
 
 
 c     Parameters definition
