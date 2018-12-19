@@ -9,7 +9,7 @@ c
 c   Description:         handles .meshb file format I/O
 c   Author:              Loic MARECHAL
 c   Creation date:       dec 08 2015
-c   Last modification:   dec 18 2018
+c   Last modification:   dec 19 2018
 c
 c----------------------------------------------------------
 
@@ -177,7 +177,100 @@ c     Keywords list
       integer gmfpyramidsp4
       integer gmfprismsp3
       integer gmfprismsp4
-      
+      integer gmfhosolatedgesp1
+      integer gmfhosolatedgesp2
+      integer gmfhosolatedgesp3
+      integer gmfhosolattrianglesp1
+      integer gmfhosolattrianglesp2
+      integer gmfhosolattrianglesp3
+      integer gmfhosolatquadrilateralsq1
+      integer gmfhosolatquadrilateralsq2
+      integer gmfhosolatquadrilateralsq3
+      integer gmfhosolattetrahedrap1
+      integer gmfhosolattetrahedrap2
+      integer gmfhosolattetrahedrap3
+      integer gmfhosolatpyramidsp1
+      integer gmfhosolatpyramidsp2
+      integer gmfhosolatpyramidsp3
+      integer gmfhosolatprismsp1
+      integer gmfhosolatprismsp2
+      integer gmfhosolatprismsp3
+      integer gmfhosolathexahedraq1
+      integer gmfhosolathexahedraq2
+      integer gmfhosolathexahedraq3
+      integer gmfbezierbasis
+      integer gmfbyteflow
+      integer gmfedgesp2ordering
+      integer gmfedgesp3ordering
+      integer gmftrianglesp2ordering
+      integer gmftrianglesp3ordering
+      integer gmfquadrilateralsq2ordering
+      integer gmfquadrilateralsq3ordering
+      integer gmftetrahedrap2ordering
+      integer gmftetrahedrap3ordering
+      integer gmfpyramidsp2ordering
+      integer gmfpyramidsp3ordering
+      integer gmfprismsp2ordering
+      integer gmfprismsp3ordering
+      integer gmfhexahedraq2ordering
+      integer gmfhexahedraq3ordering
+      integer gmfedgesp1ordering
+      integer gmfedgesp4ordering
+      integer gmftrianglesp1ordering
+      integer gmftrianglesp4ordering
+      integer gmfquadrilateralsq1ordering
+      integer gmfquadrilateralsq4ordering
+      integer gmftetrahedrap1ordering
+      integer gmftetrahedrap4ordering
+      integer gmfpyramidsp1ordering
+      integer gmfpyramidsp4ordering
+      integer gmfprismsp1ordering
+      integer gmfprismsp4ordering
+      integer gmfhexahedraq1ordering
+      integer gmfhexahedraq4ordering
+      integer gmffloatingpointprecision
+      integer gmfhosolatedgesp4
+      integer gmfhosolattrianglesp4
+      integer gmfhosolatquadrilateralsq4
+      integer gmfhosolattetrahedrap4
+      integer gmfhosolatpyramidsp4
+      integer gmfhosolatprismsp4
+      integer gmfhosolathexahedraq4
+      integer gmfhosolatedgesp1nodespositions
+      integer gmfhosolatedgesp2nodespositions
+      integer gmfhosolatedgesp3nodespositions
+      integer gmfhosolatedgesp4nodespositions
+      integer gmfhosolattrianglesp1nodespositions
+      integer gmfhosolattrianglesp2nodespositions
+      integer gmfhosolattrianglesp3nodespositions
+      integer gmfhosolattrianglesp4nodespositions
+      integer gmfhosolatquadrilateralsq1nodespositions
+      integer gmfhosolatquadrilateralsq2nodespositions
+      integer gmfhosolatquadrilateralsq3nodespositions
+      integer gmfhosolatquadrilateralsq4nodespositions
+      integer gmfhosolattetrahedrap1nodespositions
+      integer gmfhosolattetrahedrap2nodespositions
+      integer gmfhosolattetrahedrap3nodespositions
+      integer gmfhosolattetrahedrap4nodespositions
+      integer gmfhosolatpyramidsp1nodespositions
+      integer gmfhosolatpyramidsp2nodespositions
+      integer gmfhosolatpyramidsp3nodespositions
+      integer gmfhosolatpyramidsp4nodespositions
+      integer gmfhosolatprismsp1nodespositions
+      integer gmfhosolatprismsp2nodespositions
+      integer gmfhosolatprismsp3nodespositions
+      integer gmfhosolatprismsp4nodespositions
+      integer gmfhosolathexahedraq1nodespositions
+      integer gmfhosolathexahedraq2nodespositions
+      integer gmfhosolathexahedraq3nodespositions
+      integer gmfhosolathexahedraq4nodespositions
+      integer gmfedgesreferenceelement         
+      integer gmftrianglereferenceelement      
+      integer gmfquadrilateralreferenceelement 
+      integer gmftetrahedronreferenceelement   
+      integer gmfpyramidreferenceelement       
+      integer gmfprismreferenceelement         
+      integer gmfhexahedronreferenceelement    
 
       parameter (gmfmeshversionformatted=1)
       parameter (gmfdimension=3)
@@ -281,3 +374,97 @@ c     Keywords list
       parameter (gmfpyramidsp4=101)
       parameter (gmfprismsp3=102)
       parameter (gmfprismsp4=103)
+      parameter (gmfhosolatedgesp1=104)
+      parameter (gmfhosolatedgesp2=105)
+      parameter (gmfhosolatedgesp3=106)
+      parameter (gmfhosolattrianglesp1=107)
+      parameter (gmfhosolattrianglesp2=108)
+      parameter (gmfhosolattrianglesp3=109)
+      parameter (gmfhosolatquadrilateralsq1=110)
+      parameter (gmfhosolatquadrilateralsq2=111)
+      parameter (gmfhosolatquadrilateralsq3=112)
+      parameter (gmfhosolattetrahedrap1=113)
+      parameter (gmfhosolattetrahedrap2=114)
+      parameter (gmfhosolattetrahedrap3=115)
+      parameter (gmfhosolatpyramidsp1=116)
+      parameter (gmfhosolatpyramidsp2=117)
+      parameter (gmfhosolatpyramidsp3=118)
+      parameter (gmfhosolatprismsp1=119)
+      parameter (gmfhosolatprismsp2=120)
+      parameter (gmfhosolatprismsp3=121)
+      parameter (gmfhosolathexahedraq1=122)
+      parameter (gmfhosolathexahedraq2=123)
+      parameter (gmfhosolathexahedraq3=124)
+      parameter (gmfbezierbasis=125)
+      parameter (gmfbyteflow=126)
+      parameter (gmfedgesp2ordering=127)
+      parameter (gmfedgesp3ordering=128)
+      parameter (gmftrianglesp2ordering=129)
+      parameter (gmftrianglesp3ordering=130)
+      parameter (gmfquadrilateralsq2ordering=131)
+      parameter (gmfquadrilateralsq3ordering=132)
+      parameter (gmftetrahedrap2ordering=133)
+      parameter (gmftetrahedrap3ordering=134)
+      parameter (gmfpyramidsp2ordering=135)
+      parameter (gmfpyramidsp3ordering=136)
+      parameter (gmfprismsp2ordering=137)
+      parameter (gmfprismsp3ordering=138)
+      parameter (gmfhexahedraq2ordering=139)
+      parameter (gmfhexahedraq3ordering=140)
+      parameter (gmfedgesp1ordering=141)
+      parameter (gmfedgesp4ordering=142)
+      parameter (gmftrianglesp1ordering=143)
+      parameter (gmftrianglesp4ordering=144)
+      parameter (gmfquadrilateralsq1ordering=145)
+      parameter (gmfquadrilateralsq4ordering=146)
+      parameter (gmftetrahedrap1ordering=147)
+      parameter (gmftetrahedrap4ordering=148)
+      parameter (gmfpyramidsp1ordering=149)
+      parameter (gmfpyramidsp4ordering=150)
+      parameter (gmfprismsp1ordering=151)
+      parameter (gmfprismsp4ordering=152)
+      parameter (gmfhexahedraq1ordering=153)
+      parameter (gmfhexahedraq4ordering=154)
+      parameter (gmffloatingpointprecision=155)
+      parameter (gmfhosolatedgesp4=156)
+      parameter (gmfhosolattrianglesp4=157)
+      parameter (gmfhosolatquadrilateralsq4=158)
+      parameter (gmfhosolattetrahedrap4=159)
+      parameter (gmfhosolatpyramidsp4=160)
+      parameter (gmfhosolatprismsp4=161)
+      parameter (gmfhosolathexahedraq4=162)
+      parameter (gmfhosolatedgesp1nodespositions=163)
+      parameter (gmfhosolatedgesp2nodespositions=164)
+      parameter (gmfhosolatedgesp3nodespositions=165)
+      parameter (gmfhosolatedgesp4nodespositions=166)
+      parameter (gmfhosolattrianglesp1nodespositions=167)
+      parameter (gmfhosolattrianglesp2nodespositions=168)
+      parameter (gmfhosolattrianglesp3nodespositions=169)
+      parameter (gmfhosolattrianglesp4nodespositions=170)
+      parameter (gmfhosolatquadrilateralsq1nodespositions=171)
+      parameter (gmfhosolatquadrilateralsq2nodespositions=172)
+      parameter (gmfhosolatquadrilateralsq3nodespositions=173)
+      parameter (gmfhosolatquadrilateralsq4nodespositions=174)
+      parameter (gmfhosolattetrahedrap1nodespositions=175)
+      parameter (gmfhosolattetrahedrap2nodespositions=176)
+      parameter (gmfhosolattetrahedrap3nodespositions=177)
+      parameter (gmfhosolattetrahedrap4nodespositions=178)
+      parameter (gmfhosolatpyramidsp1nodespositions=179)
+      parameter (gmfhosolatpyramidsp2nodespositions=180)
+      parameter (gmfhosolatpyramidsp3nodespositions=181)
+      parameter (gmfhosolatpyramidsp4nodespositions=182)
+      parameter (gmfhosolatprismsp1nodespositions=183)
+      parameter (gmfhosolatprismsp2nodespositions=184)
+      parameter (gmfhosolatprismsp3nodespositions=185)
+      parameter (gmfhosolatprismsp4nodespositions=186)
+      parameter (gmfhosolathexahedraq1nodespositions=187)
+      parameter (gmfhosolathexahedraq2nodespositions=188)
+      parameter (gmfhosolathexahedraq3nodespositions=189)
+      parameter (gmfhosolathexahedraq4nodespositions=190)
+      parameter (gmfedgesreferenceelement=191)
+      parameter (gmftrianglereferenceelement=192)
+      parameter (gmfquadrilateralreferenceelement=193)
+      parameter (gmftetrahedronreferenceelement=194)
+      parameter (gmfpyramidreferenceelement=195)
+      parameter (gmfprismreferenceelement=196)
+      parameter (gmfhexahedronreferenceelement=197)
