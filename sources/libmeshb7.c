@@ -3058,6 +3058,11 @@ int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin));
 }
 
+int APIF77(gmfsethonodesordering)(int64_t *MshIdx, int *KwdCod, int *BasTab, int *OrdTab)
+{
+   return(GmfSetHONodesOrdering(*MshIdx, *KwdCod, BasTab, OrdTab));
+}
+/*
 int APIF77(gmfreadbyteflow)(int64_t *MshIdx, char *BytFlo, int *NmbByt)
 {
    int TmpNmb;
@@ -3080,11 +3085,6 @@ int APIF77(gmfwritebyteflow)(int64_t *MshIdx, char *BytFlo, int *NmbByt)
    return(GmfWriteByteFlow(*MshIdx, BytFlo, *NmbByt));
 }
 
-int APIF77(gmfsethonodesordering)(int64_t *MshIdx, int *KwdCod, int *BasTab, int *OrdTab)
-{
-   return(GmfSetHONodesOrdering(*MshIdx, *KwdCod, BasTab, OrdTab));
-}
-
 int APIF77(gmfgetfloatprecision)(int64_t *MshIdx)
 {
    return(GmfGetFloatPrecision(*MshIdx));
@@ -3095,7 +3095,7 @@ int APIF77(gmfsetfloatprecision)(int64_t *MshIdx, int *FltSiz)
    GmfSetFloatPrecision(*MshIdx, *FltSiz);
    return(0);
 }
-
+*/
 
 /*----------------------------------------------------------------------------*/
 /* Duplication macros                                                         */
