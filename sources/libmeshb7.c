@@ -1666,7 +1666,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    else if(kwd->typ == SolKwd)
    {
       // Get the type, begin and end pointers from the variable arguments
-      UsrTyp[0] = VALF77(va_arg(VarArg, TYPF77(int)));;
+      UsrTyp[0] = VALF77(va_arg(VarArg, TYPF77(int)));
       UsrDat[0] = UsrBas[0] = va_arg(VarArg, char *);
       EndUsrDat = va_arg(VarArg, char *);
 
@@ -1728,7 +1728,14 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             // begining position in the ascii file has been reached since
             // we cannot move directly to an arbitrary position
             if(i >= FilBegIdx)
-               UsrDat[k] += UsrLen[k];
+            {
+               if(IntMapTab)
+                  UsrDat[j] = UsrBas[k] + IntMapTab[i] * UsrLen[k];
+               else if(LngMapTab)
+                  UsrDat[j] = UsrBas[k] + LngMapTab[i] * UsrLen[k];
+               else
+                  UsrDat[j] = UsrBas[k] + i * UsrLen[k];
+            }
          }
 
       // Call the user's preprocessing procedure
@@ -2089,8 +2096,8 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    }
    else if(kwd->typ == SolKwd)
    {
-         // Get the type, begin and end pointers from the variable arguments
-      UsrTyp[0] = VALF77(va_arg(VarArg, TYPF77(int)));;
+      // Get the type, begin and end pointers from the variable arguments
+      UsrTyp[0] = VALF77(va_arg(VarArg, TYPF77(int)));
       UsrDat[0] = UsrBas[0] = va_arg(VarArg, char *);
       EndUsrDat = va_arg(VarArg, char *);
 
@@ -2170,7 +2177,13 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             else
                fprintf(msh->hdl, "\n");
 
-            UsrDat[j] += UsrLen[j];
+            //UsrDat[j] += UsrLen[j];
+            if(IntMapTab)
+               UsrDat[j] = UsrBas[j] + IntMapTab[i] * UsrLen[j];
+            else if(LngMapTab)
+               UsrDat[j] = UsrBas[j] + LngMapTab[i] * UsrLen[j];
+            else
+               UsrDat[j] = UsrBas[j] + i * UsrLen[j];
          }
    }
    else
