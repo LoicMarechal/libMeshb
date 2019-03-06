@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  dec 18 2018                                          */
+/*   Last modification:  mar 09 2019                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -1730,11 +1730,11 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             if(i >= FilBegIdx)
             {
                if(IntMapTab)
-                  UsrDat[j] = UsrBas[k] + IntMapTab[i] * UsrLen[k];
+                  UsrDat[k] = UsrBas[k] + IntMapTab[i] * UsrLen[k];
                else if(LngMapTab)
-                  UsrDat[j] = UsrBas[k] + LngMapTab[i] * UsrLen[k];
+                  UsrDat[k] = UsrBas[k] + LngMapTab[i] * UsrLen[k];
                else
-                  UsrDat[j] = UsrBas[k] + i * UsrLen[k];
+                  UsrDat[k] = UsrBas[k] + i * UsrLen[k];
             }
          }
 
