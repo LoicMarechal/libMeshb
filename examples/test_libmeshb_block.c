@@ -1,5 +1,5 @@
 
-// libMeshb 7.2 basic example: read a quad mesh, split it into triangles
+// libMeshb 7.5 basic example: read a quad mesh, split it into triangles
 // and write the result back using fast block transfer
 
 #include <stdio.h>
@@ -19,7 +19,9 @@
 
 int main()
 {
-   int i, NmbVer, NmbQad, ver, dim, *RefTab, (*QadTab)[5], (*TriTab)[4];
+   int   i, NmbVer, NmbQad, ver, dim, *RefTab, (*QadTab)[5], (*TriTab)[4];
+   int   TypTab[ GmfMaxTyp ], SizTab[ GmfMaxTyp ];
+   void *BegTab[ GmfMaxTyp ], *EndTab[ GmfMaxTyp ];
    int64_t InpMsh, OutMsh;
    float (*VerTab)[3];
 
@@ -48,20 +50,56 @@ int main()
    QadTab = malloc((NmbQad+1) * 5 * sizeof(int));
    TriTab = malloc((NmbQad+1) * 2 * 4 * sizeof(int));
 
-   // Read the vertices
-   GmfGetBlock(InpMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL, \
-               GmfFloat, &VerTab[1][0], &VerTab[ NmbVer ][0], \
-               GmfFloat, &VerTab[1][1], &VerTab[ NmbVer ][1], \
-               GmfFloat, &VerTab[1][2], &VerTab[ NmbVer ][2], \
-               GmfInt,   &RefTab[1],    &RefTab[ NmbVer ] );
+   // Read the vertices: choose one of the four available methods
+
+   // First method: argument list with scalar pointers
+   GmfGetBlock(InpMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL,
+            GmfFloat, &VerTab[1][0], &VerTab[ NmbVer ][0],
+            GmfFloat, &VerTab[1][1], &VerTab[ NmbVer ][1],
+            GmfFloat, &VerTab[1][2], &VerTab[ NmbVer ][2],
+            GmfInt,   &RefTab[1],    &RefTab[ NmbVer ] );
+
+   // 2nd method: argument list with vector pointers
+   /*GmfGetBlock(InpMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL,
+               GmfFloatVec, 3, &VerTab[1][0], &VerTab[ NmbVer ][0],
+               GmfInt,         &RefTab[1],    &RefTab[ NmbVer ] );*/
+
+   // 3rd method: argument table with scalar pointers
+   /*TypTab[0] = GmfFloat;
+   BegTab[0] = (void *)&VerTab[      1 ][0];
+   EndTab[0] = (void *)&VerTab[ NmbVer ][0];
+
+   TypTab[1] = GmfFloat;
+   BegTab[1] = (void *)&VerTab[      1 ][1];
+   EndTab[1] = (void *)&VerTab[ NmbVer ][1];
+
+   TypTab[2] = GmfFloat;
+   BegTab[2] = (void *)&VerTab[      1 ][2];
+   EndTab[2] = (void *)&VerTab[ NmbVer ][2];
+
+   TypTab[3] = GmfInt;
+   BegTab[3] = (void *)&RefTab[      1 ];
+   EndTab[3] = (void *)&RefTab[ NmbVer ];
+
+   GmfGetBlock(InpMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL,
+               GmfArgTab, TypTab, SizTab, BegTab, EndTab );*/
+
+   // 4th method: argument table with vector pointers
+   /*TypTab[0] = GmfFloatVec;
+   SizTab[0] = 3;
+   BegTab[0] = (void *)&VerTab[      1 ][0];
+   EndTab[0] = (void *)&VerTab[ NmbVer ][0];
+
+   TypTab[1] = GmfInt;
+   BegTab[1] = (void *)&RefTab[      1 ];
+   EndTab[1] = (void *)&RefTab[ NmbVer ];
+
+   GmfGetBlock(InpMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL,
+               GmfArgTab, TypTab, SizTab, BegTab, EndTab );*/
 
    // Read the quads
-   GmfGetBlock(InpMsh, GmfQuadrilaterals, 1, NmbQad, 0, NULL, NULL, \
-               GmfInt, &QadTab[1][0], &QadTab[ NmbQad ][0], \
-               GmfInt, &QadTab[1][1], &QadTab[ NmbQad ][1], \
-               GmfInt, &QadTab[1][2], &QadTab[ NmbQad ][2], \
-               GmfInt, &QadTab[1][3], &QadTab[ NmbQad ][3], \
-               GmfInt, &QadTab[1][4], &QadTab[ NmbQad ][4] );
+   GmfGetBlock(InpMsh, GmfQuadrilaterals, 1, NmbQad, 0, NULL, NULL,
+               GmfIntVec, 5, &QadTab[1][0], &QadTab[ NmbQad ][0]);
 
    // Close the quad mesh
    GmfCloseMesh(InpMsh);
@@ -94,18 +132,18 @@ int main()
 
    // Write the vertices
    GmfSetKwd(OutMsh, GmfVertices, NmbVer);
-   GmfSetBlock(OutMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL, \
-               GmfFloat, &VerTab[1][0], &VerTab[ NmbVer ][0], \
-               GmfFloat, &VerTab[1][1], &VerTab[ NmbVer ][1], \
-               GmfFloat, &VerTab[1][2], &VerTab[ NmbVer ][2], \
+   GmfSetBlock(OutMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL,
+               GmfFloat, &VerTab[1][0], &VerTab[ NmbVer ][0],
+               GmfFloat, &VerTab[1][1], &VerTab[ NmbVer ][1],
+               GmfFloat, &VerTab[1][2], &VerTab[ NmbVer ][2],
                GmfInt,   &RefTab[1],    &RefTab[ NmbVer ] );
 
    // Write the triangles
    GmfSetKwd(OutMsh, GmfTriangles, 2*NmbQad);
-   GmfSetBlock(OutMsh, GmfTriangles, 1, 2*NmbQad, 0, NULL, NULL, \
-               GmfInt, &TriTab[1][0], &TriTab[ 2*NmbQad ][0], \
-               GmfInt, &TriTab[1][1], &TriTab[ 2*NmbQad ][1], \
-               GmfInt, &TriTab[1][2], &TriTab[ 2*NmbQad ][2], \
+   GmfSetBlock(OutMsh, GmfTriangles, 1, 2*NmbQad, 0, NULL, NULL,
+               GmfInt, &TriTab[1][0], &TriTab[ 2*NmbQad ][0],
+               GmfInt, &TriTab[1][1], &TriTab[ 2*NmbQad ][1],
+               GmfInt, &TriTab[1][2], &TriTab[ 2*NmbQad ][2],
                GmfInt, &TriTab[1][3], &TriTab[ 2*NmbQad ][3] );
 
    // Do not forget to close the mesh file

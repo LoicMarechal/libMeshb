@@ -1,5 +1,5 @@
 
-// libMeshb 7 basic example:
+// libMeshb 7.5 basic example:
 // read a Q2 hex mesh while using the automatic HO reordering feature,
 // and print the renumbered coordinates
 
@@ -70,21 +70,19 @@ int main()
    if(GmfStatKwd(InpMsh, GmfHexahedraQ2Ordering))
    {
       GmfGetBlock(InpMsh, GmfHexahedraQ2Ordering, 1, 27, 0, NULL, NULL,
-                  GmfIntTab, 27, FilOrd[0], FilOrd[26]);
+                  GmfIntVec, 27, FilOrd[0], FilOrd[26]);
 
       GmfSetHONodesOrdering(InpMsh, GmfHexahedraQ2, (int *)BasOrd, (int *)FilOrd);
    }
 
    // Read the vertices
    GmfGetBlock(InpMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL,
-               GmfFloat, &VerTab[1][0], &VerTab[ NmbVer ][0],
-               GmfFloat, &VerTab[1][1], &VerTab[ NmbVer ][1],
-               GmfFloat, &VerTab[1][2], &VerTab[ NmbVer ][2],
-               GmfInt,   &RefTab[1],    &RefTab[ NmbVer ] );
+               GmfFloatVec, 3, &VerTab[1][0], &VerTab[ NmbVer ][0],
+               GmfInt,         &RefTab[1],    &RefTab[ NmbVer ] );
 
    // Read the Q2 quads
    GmfGetBlock(InpMsh, GmfHexahedraQ2, 1, NmbHex, 0, NULL, NULL,
-               GmfIntTab, 28, HexTab[1], HexTab[ NmbHex ]);
+               GmfIntVec, 28, HexTab[1], HexTab[ NmbHex ]);
 
    // Close the quad mesh
    GmfCloseMesh(InpMsh);

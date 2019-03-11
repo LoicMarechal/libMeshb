@@ -1,5 +1,5 @@
 
-// libMeshb 7.2 basic example: read a general purpose solution file
+// libMeshb 7.5 basic example: read a general purpose solution file
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +14,7 @@ int main()
 
 
    // Open the "out.sol" mesh file
-   if(!(InpMsh = GmfOpenMesh("/Users/marechal/tmp/TriangleP2_b.solb", GmfRead, &ver, &dim)))
+   if(!(InpMsh = GmfOpenMesh("../sample_meshes/out.sol", GmfRead, &ver, &dim)))
       return(1);
 
    printf("InpMsh: idx = %lld, version = %d, dimension = %d\n", InpMsh, ver, dim);
@@ -29,8 +29,8 @@ int main()
    printf("SolTab: %p -> %p\n", SolTab, SolTab+(NmbSol+1) * SolSiz * sizeof(double));
 
    // Solution field block reading
-   GmfGetBlock(InpMsh, GmfSolAtVertices, 1, NmbSol, 0, NULL, NULL, \
-               GmfDouble, &SolTab[ 1 * SolSiz ], &SolTab[ NmbSol * SolSiz ]);
+   GmfGetBlock(InpMsh, GmfSolAtVertices, 1, NmbSol, 0, NULL, NULL,
+               GmfDoubleVec, SolSiz, &SolTab[ 1 * SolSiz ], &SolTab[ NmbSol * SolSiz ]);
 
    // Print each solutions of each vertices
    for(i=1;i<=NmbSol;i++)
