@@ -1980,7 +1980,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    char        **BegTab, **EndTab, *BegUsrDat, *EndUsrDat;
    int         i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
    int         UsrTyp[ GmfMaxTyp ], NmbBlk, b, TypSiz[5] = {0,4,8,4,8};
-   int         err, *IntMapTab = NULL, RepCnt, typ, mod = GmfArgLst;
+   int         err, *IntMapTab = NULL, typ, mod = GmfArgLst;
    int         *TypTab, *SizTab, IniFlg = 1, TotSiz = 0, VecCnt, ArgCnt = 0;
    int         VecLen;
    float       *FilPtrR32, *UsrPtrR32;
