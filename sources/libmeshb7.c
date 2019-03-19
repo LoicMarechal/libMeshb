@@ -772,7 +772,8 @@ int GmfCloseMesh(int64_t MshIdx)
       res = 0;
 
    // Free optional H.O. renumbering tables
-   for(int i=0;i<GmfLastKeyword;i++)
+  int i;
+   for(i=0;i<GmfLastKeyword;i++)
       if(msh->KwdTab[i].OrdTab)
          free(msh->KwdTab[i].OrdTab);
 
