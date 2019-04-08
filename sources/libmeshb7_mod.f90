@@ -13,7 +13,11 @@
 !----------------------------------------------------------
 
 module libmeshb7
-
+  
+  use, intrinsic :: iso_c_binding, only: c_f_pointer,c_int,c_long_long,c_loc,c_ptr,C_NULL_CHAR
+  
+  implicit none
+  
  !Procedures definition
   external gmfopenmesh
   external gmfclosemesh
@@ -486,46 +490,55 @@ module libmeshb7
   parameter (gmfhexahedronreferenceelement=197)
   
   
-    
-  
-  !> interface
+  !> interface GmfSetHONodesOrdering_c  
   interface
     subroutine GmfSetHONodesOrdering_c(InpMsh, GmfKey, BasOrd, FilOrd) bind(c, name="GmfSetHONodesOrdering")
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      use, intrinsic :: iso_c_binding
+      use, intrinsic :: iso_c_binding, only: c_long_long,c_int,c_ptr
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      integer(c_long_long), value :: InpMsh
-      integer(c_int)      , value :: GmfKey
-      type(c_ptr)                 :: BasOrd
-      type(c_ptr)                 :: FilOrd
+      integer(c_long_long), intent(in), value :: InpMsh
+      integer(c_int)      , intent(in), value :: GmfKey
+      type(c_ptr)         , intent(in)        :: BasOrd
+      type(c_ptr)         , intent(in)        :: FilOrd
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     end subroutine GmfSetHONodesOrdering_c
-  
-  
-  !  subroutine c_writeFlow3D(unit,dim,a0,r0,u0,v0,w0) bind(c, name="writeFlow3D")
-  !    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !    use, intrinsic :: iso_c_binding
-  !    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !    integer(c_long_long) :: unit
-  !    integer(c_int)       :: dim
-  !    type(c_ptr)          :: a0
-  !    type(c_ptr)          :: r0
-  !    type(c_ptr)          :: u0
-  !    type(c_ptr)          :: v0
-  !    type(c_ptr)          :: w0
-  !    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !  end subroutine c_writeFlow3D
-  
+    
   end interface
+  
+  
+  !> les lignes suivantes sont en conflit avec la variable integer(4) :: gmfsethonodesordering
+  !interface GmfSetHONodesOrdering
+  !  module procedure GmfSetHONodesOrdering_f90
+  !  module procedure GmfSetHONodesOrdering_c
+  !end interface
   
 contains
   
-  !> interface
-  !interface
-  !end interface
-  
+  subroutine GmfSetHONodesOrdering_f90(unit, GmfKey, BasOrd, FilOrd)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use, intrinsic :: iso_c_binding, only: c_loc,c_int,c_long_long,c_ptr
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(8), intent(in)          :: unit
+    integer(4), intent(in)          :: GmfKey
+    integer(4), intent(in), pointer :: BasOrd(:,:)
+    integer(4), intent(in), pointer :: FilOrd(:,:)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Broker
+    print '(">>> GmfSetHONodesOrdering_c")'
+    call GmfSetHONodesOrdering_c(            & 
+    &    InpMsh=int(unit,kind=c_long_long)  ,&
+    &    GmfKey=int(GmfKey,kind=c_int)      ,&
+    &    BasOrd=c_loc(BasOrd)               ,&
+    &    FilOrd=c_loc(FilOrd)                )
+    print '("<<< GmfSetHONodesOrdering_c")'
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    return
+  end subroutine GmfSetHONodesOrdering_f90
+   
   
   
 end module libmeshb7

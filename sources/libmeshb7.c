@@ -2442,7 +2442,7 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
       default : return(0);
    }
 
-   // Free and rebuild the mapping table it there were already one
+   // Free and rebuild the mapping table if there were already one
    if(kwd->OrdTab)
       free(kwd->OrdTab);
 

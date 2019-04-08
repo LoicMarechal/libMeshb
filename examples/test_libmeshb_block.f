@@ -43,7 +43,7 @@ c     to store the coordinates
       res = gmfgetblock(InpMsh,GmfVertices,
      +        1_8, NmbVer, 0, %val(0), %val(0),
      +        GmfDoubleVec, 3, VerTab(1,1), VerTab(1,NmbVer),
-     +        GmfInt,          RefTab(1),   RefTab(NmbVer))
+     +        GmfInt,          RefTab(  1), RefTab(  NmbVer))
 
 c     Read the quads using one single vector of 5 consecutive integers
       res = gmfgetblock(InpMsh,GmfQuadrilaterals,
