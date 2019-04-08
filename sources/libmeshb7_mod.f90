@@ -14,7 +14,7 @@
 
 module libmeshb7
   
-  use, intrinsic :: iso_c_binding, only: c_f_pointer,c_int,c_long_long,c_loc,c_ptr,C_NULL_CHAR
+  use, intrinsic :: iso_c_binding, only: c_int,c_long,c_loc,c_ptr
   
   implicit none
   
@@ -492,17 +492,20 @@ module libmeshb7
   
   !> interface GmfSetHONodesOrdering_c  
   interface
-    subroutine GmfSetHONodesOrdering_c(InpMsh, GmfKey, BasOrd, FilOrd) bind(c, name="GmfSetHONodesOrdering")
+    function GmfSetHONodesOrdering_c(InpMsh, GmfKey, BasOrd, FilOrd) result(iErr) bind(c, name="GmfSetHONodesOrdering")
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      use, intrinsic :: iso_c_binding, only: c_long_long,c_int,c_ptr
+      import c_long,c_int,c_ptr
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      integer(c_long_long), intent(in), value :: InpMsh
-      integer(c_int)      , intent(in), value :: GmfKey
+      integer(c_long)     , intent(in)        :: InpMsh
+      integer(c_int)      , intent(in)        :: GmfKey
+     !integer(c_int)      , intent(in)        :: BasOrd(:,:)
+     !integer(c_int)      , intent(in)        :: FilOrd(:,:)
       type(c_ptr)         , intent(in)        :: BasOrd
       type(c_ptr)         , intent(in)        :: FilOrd
+      integer(c_int)                          :: iErr
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    end subroutine GmfSetHONodesOrdering_c
+    end function GmfSetHONodesOrdering_c    
     
   end interface
   
@@ -517,23 +520,27 @@ contains
   
   subroutine GmfSetHONodesOrdering_f90(unit, GmfKey, BasOrd, FilOrd)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use, intrinsic :: iso_c_binding, only: c_loc,c_int,c_long_long,c_ptr
+    use, intrinsic :: iso_c_binding, only: c_loc,c_int,c_long,c_ptr
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(8), intent(in)          :: unit
     integer(4), intent(in)          :: GmfKey
     integer(4), intent(in), pointer :: BasOrd(:,:)
     integer(4), intent(in), pointer :: FilOrd(:,:)
+    !>
+    integer(c_int)                  :: iErr
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Broker
-    print '(">>> GmfSetHONodesOrdering_c")'
-    call GmfSetHONodesOrdering_c(            & 
-    &    InpMsh=int(unit,kind=c_long_long)  ,&
+    !> Broker    
+   !print '(">>> GmfSetHONodesOrdering_c")'
+    
+    iErr=GmfSetHONodesOrdering_c(            & 
+    &    InpMsh=int(unit,kind=c_long)       ,&
     &    GmfKey=int(GmfKey,kind=c_int)      ,&
     &    BasOrd=c_loc(BasOrd)               ,&
     &    FilOrd=c_loc(FilOrd)                )
-    print '("<<< GmfSetHONodesOrdering_c")'
+    
+   !print '("<<< GmfSetHONodesOrdering_c")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     return

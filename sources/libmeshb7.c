@@ -2409,6 +2409,8 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
    int i, j, k, flg, NmbNod, NmbCrd;
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
    KwdSct      *kwd;
+   
+   // printf("\n\tGmfSetHONodesOrdering 0\n");
 
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
@@ -3094,6 +3096,7 @@ int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
    else
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin));
 }
+
 
 int APIF77(gmfsethonodesordering)(int64_t *MshIdx, int *KwdCod, int *BasTab, int *OrdTab)
 {

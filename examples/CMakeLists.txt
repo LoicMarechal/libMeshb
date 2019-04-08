@@ -15,6 +15,13 @@ add_executable(test_libmeshb_sol test_libmeshb_sol.c)
 target_link_libraries(test_libmeshb_sol Meshb.7)
 install (TARGETS test_libmeshb_sol DESTINATION share/libMeshb/examples COMPONENT examples)
 
+add_executable(test_libmeshb_HO test_libmeshb_HO.c)
+target_link_libraries(test_libmeshb_HO Meshb.7)
+install (TARGETS test_libmeshb_HO DESTINATION share/libMeshb/examples COMPONENT examples)
+
+add_executable(test_libmeshb_p2_sol test_libmeshb_p2_sol.c)
+target_link_libraries(test_libmeshb_p2_sol Meshb.7)
+install (TARGETS test_libmeshb_p2_sol DESTINATION share/libMeshb/examples COMPONENT examples)
 
 ########################
 # BUILD FORTRAN EXAMPLES
