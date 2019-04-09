@@ -44,7 +44,7 @@ int main()
    printf("InpMsh : nmb vertices = %d\n", NmbVer);
    VerTab = malloc((NmbVer+1) * 3 * sizeof(float));
    RefTab = malloc((NmbVer+1) * sizeof(int));
-
+   
    // Read the number of Q2 quads and allocate memory
    NmbQad = GmfStatKwd(InpMsh, GmfQuadrilateralsQ2);
    printf("InpMsh : nmb Q2 quads = %d\n", NmbQad);

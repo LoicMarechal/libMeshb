@@ -28,7 +28,7 @@ module libmeshb7
   external gmfsetlin
   external gmfgetblock
   external gmfsetblock
-!  external gmfsethonodesordering
+  external gmfsethonodesordering
  !external gmfreadbyteflow
  !external gmfwritebyteflow
  !external gmfgetfloatprecision
@@ -489,25 +489,39 @@ module libmeshb7
   parameter (gmfprismreferenceelement=196)
   parameter (gmfhexahedronreferenceelement=197)
   
-  
-  !> interface GmfSetHONodesOrdering_c  
-  interface
-    function GmfSetHONodesOrdering_c(InpMsh, GmfKey, BasOrd, FilOrd) result(iErr) bind(c, name="GmfSetHONodesOrdering")
-      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      import c_long,c_int,c_ptr
-      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      integer(c_long)     , intent(in)        :: InpMsh
-      integer(c_int)      , intent(in)        :: GmfKey
-     !integer(c_int)      , intent(in)        :: BasOrd(:,:)
-     !integer(c_int)      , intent(in)        :: FilOrd(:,:)
-      type(c_ptr)         , intent(in)        :: BasOrd
-      type(c_ptr)         , intent(in)        :: FilOrd
-      integer(c_int)                          :: iErr
-      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    end function GmfSetHONodesOrdering_c    
-    
-  end interface
+!   !> interface GmfSetHONodesOrdering_c  
+!   interface
+!     function GmfSetHONodesOrdering_c(InpMsh, GmfKey, BasOrd, FilOrd) result(iErr) bind(c, name="GmfSetHONodesOrdering")
+!       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!       import c_long,c_int,c_ptr
+!       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!       integer(c_long)     , intent(in)        :: InpMsh
+!       integer(c_int)      , intent(in)        :: GmfKey
+!      !integer(c_int)      , intent(in)        :: BasOrd(:,:)
+!      !integer(c_int)      , intent(in)        :: FilOrd(:,:)
+!       type(c_ptr)         , intent(in)        :: BasOrd
+!       type(c_ptr)         , intent(in)        :: FilOrd
+!       integer(c_int)                          :: iErr
+!       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     end function GmfSetHONodesOrdering_c    
+!     
+!     function GmfCloseMesh_c(InpMsh) result(iErr) bind(c, name="GmfCloseMesh")
+!       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!       import c_long,c_int,c_ptr
+!       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!       integer(c_long)     , intent(in)        :: InpMsh
+!       integer(c_int)                          :: iErr
+!       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     end function GmfCloseMesh_c
+!     
+!   end interface
+!   
+!   
+!   public :: GmfSetHONodesOrdering_f90
+!   public :: GmfOpenMesh_f90
+!   public :: GmfCloseMesh_f90
   
   
   !> les lignes suivantes sont en conflit avec la variable integer(4) :: gmfsethonodesordering
@@ -517,34 +531,63 @@ module libmeshb7
   !end interface
   
 contains
+    
+!   subroutine GmfSetHONodesOrdering_f90(unit, GmfKey, BasOrd, FilOrd)
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     use, intrinsic :: iso_c_binding, only: c_loc,c_int,c_long,c_ptr
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     integer(8), intent(in)          :: unit
+!     integer(4), intent(in)          :: GmfKey
+!     integer(4), intent(in), pointer :: BasOrd(:,:)
+!     integer(4), intent(in), pointer :: FilOrd(:,:)
+!     !>
+!     integer(c_int)                  :: iErr
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     !> Broker
+!     iErr=GmfSetHONodesOrdering_c(            & 
+!     &    InpMsh=int(unit,kind=c_long)       ,&
+!     &    GmfKey=int(GmfKey,kind=c_int)      ,&
+!     &    BasOrd=c_loc(BasOrd)               ,&
+!     &    FilOrd=c_loc(FilOrd)                )
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     
+!     return
+!   end subroutine GmfSetHONodesOrdering_f90
+!   
+!   subroutine GmfOpenMesh_f90(unit, GmfKey, BasOrd, FilOrd)
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     use, intrinsic :: iso_c_binding, only: c_loc,c_int,c_long
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     integej1r(8), intent(in)          :: unit
+!     !>
+!     integer(c_int)                  :: iErr
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     !> Broker
+!     iErr=GmfOpenMesh_c(InpMsh=int(unit,kind=c_long)  )
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     return
+!   end subroutine GmfOpenMesh_f90
+!   
+!   subroutine GmfCloseMesh_f90(unit, GmfKey, BasOrd, FilOrd)
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     use, intrinsic :: iso_c_binding, only: c_loc,c_int,c_long
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     integer(8), intent(in)          :: unit
+!     !>
+!     integer(c_int)                  :: iErr
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!     !> Broker
+!     iErr=GmfCloseMesh_c(InpMsh=int(unit,kind=c_long)  )
+!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+!     return
+!   end subroutine GmfCloseMesh_f90
   
-  subroutine GmfSetHONodesOrdering_f90(unit, GmfKey, BasOrd, FilOrd)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use, intrinsic :: iso_c_binding, only: c_loc,c_int,c_long,c_ptr
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer(8), intent(in)          :: unit
-    integer(4), intent(in)          :: GmfKey
-    integer(4), intent(in), pointer :: BasOrd(:,:)
-    integer(4), intent(in), pointer :: FilOrd(:,:)
-    !>
-    integer(c_int)                  :: iErr
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Broker    
-   !print '(">>> GmfSetHONodesOrdering_c")'
-    
-    iErr=GmfSetHONodesOrdering_c(            & 
-    &    InpMsh=int(unit,kind=c_long)       ,&
-    &    GmfKey=int(GmfKey,kind=c_int)      ,&
-    &    BasOrd=c_loc(BasOrd)               ,&
-    &    FilOrd=c_loc(FilOrd)                )
-    
-   !print '("<<< GmfSetHONodesOrdering_c")'
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
-    return
-  end subroutine GmfSetHONodesOrdering_f90
    
   
   
