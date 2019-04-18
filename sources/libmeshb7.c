@@ -3077,18 +3077,22 @@ int APIF77(gmfgotokwd)(int64_t *MshIdx, int *KwdIdx)
 }
 
 int APIF77(gmfstatkwd)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp,
-                        int *SolSiz, int *TypTab)
+                        int *SolSiz, int *TypTab,  int *deg, int *NmbNod)
 {
-   if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
+   if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "hr"))
+      return(GmfStatKwd(*MshIdx, *KwdIdx, NmbTyp, SolSiz, TypTab, deg, NmbNod));
+   else if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
       return(GmfStatKwd(*MshIdx, *KwdIdx, NmbTyp, SolSiz, TypTab));
    else
       return(GmfStatKwd(*MshIdx, *KwdIdx));
 }
 
 int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
-                        int *NmbTyp, int *TypTab)
+                        int *NmbTyp, int *TypTab, int *deg, int *NmbNod)
 {
-   if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
+   if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "hr"))
+      return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab, *deg, *NmbNod));
+   else if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab));
    else
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin));
