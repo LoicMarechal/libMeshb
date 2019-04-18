@@ -16,6 +16,9 @@ if(CMAKE_Fortran_COMPILER)
   enable_language(Fortran)
 endif()
 
+set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
+
+
 if (WIN32)
    set (CMAKE_C_FLAGS -DWIN32)
    set (CMAKE_CONFIGURATION_TYPES Release)

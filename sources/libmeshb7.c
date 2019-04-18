@@ -772,7 +772,8 @@ int GmfCloseMesh(int64_t MshIdx)
       res = 0;
 
    // Free optional H.O. renumbering tables
-   for(int i=0;i<GmfLastKeyword;i++)
+  int i;
+   for(i=0;i<GmfLastKeyword;i++)
       if(msh->KwdTab[i].OrdTab)
          free(msh->KwdTab[i].OrdTab);
 
@@ -2408,6 +2409,8 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
    int i, j, k, flg, NmbNod, NmbCrd;
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
    KwdSct      *kwd;
+   
+   // printf("\n\tGmfSetHONodesOrdering 0\n");
 
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
@@ -2441,7 +2444,7 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
       default : return(0);
    }
 
-   // Free and rebuild the mapping table it there were already one
+   // Free and rebuild the mapping table if there were already one
    if(kwd->OrdTab)
       free(kwd->OrdTab);
 
@@ -3097,6 +3100,7 @@ int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
    else
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin));
 }
+
 
 int APIF77(gmfsethonodesordering)(int64_t *MshIdx, int *KwdCod, int *BasTab, int *OrdTab)
 {
