@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.50                               */
+/*                               LIBMESH V 7.52                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  mar 11 2019                                         */
+/*    Last modification:  apr 26 2019                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -241,13 +241,14 @@ enum GmfKwdCod
    GmfHOSolAtHexahedraQ2NodesPositions,
    GmfHOSolAtHexahedraQ3NodesPositions,
    GmfHOSolAtHexahedraQ4NodesPositions,
-   GmfEdgesReferenceElement,         
-   GmfTriangleReferenceElement,      
-   GmfQuadrilateralReferenceElement, 
-   GmfTetrahedronReferenceElement,   
-   GmfPyramidReferenceElement,       
-   GmfPrismReferenceElement,         
-   GmfHexahedronReferenceElement,    
+   GmfEdgesReferenceElement,
+   GmfTriangleReferenceElement,
+   GmfQuadrilateralReferenceElement,
+   GmfTetrahedronReferenceElement,
+   GmfPyramidReferenceElement,
+   GmfPrismReferenceElement,
+   GmfHexahedronReferenceElement,
+   GmfBoundaryLayers,
    GmfLastKeyword
 };
 

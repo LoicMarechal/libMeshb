@@ -2,14 +2,14 @@
 
 c----------------------------------------------------------
 c
-c                     LIBMESH V 7.50
+c                     LIBMESH V 7.52
 c 
 c----------------------------------------------------------
 c
 c   Description:         handles .meshb file format I/O
 c   Author:              Loic MARECHAL
 c   Creation date:       dec 08 2015
-c   Last modification:   mar 12 2019
+c   Last modification:   apr 26 2019
 c
 c----------------------------------------------------------
 
@@ -280,13 +280,14 @@ c     Keywords list
       integer gmfhosolathexahedraq2nodespositions
       integer gmfhosolathexahedraq3nodespositions
       integer gmfhosolathexahedraq4nodespositions
-      integer gmfedgesreferenceelement         
-      integer gmftrianglereferenceelement      
-      integer gmfquadrilateralreferenceelement 
-      integer gmftetrahedronreferenceelement   
-      integer gmfpyramidreferenceelement       
-      integer gmfprismreferenceelement         
-      integer gmfhexahedronreferenceelement    
+      integer gmfedgesreferenceelement
+      integer gmftrianglereferenceelement
+      integer gmfquadrilateralreferenceelement
+      integer gmftetrahedronreferenceelement
+      integer gmfpyramidreferenceelement
+      integer gmfprismreferenceelement
+      integer gmfhexahedronreferenceelement
+      integer gmfboundarylayers
 
       parameter (gmfmeshversionformatted=1)
       parameter (gmfdimension=3)
@@ -484,3 +485,4 @@ c     Keywords list
       parameter (gmfpyramidreferenceelement=195)
       parameter (gmfprismreferenceelement=196)
       parameter (gmfhexahedronreferenceelement=197)
+      parameter (gmfboundarylayers=198)

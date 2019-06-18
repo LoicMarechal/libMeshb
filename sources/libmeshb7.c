@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.51                               */
+/*                               LIBMESH V 7.52                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  apr 14 2019                                          */
+/*   Last modification:  apr 26 2019                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -436,7 +436,8 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"TetrahedronReferenceElement",              "",  "rrrrrrrrrrrr"},
    {"PyramidReferenceElement",                  "",  "rrrrrrrrrrrrrrr"},
    {"PrismReferenceElement",                    "",  "rrrrrrrrrrrrrrrrrr"},
-   {"HexahedronReferenceElement",               "",  "rrrrrrrrrrrrrrrrrrrrrrrr"}
+   {"HexahedronReferenceElement",               "",  "rrrrrrrrrrrrrrrrrrrrrrrr"},
+   {"BoundaryLayers",                           "i", "iii"}
 };
 
 #ifdef TRANSMESH
