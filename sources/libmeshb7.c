@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  apr 26 2019                                          */
+/*   Last modification:  jun 20 2019                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -394,6 +394,7 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"PrismsP4Ordering",                         "i", "iiii"},
    {"HexahedraQ1Ordering",                      "i", "iii"},
    {"HexahedraQ4Ordering",                      "i", "iii"},
+   {"FloatingPointPrecision",                   "",  "i"},
    {"HOSolAtEdgesP4",                           "i", "hr"},
    {"HOSolAtTrianglesP4",                       "i", "hr"},
    {"HOSolAtQuadrilateralsQ4",                  "i", "hr"},
@@ -401,7 +402,6 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"HOSolAtPyramidsP4",                        "i", "hr"},
    {"HOSolAtPrismsP4",                          "i", "hr"},
    {"HOSolAtHexahedraQ4",                       "i", "hr"},
-   {"FloatingPointPrecision",                   "",  "i"},
    {"HOSolAtEdgesP1NodesPositions",             "i", "rr"},
    {"HOSolAtEdgesP2NodesPositions",             "i", "rr"},
    {"HOSolAtEdgesP3NodesPositions",             "i", "rr"},
