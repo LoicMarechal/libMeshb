@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.40                               */
+/*                               LIBMESH V 7.52                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  dec 05 2018                                          */
+/*   Last modification:  jun 20 2019                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -200,6 +200,7 @@ int aio_write( struct aiocb * aiocbp )
 #define FilStrSiz 64
 #define BufSiz    10000
 #define MaxArg    20
+
 
 
 /*----------------------------------------------------------------------------*/
@@ -393,6 +394,7 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"PrismsP4Ordering",                         "i", "iiii"},
    {"HexahedraQ1Ordering",                      "i", "iii"},
    {"HexahedraQ4Ordering",                      "i", "iii"},
+   {"FloatingPointPrecision",                   "",  "i"},
    {"HOSolAtEdgesP4",                           "i", "hr"},
    {"HOSolAtTrianglesP4",                       "i", "hr"},
    {"HOSolAtQuadrilateralsQ4",                  "i", "hr"},
@@ -400,7 +402,6 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"HOSolAtPyramidsP4",                        "i", "hr"},
    {"HOSolAtPrismsP4",                          "i", "hr"},
    {"HOSolAtHexahedraQ4",                       "i", "hr"},
-   {"FloatingPointPrecision",                   "",  "i"},
    {"HOSolAtEdgesP1NodesPositions",             "i", "rr"},
    {"HOSolAtEdgesP2NodesPositions",             "i", "rr"},
    {"HOSolAtEdgesP3NodesPositions",             "i", "rr"},
@@ -435,7 +436,8 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"TetrahedronReferenceElement",              "",  "rrrrrrrrrrrr"},
    {"PyramidReferenceElement",                  "",  "rrrrrrrrrrrrrrr"},
    {"PrismReferenceElement",                    "",  "rrrrrrrrrrrrrrrrrr"},
-   {"HexahedronReferenceElement",               "",  "rrrrrrrrrrrrrrrrrrrrrrrr"}
+   {"HexahedronReferenceElement",               "",  "rrrrrrrrrrrrrrrrrrrrrrrr"},
+   {"BoundaryLayers",                           "i", "iii"}
 };
 
 #ifdef TRANSMESH
@@ -769,6 +771,12 @@ int GmfCloseMesh(int64_t MshIdx)
 #endif
    else if(fclose(msh->hdl))
       res = 0;
+
+   // Free optional H.O. renumbering tables
+  int i;
+   for(i=0;i<GmfLastKeyword;i++)
+      if(msh->KwdTab[i].OrdTab)
+         free(msh->KwdTab[i].OrdTab);
 
    free(msh);
 
@@ -1537,15 +1545,17 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
                                        void           *prc, ... )
 {
    char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ], *FilPos, *EndUsrDat;
-   char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
+   char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL, *BegUsrDat;
    char        *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
+   char        **BegTab, **EndTab;
    int         b, i, j, k, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int         UsrTyp[ GmfMaxTyp ], NmbBlk, SizTab[5] = {0,4,8,4,8};
-   int         *IntMapTab = NULL, err;
+   int         UsrTyp[ GmfMaxTyp ], NmbBlk, TypSiz[5] = {0,4,8,4,8}, VecLen;
+   int         *IntMapTab = NULL, err, TotSiz = 0, IniFlg = 1, mod = GmfArgLst;
+   int         *TypTab, *SizTab, typ, VecCnt, ArgCnt = 0;
    float       *FilPtrR32, *UsrPtrR32;
    double      *FilPtrR64, *UsrPtrR64;
    int64_t     BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx = 0;
-   int64_t     *LngMapTab = NULL, OldIdx = 0, RepCnt, UsrNmbLin;
+   int64_t     *LngMapTab = NULL, OldIdx = 0, UsrNmbLin;
    int64_t     FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
    void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
    size_t      UsrLen[ GmfMaxTyp ], ret;
@@ -1597,7 +1607,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    va_start(VarArg, prc);
    LinSiz = 0;
 
-   // Get the user's preporcessing procedure and argument adresses, if any
+   // Get the user's preprocessing procedure and argument adresses, if any
 #ifdef F77API
    if(prc)
    {
@@ -1615,77 +1625,83 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    }
 #endif
 
-   // Get the user's data type and pointers to first
-   // and last adresses in order to compute the stride
-   if(kwd->typ == RegKwd)
+   if( (kwd->typ != RegKwd) && (kwd->typ != SolKwd) )
+      return(0);
+
+   // Read the first data type to select between list and table mode
+   typ = VALF77(va_arg(VarArg, TYPF77(int)));
+
+   // If the table mode is selected, read the four additional tables
+   // containing the arguments: type, vector size, begin and end pointers
+   if(typ == GmfArgTab)
    {
-      for(i=0;i<kwd->SolSiz;i++)
-      {
-         // Get the type from the variable arguments
-         UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));;
-
-         // If a table is given, read its size in the next argument
-         // and automatically fill the pointer table by incrementing
-         // as many times the base user address
-         if(UsrTyp[i] == GmfIntTab)
-         {
-            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
-            UsrTyp[i] = GmfInt;
-         }
-         else if(UsrTyp[i] == GmfLongTab)
-         {
-            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
-            UsrTyp[i] = GmfLong;
-         }
-         else
-            RepCnt = 0;
-
-         // Get the begin and end pointers from the variable arguments
-         UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
-         EndUsrDat = va_arg(VarArg, char *);
-
-         if(UsrNmbLin > 1)
-            UsrLen[i] = (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1);
-         else
-            UsrLen[i] = 0;
-
-         // Replicate the table data type and increment the base address
-         if(RepCnt >= 2)
-         {
-            for(j=i+1; j<i+RepCnt; j++)
-            {
-               UsrTyp[j] = UsrTyp[i];
-               UsrDat[j] = UsrBas[j] = UsrDat[ j-1 ] + SizTab[ UsrTyp[i] ];
-               UsrLen[j] = UsrLen[i];
-            }
-
-            i += RepCnt - 1;
-         }
-      }
+      mod = GmfArgTab;
+      TypTab = va_arg(VarArg, int *);
+      SizTab = va_arg(VarArg, int *);
+      BegTab = va_arg(VarArg, char **);
+      EndTab = va_arg(VarArg, char **);
    }
-   else if(kwd->typ == SolKwd)
+
+   // Read the arguments until to total size reaches the keyword's size
+   while(TotSiz < kwd->SolSiz)
    {
-      // Get the type, begin and end pointers from the variable arguments
-      UsrTyp[0] = VALF77(va_arg(VarArg, TYPF77(int)));;
-      UsrDat[0] = UsrBas[0] = va_arg(VarArg, char *);
-      EndUsrDat = va_arg(VarArg, char *);
+      // In list mode all arguments are read from the variable argument buffer
+      if(mod == GmfArgLst)
+      {
+         // Do not read the type argument for the first iteration because
+         // it was read befeore the loop begins to get the argument mode
+         if(IniFlg)
+            IniFlg = 0;
+         else
+            typ = VALF77(va_arg(VarArg, TYPF77(int)));
+
+         // In case the type is a vector. get its size and change the type
+         // for the corresponding scalar type
+         if(typ >= GmfFloatVec && typ <= GmfLongVec)
+         {
+            typ -= 4;
+            VecCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+         }
+         else
+            VecCnt = 1;
+
+         BegUsrDat = va_arg(VarArg, char *);
+         EndUsrDat = va_arg(VarArg, char *);
+      }
+      else
+      {
+         // Do exactly the same as above but the arguments are read from
+         // the tables instead of VarArgs
+         typ = TypTab[ ArgCnt ];
+
+         if(typ >= GmfFloatVec && typ <= GmfLongVec)
+         {
+            typ -= 4;
+            VecCnt = SizTab[ ArgCnt ];
+         }
+         else
+            VecCnt = 1;
+
+         BegUsrDat = (char *)BegTab[ ArgCnt ];
+         EndUsrDat = (char *)EndTab[ ArgCnt ];
+         ArgCnt++;
+      }
 
       if(UsrNmbLin > 1)
-         UsrLen[0] = (size_t)(EndUsrDat - UsrDat[0]) / (UsrNmbLin - 1);
+         VecLen = (size_t)(EndUsrDat - BegUsrDat) / (UsrNmbLin - 1);
       else
-         UsrLen[0] = 0;
+         VecLen = 0;
 
-      // Solutions use only on set of type/begin/end pointers
-      // and the base adress is incremented for each entry
-      for(i=1;i<kwd->SolSiz;i++)
+      // Compute the consecutive begin / end adresses for vector data types
+      for(i=0;i<VecCnt;i++)
       {
-         UsrTyp[i] = UsrTyp[0];
-         UsrDat[i] = UsrBas[i] = UsrDat[ i-1 ] + SizTab[ UsrTyp[0] ];
-         UsrLen[i] = UsrLen[0];
+         UsrTyp[ TotSiz ]  = typ;
+         UsrBas[ TotSiz ]  = BegUsrDat + i * TypSiz[ typ ];
+         UsrDat[ TotSiz ]  = UsrBas[ TotSiz ];
+         UsrLen[ TotSiz ]  = VecLen;
+         TotSiz++;
       }
    }
-   else
-      return(0);
 
    // Get the file's data type
    for(i=0;i<kwd->SolSiz;i++)
@@ -1702,7 +1718,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             FilTyp[i] = GmfLong;
 
       // Compute the file stride
-      LinSiz += SizTab[ FilTyp[i] ];
+      LinSiz += TypSiz[ FilTyp[i] ];
    }
 
    va_end(VarArg);
@@ -1728,7 +1744,14 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             // begining position in the ascii file has been reached since
             // we cannot move directly to an arbitrary position
             if(i >= FilBegIdx)
-               UsrDat[k] += UsrLen[k];
+            {
+               if(IntMapTab)
+                  UsrDat[k] = UsrBas[k] + IntMapTab[i] * UsrLen[k];
+               else if(LngMapTab)
+                  UsrDat[k] = UsrBas[k] + LngMapTab[i] * UsrLen[k];
+               else
+                  UsrDat[k] = UsrBas[k] + i * UsrLen[k];
+            }
          }
 
       // Call the user's preprocessing procedure
@@ -1848,7 +1871,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
                for(j=0;j<kwd->SolSiz;j++)
                {
                   if(msh->cod != 1)
-                     SwpWrd(FilPos, SizTab[ FilTyp[j] ]);
+                     SwpWrd(FilPos, TypSiz[ FilTyp[j] ]);
 
                   // Reorder HO nodes on the fly
                   if(kwd->OrdTab && (j != kwd->SolSiz-1))
@@ -1924,7 +1947,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
                      }
                   }
 
-                  FilPos += SizTab[ FilTyp[j] ];
+                  FilPos += TypSiz[ FilTyp[j] ];
                }
             }
 
@@ -1958,12 +1981,15 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
                                        void           *MapTab,
                                        void           *prc, ... )
 {
-   char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ], *EndUsrDat;
+   char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ];
    char        *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" }, *FilPos;
    char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
+   char        **BegTab, **EndTab, *BegUsrDat, *EndUsrDat;
    int         i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int         UsrTyp[ GmfMaxTyp ], NmbBlk, b, SizTab[5] = {0,4,8,4,8};
-   int         err, *IntMapTab = NULL, RepCnt;
+   int         UsrTyp[ GmfMaxTyp ], NmbBlk, b, TypSiz[5] = {0,4,8,4,8};
+   int         err, *IntMapTab = NULL, typ, mod = GmfArgLst;
+   int         *TypTab, *SizTab, IniFlg = 1, TotSiz = 0, VecCnt, ArgCnt = 0;
+   int         VecLen;
    float       *FilPtrR32, *UsrPtrR32;
    double      *FilPtrR64, *UsrPtrR64;
    int64_t     UsrNmbLin, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
@@ -2039,77 +2065,83 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    }
 #endif
 
-   // Get the user's data type and pointers to first
-   // and last adresses in order to compute the stride
-   if(kwd->typ == RegKwd)
+   if( (kwd->typ != RegKwd) && (kwd->typ != SolKwd) )
+      return(0);
+
+   // Read the first data type to select between list and table mode
+   typ = VALF77(va_arg(VarArg, TYPF77(int)));
+
+   // If the table mode is selected, read the four additional tables
+   // containing the arguments: type, vector size, begin and end pointers
+   if(typ == GmfArgTab)
    {
-      for(i=0;i<kwd->SolSiz;i++)
-      {
-         // Get the type from the variable arguments
-         UsrTyp[i] = VALF77(va_arg(VarArg, TYPF77(int)));
-
-         // If a table is given, read its size in the next argument
-         // and automatically fill the pointer table by incrementing
-         // as many times the base user address
-         if(UsrTyp[i] == GmfIntTab)
-         {
-            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
-            UsrTyp[i] = GmfInt;
-         }
-         else if(UsrTyp[i] == GmfLongTab)
-         {
-            RepCnt = VALF77(va_arg(VarArg, TYPF77(int)));
-            UsrTyp[i] = GmfLong;
-         }
-         else
-            RepCnt = 0;
-
-         // Get the begin and end pointers from the variable arguments
-         UsrDat[i] = UsrBas[i] = va_arg(VarArg, char *);
-         EndUsrDat = va_arg(VarArg, char *);
-
-         if(UsrNmbLin > 1)
-            UsrLen[i] = (size_t)(EndUsrDat - UsrDat[i]) / (UsrNmbLin - 1);
-         else
-            UsrLen[i] = 0;
-
-         // Replicate the table data type and increment the base address
-         if(RepCnt >= 2)
-         {
-            for(j=i+1; j<i+RepCnt; j++)
-            {
-               UsrTyp[j] = UsrTyp[i];
-               UsrDat[j] = UsrBas[j] = UsrDat[ j-1 ] + SizTab[ UsrTyp[i] ];
-               UsrLen[j] = UsrLen[i];
-            }
-
-            i += RepCnt - 1;
-         }
-      }
+      mod = GmfArgTab;
+      TypTab = va_arg(VarArg, int *);
+      SizTab = va_arg(VarArg, int *);
+      BegTab = va_arg(VarArg, char **);
+      EndTab = va_arg(VarArg, char **);
    }
-   else if(kwd->typ == SolKwd)
+
+   // Read the arguments until to total size reaches the keyword's size
+   while(TotSiz < kwd->SolSiz)
    {
-         // Get the type, begin and end pointers from the variable arguments
-      UsrTyp[0] = VALF77(va_arg(VarArg, TYPF77(int)));;
-      UsrDat[0] = UsrBas[0] = va_arg(VarArg, char *);
-      EndUsrDat = va_arg(VarArg, char *);
+      // In list mode all arguments are read from the variable argument buffer
+      if(mod == GmfArgLst)
+      {
+         // Do not read the type argument for the first iteration because
+         // it was read befeore the loop begins to get the argument mode
+         if(IniFlg)
+            IniFlg = 0;
+         else
+            typ = VALF77(va_arg(VarArg, TYPF77(int)));
+
+         // In case the type is a vector. get its size and change the type
+         // for the corresponding scalar type
+         if(typ >= GmfFloatVec && typ <= GmfLongVec)
+         {
+            typ -= 4;
+            VecCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+         }
+         else
+            VecCnt = 1;
+
+         BegUsrDat = va_arg(VarArg, char *);
+         EndUsrDat = va_arg(VarArg, char *);
+      }
+      else
+      {
+         // Do exactly the same as above but the arguments are read from
+         // the tables instead of VarArgs
+         typ = TypTab[ ArgCnt ];
+
+         if(typ >= GmfFloatVec && typ <= GmfLongVec)
+         {
+            typ -= 4;
+            VecCnt = SizTab[ ArgCnt ];
+         }
+         else
+            VecCnt = 1;
+
+         BegUsrDat = (char *)BegTab[ ArgCnt ];
+         EndUsrDat = (char *)EndTab[ ArgCnt ];
+         ArgCnt++;
+      }
 
       if(UsrNmbLin > 1)
-         UsrLen[0] = (size_t)(EndUsrDat - UsrDat[0]) / (UsrNmbLin - 1);
+         VecLen = (size_t)(EndUsrDat - BegUsrDat) / (UsrNmbLin - 1);
       else
-         UsrLen[0] = 0;
+         VecLen = 0;
 
-      // Solutions use only on set of type/begin/end pointers
-      // and the base adress is incremented for each entry
-      for(i=1;i<kwd->SolSiz;i++)
+      // Compute the consecutive begin / end adresses for vector data types
+      for(i=0;i<VecCnt;i++)
       {
-         UsrTyp[i] = UsrTyp[0];
-         UsrDat[i] = UsrBas[i] = UsrDat[ i-1 ] + SizTab[ UsrTyp[0] ];
-         UsrLen[i] = UsrLen[0];
+         UsrTyp[ TotSiz ]  = typ;
+         UsrBas[ TotSiz ]  = BegUsrDat + i * TypSiz[ typ ];
+         UsrDat[ TotSiz ]  = UsrBas[ TotSiz ];
+         UsrLen[ TotSiz ]  = VecLen;
+         TotSiz++;
       }
    }
-   else
-      return(0);
 
    // Get the file's data type
    for(i=0;i<kwd->SolSiz;i++)
@@ -2126,7 +2158,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             FilTyp[i] = GmfLong;
 
       // Compute the file stride
-      LinSiz += SizTab[ FilTyp[i] ];
+      LinSiz += TypSiz[ FilTyp[i] ];
    }
 
    va_end(VarArg);
@@ -2170,7 +2202,13 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             else
                fprintf(msh->hdl, "\n");
 
-            UsrDat[j] += UsrLen[j];
+            //UsrDat[j] += UsrLen[j];
+            if(IntMapTab)
+               UsrDat[j] = UsrBas[j] + IntMapTab[i] * UsrLen[j];
+            else if(LngMapTab)
+               UsrDat[j] = UsrBas[j] + LngMapTab[i] * UsrLen[j];
+            else
+               UsrDat[j] = UsrBas[j] + i * UsrLen[j];
          }
    }
    else
@@ -2314,7 +2352,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
                      }
                   }
 
-                  FilPos += SizTab[ FilTyp[j] ];
+                  FilPos += TypSiz[ FilTyp[j] ];
                }
             }
          }
@@ -2372,6 +2410,8 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
    int i, j, k, flg, NmbNod, NmbCrd;
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
    KwdSct      *kwd;
+   
+   // printf("\n\tGmfSetHONodesOrdering 0\n");
 
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
@@ -2381,31 +2421,38 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
    // Find the Bezier indices dimension according to the element's kind
    switch(KwdCod)
    {
+      case GmfEdges   :          NmbNod =  2; NmbCrd = 1; break;
       case GmfEdgesP2 :          NmbNod =  3; NmbCrd = 1; break;
       case GmfEdgesP3 :          NmbNod =  4; NmbCrd = 1; break;
       case GmfEdgesP4 :          NmbNod =  5; NmbCrd = 1; break;
+      case GmfTriangles   :      NmbNod =  3; NmbCrd = 3; break;
       case GmfTrianglesP2 :      NmbNod =  6; NmbCrd = 3; break;
       case GmfTrianglesP3 :      NmbNod = 10; NmbCrd = 3; break;
       case GmfTrianglesP4 :      NmbNod = 15; NmbCrd = 3; break;
+      case GmfQuadrilaterals   : NmbNod =  4; NmbCrd = 2; break;
       case GmfQuadrilateralsQ2 : NmbNod =  9; NmbCrd = 2; break;
       case GmfQuadrilateralsQ3 : NmbNod = 16; NmbCrd = 2; break;
       case GmfQuadrilateralsQ4 : NmbNod = 25; NmbCrd = 2; break;
+      case GmfTetrahedra   :     NmbNod =  4; NmbCrd = 4; break;
       case GmfTetrahedraP2 :     NmbNod = 10; NmbCrd = 4; break;
       case GmfTetrahedraP3 :     NmbNod = 20; NmbCrd = 4; break;
       case GmfTetrahedraP4 :     NmbNod = 35; NmbCrd = 4; break;
+      case GmfPyramids   :       NmbNod =  5; NmbCrd = 3; break;
       case GmfPyramidsP2 :       NmbNod = 14; NmbCrd = 3; break;
       case GmfPyramidsP3 :       NmbNod = 30; NmbCrd = 3; break;
       case GmfPyramidsP4 :       NmbNod = 55; NmbCrd = 3; break;
+      case GmfPrisms   :         NmbNod =  6; NmbCrd = 4; break;
       case GmfPrismsP2 :         NmbNod = 18; NmbCrd = 4; break;
       case GmfPrismsP3 :         NmbNod = 40; NmbCrd = 4; break;
       case GmfPrismsP4 :         NmbNod = 75; NmbCrd = 4; break;
+      case GmfHexahedra   :      NmbNod =  8; NmbCrd = 3; break;
       case GmfHexahedraQ2 :      NmbNod = 27; NmbCrd = 3; break;
       case GmfHexahedraQ3 :      NmbNod = 64; NmbCrd = 3; break;
       case GmfHexahedraQ4 :      NmbNod =125; NmbCrd = 3; break;
       default : return(0);
    }
 
-   // Free and rebuild the mapping table it there were already one
+   // Free and rebuild the mapping table if there were already one
    if(kwd->OrdTab)
       free(kwd->OrdTab);
 
@@ -3041,23 +3088,66 @@ int APIF77(gmfgotokwd)(int64_t *MshIdx, int *KwdIdx)
 }
 
 int APIF77(gmfstatkwd)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp,
-                        int *SolSiz, int *TypTab)
+                        int *SolSiz, int *TypTab,  int *deg, int *NmbNod)
 {
-   if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
+   if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "hr"))
+      return(GmfStatKwd(*MshIdx, *KwdIdx, NmbTyp, SolSiz, TypTab, deg, NmbNod));
+   else if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
       return(GmfStatKwd(*MshIdx, *KwdIdx, NmbTyp, SolSiz, TypTab));
    else
       return(GmfStatKwd(*MshIdx, *KwdIdx));
 }
 
 int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
-                        int *NmbTyp, int *TypTab)
+                        int *NmbTyp, int *TypTab, int *deg, int *NmbNod)
 {
-   if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
+   if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "hr"))
+      return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab, *deg, *NmbNod));
+   else if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab));
    else
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin));
 }
 
+
+int APIF77(gmfsethonodesordering)(int64_t *MshIdx, int *KwdCod, int *BasTab, int *OrdTab)
+{
+   return(GmfSetHONodesOrdering(*MshIdx, *KwdCod, BasTab, OrdTab));
+}
+/*
+int APIF77(gmfreadbyteflow)(int64_t *MshIdx, char *BytFlo, int *NmbByt)
+{
+   int TmpNmb;
+   char *TmpFlo;
+
+   TmpFlo = GmfReadByteFlow(*MshIdx, &TmpNmb);
+
+   if(!TmpFlo || NmbByt <= 0 || !BytFlo || TmpNmb > *NmbByt)
+      return(0);
+
+   *NmbByt = TmpNmb;
+   memcpy(BytFlo, TmpFlo, *NmbByt);
+   free(TmpFlo);
+
+   return(TmpNmb);
+}
+
+int APIF77(gmfwritebyteflow)(int64_t *MshIdx, char *BytFlo, int *NmbByt)
+{
+   return(GmfWriteByteFlow(*MshIdx, BytFlo, *NmbByt));
+}
+
+int APIF77(gmfgetfloatprecision)(int64_t *MshIdx)
+{
+   return(GmfGetFloatPrecision(*MshIdx));
+}
+
+int APIF77(gmfsetfloatprecision)(int64_t *MshIdx, int *FltSiz)
+{
+   GmfSetFloatPrecision(*MshIdx, *FltSiz);
+   return(0);
+}
+*/
 
 /*----------------------------------------------------------------------------*/
 /* Duplication macros                                                         */

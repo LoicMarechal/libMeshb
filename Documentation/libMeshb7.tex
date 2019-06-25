@@ -37,6 +37,7 @@
 \begin{flushright}
 \Large Lo\"ic MAR\'ECHAL / INRIA, Gamma Project\\
 <<<<<<< HEAD
+<<<<<<< HEAD
 \Large November 2018 \\
 \normalsize Document v1.83 \\
 \normalsize Library v7.33
@@ -45,6 +46,11 @@
 \normalsize Document v1.90 \\
 \normalsize Library v7.40
 >>>>>>> release/V1.4
+=======
+\Large March 2019 \\
+\normalsize Document v1.91 \\
+\normalsize Library v7.50
+>>>>>>> release/RELEASE
 \end{flushright}
 
 \end{titlepage}
@@ -735,6 +741,7 @@ the index returned by GmfOpenMesh() must be provided.
 
 \paragraph{arguments:} for each type of data as stated by the keyword definition (see section \ref{keywords}), three arguments must be provided. First, the user's type of data in which the file's data will be stored (four kinds are available: GmfFloat, GmfDouble, GmfInt and GmfLong). Second, a pointer to the first line of this data type in the user's structure. Third, the same pointer but on the last line. The example below is more telling.
 
+\clearpage
 \paragraph{Example:} reading all vertices in three-dimensional case.
 
 \begin{tt}
@@ -743,17 +750,17 @@ int ref[nv];
 double x[nv], y[nv], z[nv];
 
 GmfGetBlock(MeshIndex, GmfVertices, 1, nv, 0, NULL, NULL,
-            GmfDouble, &x[1],   &x[nv],
-            GmfDouble, &y[1],   &y[nv],
-            GmfDouble, &z[1],   &z[nv],
+            GmfDouble,   &x[1],   &x[nv],
+            GmfDouble,   &y[1],   &y[nv],
+            GmfDouble,   &z[1],   &z[nv],
             GmfInt,    &ref[1], &ref[nv]);
 \end{verbatim}
 \end{tt}
 \normalfont
 
-In order to reduce the number of parameters, when dealing with high order polyhedra for example, you may concatenate a set of pointers to each vertex into one base address. The vertices will be loaded at consecutive addresses.
+\paragraph{Vector addresses:} In order to reduce the number of parameters, when dealing with high order polyhedra for example, you may concatenate a set of pointers into one base address and a size, a kind of address vector. The data will be loaded at consecutive addresses.
 
-To indicate that the following begin and end set of pointers should be considered as a table, you should replace the GmfInt parameter by GmtIntTab followed by the size of the table. Conversely, GmtLong may be replaced by GmfLongTab.
+To indicate that the following begin and end set of pointers should be considered as a vector, you have to replace the GmfInt parameter by GmtIntVec followed by the size of the vector. Conversely, GmtLong, GmfFloat and GmfDouble can be replaced by GmfLongVec, GmfFloatVec and GmfDoubleVec in any keyword.
 
 In this example, the first GmfGetBlock reading hexahedra may be replaced by the second one:
 
@@ -771,9 +778,28 @@ GmfGetBlock(MeshIndex, GmfVertices, 1, nh, 0, NULL, NULL,
             GmfInt, &HexRef[1],      &HexRef[nh]);
 
 GmfGetBlock(MeshIndex, GmfVertices, 1, nh, 0, NULL, NULL,
-            GmfIntTab, 8, &HexIdx[1],   &HexIdx[nh],
+            GmfIntVec, 8, &HexIdx[1],   &HexIdx[nh],
             GmfInt,       &HexRef[1],   &HexRef[nh]);
 
+\end{verbatim}
+\end{tt}
+\normalfont
+
+\paragraph{Arguments list vs arguments table:} In some situations, explicitly giving a long list of arguments to this procedure may be cumbersome as the C variable arguments call must be known and set at compile time. It is then impossible to automatically generate a reading call to a high order solution field with arbitrary order.
+The solution id to provide data arguments (type, vector size, begin and ending pointers) through tables and not directly as procedure arguments.
+
+To select this calling mode all you have to do is to pass "GmfArgTab" instead of the first user data type tag.
+Then, the procedure expects four tables: one integer table containing the types, a second integer table containing the vector sizes (optional if only scalar data types are used) and the two following tables to store the pairs of first and last item pointers.
+
+\begin{tt}
+\begin{verbatim}
+int   TypTab[2] = {GmfIntVec, GmfInt};
+int   SizTab[2] = {8, 0};
+void *BegTab[2] = {&HexIdx[ 1], &HexRef[ 1]};
+void *EndTab[2] = {&HexIdx[nh], &HexIdx[nh]};
+
+GmfGetBlock(MeshIndex, GmfVertices, 1, nh, 0, NULL, NULL,
+            GmfArgTab, TypTab, SizTab, BegTab, EndTab);
 \end{verbatim}
 \end{tt}
 \normalfont
@@ -790,9 +816,9 @@ int ref[nv];
 double x[nv], y[nv], z[nv];
 
 GmfSetBlock(MeshIndex, GmfVertices, 1, nv, 0, NULL, FlipRefs, ref,
-            GmfDouble, &x[1],   &x[nv],
-            GmfDouble, &y[1],   &y[nv],
-            GmfDouble, &z[1],   &z[nv],
+            GmfDouble,   &x[1],   &x[nv],
+            GmfDouble,   &y[1],   &y[nv],
+            GmfDouble,   &z[1],   &z[nv],
             GmfInt,    &ref[1], &ref[nv]);
 \end{verbatim}
 \end{tt}

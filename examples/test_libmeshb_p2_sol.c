@@ -1,5 +1,5 @@
 
-// libMeshb 7.2 basic example: read a high order solution file
+// libMeshb 7.5 basic example: read a high order solution file
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,13 +22,13 @@ int main()
 
    // Read the number vertices and associated solution size for memory allocation
    NmbSol = GmfStatKwd(InpMsh, GmfHOSolAtEdgesP2, &NmbTyp, &SolSiz, TypTab, &deg, &NmbNod);
-   printf("NmbSol = %d, NmbTyp = %d, SolSiz = %d, degree = %d, NmbNod = %d\n", \
+   printf("NmbSol = %d, NmbTyp = %d, SolSiz = %d, degree = %d, NmbNod = %d\n",
             NmbSol, NmbTyp, SolSiz, deg, NmbNod);
    SolTab = malloc( (NmbSol+1) * SolSiz * sizeof(double));
 
    // solution field block reading
-   GmfGetBlock(InpMsh, GmfHOSolAtEdgesP2, 1, NmbSol, 0, NULL, NULL, \
-               GmfDouble, &SolTab[ 1 * SolSiz ], &SolTab[ NmbSol * SolSiz ]);
+   GmfGetBlock(InpMsh, GmfHOSolAtEdgesP2, 1, NmbSol, 0, NULL, NULL,
+               GmfDoubleVec, SolSiz, &SolTab[ 1 * SolSiz ], &SolTab[ NmbSol * SolSiz ]);
 
    // Print each solutions of each vertices
    for(i=1;i<=NmbSol;i++)

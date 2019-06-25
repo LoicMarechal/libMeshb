@@ -44,7 +44,7 @@ int main()
    printf("InpMsh : nmb vertices = %d\n", NmbVer);
    VerTab = malloc((NmbVer+1) * 3 * sizeof(float));
    RefTab = malloc((NmbVer+1) * sizeof(int));
-
+   
    // Read the number of Q2 quads and allocate memory
    NmbQad = GmfStatKwd(InpMsh, GmfQuadrilateralsQ2);
    printf("InpMsh : nmb Q2 quads = %d\n", NmbQad);
@@ -60,7 +60,13 @@ int main()
 
       GmfSetHONodesOrdering(InpMsh, GmfQuadrilateralsQ2, (int *)BasOrd, (int *)FilOrd);
    }
-
+   
+   /*
+   for(i=0;i<9;i++){
+     printf ("i=%d BasOrd: i=%d j=%d - FilOrd: i=%d j=%d \n", i+1,BasOrd[i][0],BasOrd[i][1], FilOrd[i][0],FilOrd[i][1]);
+   }
+   */
+   
    // Read the vertices
    GmfGetBlock(InpMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL,
                GmfFloat, &VerTab[1][0], &VerTab[ NmbVer ][0],
@@ -68,10 +74,17 @@ int main()
                GmfFloat, &VerTab[1][2], &VerTab[ NmbVer ][2],
                GmfInt,   &RefTab[1],    &RefTab[ NmbVer ] );
 
+
+
    // Read the Q2 quads
    GmfGetBlock(InpMsh, GmfQuadrilateralsQ2, 1, NmbQad, 0, NULL, NULL,
                GmfIntTab, 10, QadTab[1], QadTab[ NmbQad ]);
-
+   
+   /*
+   i=1;
+   printf ("Quad1 %d %d %d %d %d %d %d %d %d\n", QadTab[i][0], QadTab[i][1], QadTab[i][2], QadTab[i][3], QadTab[i][4], QadTab[i][5], QadTab[i][6], QadTab[i][7], QadTab[i][8]);
+   */
+   
    // Close the quad mesh
    GmfCloseMesh(InpMsh);
 
