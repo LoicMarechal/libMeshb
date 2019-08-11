@@ -1,0 +1,16 @@
+language: c
+
+compiler:
+  - cmake
+  - gcc
+
+before_script: 
+  - mkdir build
+  - cd build
+  - cmake --build . --config Release --target INSTALL
+
+script:
+  - make
+
+install:
+  - make install
