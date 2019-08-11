@@ -24,8 +24,8 @@ before_script : cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
 
 jobs:
   include:
-      - before_script : cmake -DCMAKE_INSTALL_PREFIX=%HOMEPATH%\local ..\
       - if: os = windows
+      - before_script : cmake -DCMAKE_INSTALL_PREFIX=%HOMEPATH%\local ..\
 
 script:
   - make
