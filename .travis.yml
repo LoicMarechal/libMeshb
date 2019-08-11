@@ -11,7 +11,3 @@ before_script:
 
 script:
   - make
-
-install:
-  - cd build
-  - make install
