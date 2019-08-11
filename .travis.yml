@@ -14,7 +14,7 @@ matrix:
     - os: osx
 
     # Windows
-    - os: windows
+    # - os: windows
 
 install: 
   - mkdir build
@@ -23,10 +23,12 @@ install:
 
 jobs:
   include:
-      - if: (dist IN (trusty,bionic) OR os = osx)
       - before_script : cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
-      - if: os = windows
+      - before_script : cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
+      - before_script : cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
+      - if: (dist IN (trusty,bionic) OR os = osx)
       - before_script : cmake -DCMAKE_INSTALL_PREFIX=%HOMEPATH%\local ..\
+      - if: os = windows
 
 script:
   - make
