@@ -20,12 +20,13 @@ install:
   - mkdir build
   - cd build
   
-before_script : cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
 
 jobs:
   include:
-      - if: os = windows
+      - before_script : cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
+      - if: (dist IN (trusty,bionic) OR os = osx)
       - before_script : cmake -DCMAKE_INSTALL_PREFIX=%HOMEPATH%\local ..\
+      - if: os = windows
 
 script:
   - make
