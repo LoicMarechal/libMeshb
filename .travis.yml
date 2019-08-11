@@ -1,7 +1,6 @@
 language: c
 
 compiler:
-  - cmake
   - gcc
 
 before_script: 
