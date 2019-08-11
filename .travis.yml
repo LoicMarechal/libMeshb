@@ -14,14 +14,20 @@ matrix:
     - os: osx
 
     # Windows
-#    - os: windows
-#      env:
-#         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+    - os: windows
 
 install: 
   - mkdir build
   - cd build
-  - cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
+
+jobs:
+  include:
+      if: dist in (trusty,bionic) OR os = osx
+      before_script :
+        - cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
+      if: os = windows
+      before_script :
+        - cmake -DCMAKE_INSTALL_PREFIX=%HOMEPATH%\local ..\
 
 script:
   - make
