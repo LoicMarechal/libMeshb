@@ -3,7 +3,24 @@ language: c
 compiler:
   - gcc
 
-before_script: 
+matrix:
+  include:
+    # Ubuntu Trusty, Xenial and Bionic
+    - os: linux
+      dist:trusty
+
+    - os: linux
+      dist:bionic
+
+    # MacOs
+    - os: osx
+
+    # Windows
+#    - os: windows
+#      env:
+#         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+
+install: 
   - mkdir build
   - cd build
   - cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
