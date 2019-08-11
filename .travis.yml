@@ -6,11 +6,9 @@ compiler:
 matrix:
   include:
     # Ubuntu Trusty, Xenial and Bionic
-    - os: linux
-      dist:trusty
+    - dist: trusty
 
-    - os: linux
-      dist:bionic
+    - dist: bionic
 
     # MacOs
     - os: osx
