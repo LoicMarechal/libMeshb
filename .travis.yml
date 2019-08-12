@@ -19,20 +19,8 @@ matrix:
 install: 
   - mkdir build
   - cd build
-  
 
-jobs:
-  include:
-      - dist: trusty
-      - before_script : cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
-      - dist: bionic
-      - before_script : cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
-      - os: osx
-      - before_script : cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
-      - if: (dist IN (trusty,bionic) OR os = osx)
-      - os: windows
-      - before_script : cmake -DCMAKE_INSTALL_PREFIX=%HOMEPATH%\local ..\
-      - if: os = windows
+before_script : cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../
 
 script:
   - make
