@@ -6,7 +6,7 @@
 
 cmake_minimum_required (VERSION 3.0.1)
 set (libMeshb_VERSION_MAJOR 7)
-set (libMeshb_VERSION_MINOR 29)
+set (libMeshb_VERSION_MINOR 52)
 
 project(libMeshb VERSION "${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR}" LANGUAGES C)
 
