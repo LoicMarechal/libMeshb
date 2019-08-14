@@ -6,7 +6,7 @@
 
 cmake_minimum_required (VERSION 3.0.1)
 set (libMeshb_VERSION_MAJOR 7)
-set (libMeshb_VERSION_MINOR 29)
+set (libMeshb_VERSION_MINOR 52)
 
 project(libMeshb VERSION "${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR}" LANGUAGES C)
 
@@ -66,12 +66,13 @@ include (CPack)
 ##################################
 # EXPORT CMAKE PACKAGE INFORMATION
 ##################################
-   
+
 include(CMakePackageConfigHelpers)
 file(WRITE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
 "include(\${CMAKE_CURRENT_LIST_DIR}/meshb-target.cmake)
 include(\${CMAKE_CURRENT_LIST_DIR}/libMeshb-target.cmake)
 set(libMeshb_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/include)
+set(libMeshb_LINK_DIRS ${CMAKE_INSTALL_PREFIX}/lib)
 set(libMeshb_LIBRARIES Meshb.7 ${AIO_LIBRARIES})
 set(libMeshb_Fortran_LIBRARIES Meshbf.7 ${AIO_LIBRARIES})
 set(libMeshb_FOUND TRUE)
