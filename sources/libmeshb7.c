@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.52                               */
+/*                               LIBMESH V 7.53                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jun 20 2019                                          */
+/*   Last modification:  sep 11 2019                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -482,14 +482,14 @@ static void    CalF77Prc(int64_t, int64_t, void *, int, void **);
 #define safe_fgets(ptr, siz, hdl, JmpErr) \
    do { \
       if( fgets(ptr, siz, hdl) == NULL ) \
-         longjmp( JmpErr, -1); \
+         longjmp( JmpErr, -2); \
    } while(0)
 
 
 #define safe_fread(ptr, siz, nit, str, JmpErr) \
    do { \
       if( fread(ptr, siz, nit, str) != nit ) \
-         longjmp( JmpErr, -1); \
+         longjmp( JmpErr, -3); \
    } while(0)
 
 
@@ -499,7 +499,7 @@ static void    CalF77Prc(int64_t, int64_t, void *, int, void **);
 
 int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 {
-   int      KwdCod, res, *PtrVer, *PtrDim;
+   int      KwdCod, res, *PtrVer, *PtrDim, err;
    int64_t  MshIdx;
    char     str[ GmfStrSiz ];
    va_list  VarArg;
@@ -515,8 +515,11 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
    MshIdx = (int64_t)msh;
 
    // Save the current stack environment for longjmp
-   if(setjmp(msh->err) != 0)
+   if( (err = setjmp(msh->err)) != 0)
    {
+#ifdef GMFDEBUG
+      printf("libMeshb : mesh %p : error %d\n", msh, err);
+#endif
       if(msh->hdl != NULL)
          fclose(msh->hdl);
 
@@ -529,7 +532,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 
    // Copy the FilNam into the structure
    if(strlen(FilNam) + 7 >= GmfStrSiz)
-      longjmp(msh->err, -1);
+      longjmp(msh->err, -4);
 
    strcpy(msh->FilNam, FilNam);
 
@@ -549,7 +552,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
    else if(strstr(msh->FilNam, ".sol"))
       msh->typ |= (Asc | SolFil);
    else
-      longjmp(msh->err, -1);
+      longjmp(msh->err, -5);
 
    // Open the file in the required mod and initialize the mesh structure
    if(msh->mod == GmfRead)
@@ -574,15 +577,15 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
          msh->FilDes = open(msh->FilNam, OPEN_READ_FLAGS, OPEN_READ_MODE);
 
          if(msh->FilDes <= 0)
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -6);
 
          // Read the endian coding tag
          if(read(msh->FilDes, &msh->cod, WrdSiz) != WrdSiz)
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -7);
 #else
          // [Bruno] added binary flag (necessary under Windows)
          if(!(msh->hdl = fopen(msh->FilNam, "rb")))
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -8);
 
          // Read the endian coding tag
          safe_fread(&msh->cod, WrdSiz, 1, msh->hdl, msh->err);
@@ -590,20 +593,20 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 
          // Read the mesh version and the mesh dimension (mandatory kwd)
          if( (msh->cod != 1) && (msh->cod != 16777216) )
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -9);
 
          ScaWrd(msh, (unsigned char *)&msh->ver);
 
          if( (msh->ver < 1) || (msh->ver > 4) )
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -10);
 
          if( (msh->ver >= 3) && (sizeof(int64_t) != 8) )
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -11);
 
          ScaWrd(msh, (unsigned char *)&KwdCod);
 
          if(KwdCod != GmfDimension)
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -12);
 
          GetPos(msh);
          ScaWrd(msh, (unsigned char *)&msh->dim);
@@ -612,7 +615,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       {
          // Create the name string and open the file
          if(!(msh->hdl = fopen(msh->FilNam, "rb")))
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -13);
 
          do
          {
@@ -620,12 +623,12 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
          }while( (res != EOF) && strcmp(str, "MeshVersionFormatted") );
 
          if(res == EOF)
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -14);
 
          safe_fscanf(msh->hdl, "%d", &msh->ver, msh->err);
 
          if( (msh->ver < 1) || (msh->ver > 4) )
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -15);
 
          do
          {
@@ -633,13 +636,13 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
          }while( (res != EOF) && strcmp(str, "Dimension") );
 
          if(res == EOF)
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -16);
 
          safe_fscanf(msh->hdl, "%d", &msh->dim, msh->err);
       }
 
       if( (msh->dim != 2) && (msh->dim != 3) )
-         longjmp(msh->err, -1);
+         longjmp(msh->err, -17);
 
       (*PtrVer) = msh->ver;
       (*PtrDim) = msh->dim;
@@ -676,13 +679,13 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       va_end(VarArg);
 
       if( (msh->ver < 1) || (msh->ver > 4) )
-         longjmp(msh->err, -1);
+         longjmp(msh->err, -18);
 
       if( (msh->ver >= 3) && (sizeof(int64_t) != 8) )
-         longjmp(msh->err, -1);
+         longjmp(msh->err, -19);
 
       if( (msh->dim != 2) && (msh->dim != 3) )
-         longjmp(msh->err, -1);
+         longjmp(msh->err, -20);
 
       // Set default real numbers size
       if(msh->ver == 1)
@@ -702,14 +705,14 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
          msh->FilDes = open(msh->FilNam, OPEN_WRITE_FLAGS, OPEN_WRITE_MODE);
 
          if(msh->FilDes <= 0)
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -21);
 #else
          if(!(msh->hdl = fopen(msh->FilNam, "wb")))
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -22);
 #endif
       }
       else if(!(msh->hdl = fopen(msh->FilNam, "wb")))
-         longjmp(msh->err, -1);
+         longjmp(msh->err, -23);
 
 
       /*------------*/
@@ -988,7 +991,7 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 
 int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 {
-   int         i;
+   int         i, err;
    float       *FltSolTab, FltVal, *PtrFlt;
    double      *DblSolTab, *PtrDbl;
    va_list     VarArg;
@@ -999,8 +1002,13 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
       return(0);
 
    // Save the current stack environment for longjmp
-   if(setjmp(msh->err) != 0)
+   if( (err = setjmp(msh->err)) != 0)
+   {
+#ifdef GMFDEBUG
+      printf("libMeshb : mesh %p : error %d\n", msh, err);
+#endif
       return(0);
+   }
 
    // Start decoding the arguments
    va_start(VarArg, KwdCod);
@@ -1248,14 +1256,19 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
    char        s[ WrdSiz * FilStrSiz ];
    double      d;
    float       f;
-   int         i, a;
+   int         i, a, err;
    int64_t     l;
    GmfMshSct   *InpMsh = (GmfMshSct *)InpIdx, *OutMsh = (GmfMshSct *)OutIdx;
    KwdSct      *kwd = &InpMsh->KwdTab[ KwdCod ];
 
    // Save the current stack environment for longjmp
-   if(setjmp(InpMsh->err) != 0)
+   if( (err = setjmp(msh->err)) != 0)
+   {
+#ifdef GMFDEBUG
+      printf("libMeshb : mesh %p : error %d\n", msh, err);
+#endif
       return(0);
+   }
 
    for(i=0;i<kwd->SolSiz;i++)
    {
@@ -1404,8 +1417,11 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
 #endif
 
    // Save the current stack environment for longjmp
-   if(setjmp(msh->err) != 0)
+   if( (err = setjmp(msh->err)) != 0)
    {
+#ifdef GMFDEBUG
+      printf("libMeshb : mesh %p : error %d\n", msh, err);
+#endif
       if(BckBuf)
          free(BckBuf);
 
@@ -1562,7 +1578,10 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    // Read the whole kwd data
    if(msh->typ & Asc)
    {
+      OldIdx = 1;
+
       for(i=1;i<=FilEndIdx;i++)
+      {
          for(j=0;j<kwd->SolSiz;j++)
          {
             // Reorder HO nodes on the fly
@@ -1571,29 +1590,30 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             else
                k = j;
 
-            safe_fscanf(msh->hdl, StrTab[ UsrTyp[k] ], UsrDat[k], msh->err);
-
             // Move to the next user's data line only when the desired
             // begining position in the ascii file has been reached since
             // we cannot move directly to an arbitrary position
-            if(i >= FilBegIdx)
-            {
-               if(IntMapTab)
-                  UsrDat[k] = UsrBas[k] + IntMapTab[i] * UsrLen[k];
-               else if(LngMapTab)
-                  UsrDat[k] = UsrBas[k] + LngMapTab[i] * UsrLen[k];
-               else
-                  UsrDat[k] = UsrBas[k] + i * UsrLen[k];
-            }
+            if(IntMapTab)
+               UsrDat[j] = UsrBas[k] + (IntMapTab[ OldIdx ] - 1) * UsrLen[k];
+            else if(LngMapTab)
+               UsrDat[j] = UsrBas[k] + (LngMapTab[ OldIdx ] - 1) * UsrLen[k];
+            else
+               UsrDat[j] = UsrBas[k] + (OldIdx - 1) * UsrLen[k];
+
+            safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] ], UsrDat[j], msh->err);
          }
 
-      // Call the user's preprocessing procedure
-      if(UsrPrc)
+         if(i >= FilBegIdx)
+            OldIdx++;
+
+         // Call the user's preprocessing procedure
+         if(UsrPrc)
 #ifdef F77API
-         CalF77Prc(1, kwd->NmbLin, UsrPrc, NmbArg, ArgTab);
+            CalF77Prc(1, kwd->NmbLin, UsrPrc, NmbArg, ArgTab);
 #else
-         UsrPrc(1, kwd->NmbLin, UsrArg);
+            UsrPrc(1, kwd->NmbLin, UsrArg);
 #endif
+      }
    }
    else
    {
@@ -1842,8 +1862,11 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
 #endif
 
    // Save the current stack environment for longjmp
-   if(setjmp(msh->err) != 0)
+   if( (err = setjmp(msh->err)) != 0)
    {
+#ifdef GMFDEBUG
+      printf("libMeshb : mesh %p : error %d\n", msh, err);
+#endif
       if(FilBuf)
          free(FilBuf);
 
@@ -2456,7 +2479,7 @@ static int ScaKwdTab(GmfMshSct *msh)
          NexPos = GetPos(msh);
 
          if(NexPos > EndPos)
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -24);
 
          // Check if this kwd belongs to this mesh version
          if( (KwdCod >= 1) && (KwdCod <= GmfMaxKwd) )
@@ -2464,7 +2487,7 @@ static int ScaKwdTab(GmfMshSct *msh)
 
          // Go to the next kwd
          if(NexPos && !(SetFilPos(msh, NexPos)))
-            longjmp(msh->err, -1);
+            longjmp(msh->err, -25);
       }while(NexPos && (KwdCod != GmfEnd));
    }
 
@@ -2641,7 +2664,7 @@ static void ScaWrd(GmfMshSct *msh, void *ptr)
 #else
    if(fread(ptr, WrdSiz, 1, msh->hdl) != 1)
 #endif
-      longjmp(msh->err, -1);
+      longjmp(msh->err, -26);
 
    if(msh->cod != 1)
       SwpWrd((char *)ptr, WrdSiz);
@@ -2659,7 +2682,7 @@ static void ScaDblWrd(GmfMshSct *msh, void *ptr)
 #else
    if( fread(ptr, WrdSiz, 2, msh->hdl) != 2 )
 #endif
-      longjmp(msh->err, -1);
+      longjmp(msh->err, -27);
 
    if(msh->cod != 1)
       SwpWrd((char *)ptr, 2 * WrdSiz);
@@ -2699,7 +2722,7 @@ static void RecWrd(GmfMshSct *msh, const void *wrd)
 #else
    if(fwrite(wrd, WrdSiz, 1, msh->hdl) != 1)
 #endif
-      longjmp(msh->err,-1);
+      longjmp(msh->err,-28);
 }
 
 
@@ -2715,7 +2738,7 @@ static void RecDblWrd(GmfMshSct *msh, const void *wrd)
 #else
    if(fwrite(wrd, WrdSiz, 2, msh->hdl) != 2)
 #endif
-      longjmp(msh->err,-1);
+      longjmp(msh->err,-29);
 }
 
 
@@ -2753,14 +2776,14 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
 #else      
       if(fwrite(msh->blk, 1, (size_t)msh->pos, msh->hdl) != msh->pos)
 #endif      
-         longjmp(msh->err, -1);
+         longjmp(msh->err, -30);
 #else      
 #ifdef WITH_AIO
       if(write(msh->FilDes, msh->blk, msh->pos) != (ssize_t)msh->pos)
 #else      
       if(fwrite(msh->blk, 1, msh->pos, msh->hdl) != msh->pos)
 #endif      
-         longjmp(msh->err, -1);
+         longjmp(msh->err, -31);
 #endif      
       msh->pos = 0;
    }
@@ -2855,12 +2878,12 @@ static int64_t GetFilSiz(GmfMshSct *msh)
       CurPos = MYFTELL(msh->hdl);
 
       if(MYFSEEK(msh->hdl, 0, SEEK_END) != 0)
-         longjmp(msh->err, -1);
+         longjmp(msh->err, -32);
 
       EndPos = MYFTELL(msh->hdl);
 
       if(MYFSEEK(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
-         longjmp(msh->err, -1);
+         longjmp(msh->err, -33);
 #endif
    }
    else
@@ -2868,12 +2891,12 @@ static int64_t GetFilSiz(GmfMshSct *msh)
       CurPos = MYFTELL(msh->hdl);
 
       if(MYFSEEK(msh->hdl, 0, SEEK_END) != 0)
-         longjmp(msh->err, -1);
+         longjmp(msh->err, -34);
 
       EndPos = MYFTELL(msh->hdl);
 
       if(MYFSEEK(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
-         longjmp(msh->err, -1);
+         longjmp(msh->err, -35);
    }
 
    return(EndPos);
