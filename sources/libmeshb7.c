@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  sep 11 2019                                          */
+/*   Last modification:  sep 13 2019                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -1246,7 +1246,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
 
 
 /*----------------------------------------------------------------------------*/
-/* Private procedure for transmesh : copy a whole line                        */
+/* Private procedure for mesh : copy a whole line                             */
 /*----------------------------------------------------------------------------*/
 
 #ifdef TRANSMESH
@@ -1262,10 +1262,10 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
    KwdSct      *kwd = &InpMsh->KwdTab[ KwdCod ];
 
    // Save the current stack environment for longjmp
-   if( (err = setjmp(msh->err)) != 0)
+   if( (err = setjmp(InpMsh->err)) != 0)
    {
 #ifdef GMFDEBUG
-      printf("libMeshb : mesh %p : error %d\n", msh, err);
+      printf("libMeshb : mesh %p : error %d\n", InpMsh, err);
 #endif
       return(0);
    }
