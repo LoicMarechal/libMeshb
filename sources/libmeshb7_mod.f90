@@ -292,6 +292,7 @@ module libmeshb7
   integer(4) :: gmfprismreferenceelement     
   integer(4) :: gmfhexahedronreferenceelement    
   integer(4) :: gmfboundarylayers
+  integer(4) :: gmfreferencestrings
 
   parameter (gmfmeshversionformatted=1)
   parameter (gmfdimension=3)
@@ -490,6 +491,7 @@ module libmeshb7
   parameter (gmfprismreferenceelement=196)
   parameter (gmfhexahedronreferenceelement=197)
   parameter (gmfboundarylayers=198)
+  parameter (gmfreferencestrings=199)
 
 !   !> interface GmfSetHONodesOrdering_c  
 !   interface

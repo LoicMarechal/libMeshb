@@ -249,6 +249,7 @@ enum GmfKwdCod
    GmfPrismReferenceElement,
    GmfHexahedronReferenceElement,
    GmfBoundaryLayers,
+   GmfReferenceStrings,
    GmfLastKeyword
 };
 

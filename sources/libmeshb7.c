@@ -437,7 +437,8 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"PyramidReferenceElement",                  "",  "rrrrrrrrrrrrrrr"},
    {"PrismReferenceElement",                    "",  "rrrrrrrrrrrrrrrrrr"},
    {"HexahedronReferenceElement",               "",  "rrrrrrrrrrrrrrrrrrrrrrrr"},
-   {"BoundaryLayers",                           "i", "iii"}
+   {"BoundaryLayers",                           "i", "iii"},
+   {"ReferenceStrings",                          "i", "iic"}
 };
 
 #ifdef TRANSMESH
