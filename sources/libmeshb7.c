@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  sep 13 2019                                          */
+/*   Last modification:  apr 07 2019                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -2353,21 +2353,26 @@ char *GmfReadByteFlow(int64_t MshIdx, int *NmbByt)
    int         i, cod, *WrdTab, NmbWrd;
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
 
+   // Read and allocate the number of 4-byte words in the byteflow
    if(!(NmbWrd = GmfStatKwd(MshIdx, GmfByteFlow)))
       return(NULL);
 
    if(!(WrdTab = malloc(NmbWrd * WrdSiz)))
       return(NULL);
 
+   // Disable the endianess conversion
    cod = msh->cod;
    msh->cod = 1;
 
+   // Read the exact number of bytes in the byteflow
    GmfGotoKwd(MshIdx, GmfByteFlow);
    GmfGetLin(MshIdx, GmfByteFlow, NmbByt);
 
+   // Read the byteflow as 4-byte blocks
    for(i=0;i<NmbWrd;i++)
       GmfGetLin(MshIdx, GmfByteFlow, &WrdTab[i]);
 
+   // Enable endianess convertion
    msh->cod = cod;
 
    return((char *)WrdTab);
@@ -2380,15 +2385,35 @@ char *GmfReadByteFlow(int64_t MshIdx, int *NmbByt)
 
 int GmfWriteByteFlow(int64_t MshIdx, char *BytTab, int NmbByt)
 {
-   int i, *WrdTab = (int *)BytTab, NmbWrd = NmbByt / WrdSiz + 1;
+   int i, PadWrd = 0, *WrdTab = (int *)BytTab, NmbWrd = NmbByt / WrdSiz;
 
-   if(!GmfSetKwd(MshIdx, GmfByteFlow, NmbWrd + 1))
+   // Add an extra padding word at the end if needed
+   if(NmbByt > NmbWrd * 4)
+      PadWrd = 1;
+
+   // Create the keyword with the number of words, not bytes
+   if(!GmfSetKwd(MshIdx, GmfByteFlow, NmbWrd + PadWrd))
       return(0);
 
+   // Reacord the exact number of bytes
    GmfSetLin(MshIdx, GmfByteFlow, NmbByt);
 
+   // Write the byteflow as 4-byte words, missing up to 3 endding bytes
    for(i=0;i<NmbWrd;i++)
       GmfSetLin(MshIdx, GmfByteFlow, WrdTab[i]);
+
+   // Write the extra 1,2 or 3 ending bytes
+   if(PadWrd)
+   {
+      PadWrd = 0;
+
+      // Copy the last bytes in an integer
+      for(i=0; i<NmbByt - NmbWrd * 4; i++)
+         PadWrd |= BytTab[ NmbWrd * 4 + i ] << (i*8);
+
+      // And write it as the last line
+      GmfSetLin(MshIdx, GmfByteFlow, PadWrd);
+   }
 
    return(1);
 }
