@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.53                               */
+/*                               LIBMESH V 7.54                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  apr 07 2019                                          */
+/*   Last modification:  apr 27 2020                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -1140,12 +1140,12 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
             {
                if(msh->FltSiz == 32)
 #ifdef F77API
-                  fprintf(msh->hdl, "%g ", *(va_arg(VarArg, float *)));
+                  fprintf(msh->hdl, "%.9g ", *(va_arg(VarArg, float *)));
 #else
-                  fprintf(msh->hdl, "%g ", va_arg(VarArg, double));
+                  fprintf(msh->hdl, "%.9g ", va_arg(VarArg, double));
 #endif
                else
-                  fprintf(msh->hdl, "%.15g ", VALF77(va_arg(VarArg, TYPF77(double))));
+                  fprintf(msh->hdl, "%.17g ", VALF77(va_arg(VarArg, TYPF77(double))));
             }
             else if(kwd->fmt[i] == 'i')
             {
@@ -1221,7 +1221,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
 
          if(msh->typ & Asc)
             for(i=0; i<kwd->SolSiz; i++)
-               fprintf(msh->hdl, "%g ", (double)FltSolTab[i]);
+               fprintf(msh->hdl, "%.9g ", (double)FltSolTab[i]);
          else
             RecBlk(msh, (unsigned char *)FltSolTab, kwd->NmbWrd);
       }
@@ -1231,7 +1231,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
 
          if(msh->typ & Asc)
             for(i=0; i<kwd->SolSiz; i++)
-               fprintf(msh->hdl, "%.15g ", DblSolTab[i]);
+               fprintf(msh->hdl, "%.17g ", DblSolTab[i]);
          else
             RecBlk(msh, (unsigned char *)DblSolTab, kwd->NmbWrd);
       }
@@ -1296,12 +1296,12 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 
          if(OutMsh->FltSiz == 32)
             if(OutMsh->typ & Asc)
-               fprintf(OutMsh->hdl, "%g ", (double)f);
+               fprintf(OutMsh->hdl, "%.9g ", (double)f);
             else
                RecWrd(OutMsh, (unsigned char *)&f);
          else
             if(OutMsh->typ & Asc)
-               fprintf(OutMsh->hdl, "%.15g ", d);
+               fprintf(OutMsh->hdl, "%.17g ", d);
             else
                RecDblWrd(OutMsh, (unsigned char *)&d);
       }
@@ -1836,7 +1836,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
                                        void           *prc, ... )
 {
    char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ];
-   char        *StrTab[5] = { "", "%g", "%.15g", "%d", "%lld" }, *FilPos;
+   char        *StrTab[5] = { "", "%.9g", "%.17g", "%d", "%lld" }, *FilPos;
    char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
    char        **BegTab, **EndTab, *BegUsrDat, *EndUsrDat;
    int         i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
