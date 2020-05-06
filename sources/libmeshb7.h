@@ -2,7 +2,7 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.52                               */
+/*                               LIBMESH V 7.54                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
@@ -249,6 +249,7 @@ enum GmfKwdCod
    GmfPrismReferenceElement,
    GmfHexahedronReferenceElement,
    GmfBoundaryLayers,
+   GmfReferenceStrings,
    GmfLastKeyword
 };
 
