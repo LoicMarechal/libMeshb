@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  apr 27 2020                                          */
+/*   Last modification:  may 06 2020                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -752,7 +752,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 
 int GmfCloseMesh(int64_t MshIdx)
 {
-   int res = 1;
+   int i, res = 1;
    GmfMshSct *msh = (GmfMshSct *)MshIdx;
 
    RecBlk(msh, msh->buf, 0);
@@ -777,7 +777,6 @@ int GmfCloseMesh(int64_t MshIdx)
       res = 0;
 
    // Free optional H.O. renumbering tables
-  int i;
    for(i=0;i<GmfLastKeyword;i++)
       if(msh->KwdTab[i].OrdTab)
          free(msh->KwdTab[i].OrdTab);
