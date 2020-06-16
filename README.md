@@ -28,8 +28,8 @@ Simply follow these steps:
 - `cd libMeshb-master`
 - `mkdir build`
 - `cd build`
-- `cmake -DCMAKE_INSTALL_PREFIX=%HOMEPATH%\local ..\`
-- `cmake --build . --config Release --target INSTALL`
+- `cmake -DCMAKE_INSTALL_PREFIX=%HOMEPATH%\local -DCMAKE_BUILD_TYPE=Release ..\`
+- `cmake --build . --target INSTALL`
 
 # Usage
 The **libMeshb** library is written in *ANSI C*.  

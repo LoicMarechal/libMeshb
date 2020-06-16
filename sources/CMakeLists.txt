@@ -37,7 +37,7 @@ target_include_directories(Meshbf.7
 )
 
 
-install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/ DESTINATION include)
+#install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/ DESTINATION include)
 
 install(FILES libmeshb7.ins DESTINATION include)
 
