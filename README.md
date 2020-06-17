@@ -17,7 +17,6 @@ Simply follow these steps:
 - `mkdir build`
 - `cd build`
 - `cmake -DCMAKE_INSTALL_PREFIX=$HOME/local ../`
-- `make`
 - `make install`
 
 # Build for *Windows*
