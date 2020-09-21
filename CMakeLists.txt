@@ -24,7 +24,7 @@ if (WIN32)
    set (CMAKE_BUILD_TYPE Release)
 else ()
    set (CMAKE_C_FLAGS -O3)
-   set (CMAKE_Fortran_FLAGS -O3)
+   set (CMAKE_Fortran_FLAGS "-O3 -std=legacy")
 
    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
      set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/local" CACHE PATH "..." FORCE)
