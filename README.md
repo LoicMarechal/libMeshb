@@ -10,20 +10,18 @@ Transparent handling of little & big endian files.
 Optional ultra fast asynchronous and low level transfers.
 Can call user's own pre and post processing routines in a separate thread while accessing a file.
 
-# Build for *Linux* or *macOS*
-Simply follow these steps:
-- unarchive the ZIP file
-- `cd libMeshb-master`
-- `mkdir build`
-- `cd build`
-- `cmake ..`
-- `cmake --build . --target install`
+### Prerequisites for *Linux* or *macOS*
+- Install [CMake](https://cmake.org/files/v3.7/cmake-3.7.2-win64-x64.msi)
+- A valid C99 compiler
+- Open a shell window
 
-# Build for *Windows*
+### Prerequisites for *Windows*
 - You first need to install [CMake](https://cmake.org/files/v3.7/cmake-3.7.2-win64-x64.msi). Do not forget to choose "add cmake to the path for all users", from the install panel.
 - Then you need a valid C compiler like the free [Visual Studio Community 2019](https://www.visualstudio.com/vs/visual-studio-express/)
+- Open the x64 Native Tools Command Prompt for VS (or x86 if you need to build a 32-bit version)
+
+### Build commands for all platforms
 - unarchive the ZIP file
-- from the VS-2019 menu, open the x64 Native Tools Command Prompt
 - `cd libMeshb-master`
 - `mkdir build`
 - `cd build`
