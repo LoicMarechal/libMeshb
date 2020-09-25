@@ -4,7 +4,7 @@
 # GLOBAL CONFIGURATION VARIABLES
 ################################
 
-cmake_minimum_required (VERSION 3.0.1)
+cmake_minimum_required (VERSION 3.7.2)
 set (libMeshb_VERSION_MAJOR 7)
 set (libMeshb_VERSION_MINOR 52)
 

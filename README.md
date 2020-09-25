@@ -26,7 +26,7 @@ Can call user's own pre and post processing routines in a separate thread while 
 - `mkdir build`
 - `cd build`
 - `cmake ..`
-- `cmake --build . --target INSTALL`
+- `cmake --build . --target install`
 
 ## Usage
 The **libMeshb** library is written in *ANSI C*.  
