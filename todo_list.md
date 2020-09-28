@@ -4,6 +4,9 @@
 - Setup a keyword to store Pk elements.
 - Give along a routine to convert to and from well-known high-order numberings.
 
+### Distributed parallel write
+- Open a mesh file in write mode but only create the skeleton of the mesh structure to eneable further concurent write access.
+- Open an existing mesh file in write mode and enable concurent block write thanks to the existing structure.
 
 ## STANDARD PRIORITY
 

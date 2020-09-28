@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  may 06 2020                                          */
+/*   Last modification:  sep 25 2020                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -77,7 +77,7 @@
 #define OPEN_READ_MODE    0666
 #define OPEN_WRITE_MODE   0666   
    
-#elif defined(WIN32) || defined(_WIN64)
+#elif defined(_WIN32) || defined(_WIN64)
 
 #define GMF_WINDOWS
 

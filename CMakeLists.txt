@@ -4,37 +4,39 @@
 # GLOBAL CONFIGURATION VARIABLES
 ################################
 
-cmake_minimum_required (VERSION 3.0.1)
+cmake_minimum_required (VERSION 3.7.2)
 set (libMeshb_VERSION_MAJOR 7)
-set (libMeshb_VERSION_MINOR 52)
-
-project(libMeshb VERSION "${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR}" LANGUAGES C)
+set (libMeshb_VERSION_MINOR 54)
+project(libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
 
 include (CheckLanguage)
 check_language (Fortran)
 if(CMAKE_Fortran_COMPILER)
   enable_language(Fortran)
+  set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
+  if (CMAKE_Fortran_COMPILER_ID STREQUAL GNU)
+     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -std=legacy")
+  endif ()
 endif()
 
-set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
+if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif ()
 
-
-if (WIN32)
-   set (CMAKE_C_FLAGS -DWIN32)
-   set (CMAKE_CONFIGURATION_TYPES Release)
-else ()
-   set (CMAKE_C_FLAGS -O3)
-   set (CMAKE_Fortran_FLAGS -O3)
-
-   if(AIO)
-      set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DWITH_AIO")
-      IF(${CMAKE_SYSTEM_NAME} MATCHES Linux)
-         set(AIO_LIBRARIES rt)
-      endif()
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+   if (WIN32)
+      set(CMAKE_INSTALL_PREFIX "$ENV{HOMEPATH}/local" CACHE PATH "..." FORCE)
+   else ()
+      set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/local" CACHE PATH "..." FORCE)
    endif()
 endif ()
 
-project (libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
+if(AIO)
+   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DWITH_AIO")
+   IF(${CMAKE_SYSTEM_NAME} MATCHES Linux)
+      set(AIO_LIBRARIES rt)
+   endif()
+endif()
 
 
 #######################################
@@ -54,13 +56,15 @@ install (DIRECTORY sample_meshes DESTINATION share/libMeshb)
 # SET PACKAGE AND DEPLOYMENT VARIABLES
 ######################################
 
-include (InstallRequiredSystemLibraries)
-set (CPACK_GENERATOR TXZ)
-set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/copyright.txt)
-set (CPACK_PACKAGE_VERSION_MAJOR ${libMeshb_VERSION_MAJOR})
-set (CPACK_PACKAGE_VERSION_MINOR ${libMeshb_VERSION_MINOR})
-set(CPACK_COMPONENTS_ALL applications examples libraries headers)
-include (CPack)
+if (CPACK)
+   include (InstallRequiredSystemLibraries)
+   set (CPACK_GENERATOR TXZ)
+   set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/copyright.txt)
+   set (CPACK_PACKAGE_VERSION_MAJOR ${libMeshb_VERSION_MAJOR})
+   set (CPACK_PACKAGE_VERSION_MINOR ${libMeshb_VERSION_MINOR})
+   set(CPACK_COMPONENTS_ALL applications examples libraries headers)
+   include (CPack)
+endif ()
 
 
 ##################################
