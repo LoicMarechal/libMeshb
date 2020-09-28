@@ -6,9 +6,8 @@
 
 cmake_minimum_required (VERSION 3.7.2)
 set (libMeshb_VERSION_MAJOR 7)
-set (libMeshb_VERSION_MINOR 52)
-
-project(libMeshb VERSION "${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR}" LANGUAGES C)
+set (libMeshb_VERSION_MINOR 54)
+project(libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
 
 include (CheckLanguage)
 check_language (Fortran)
@@ -38,8 +37,6 @@ if(AIO)
       set(AIO_LIBRARIES rt)
    endif()
 endif()
-
-project (libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
 
 
 #######################################
