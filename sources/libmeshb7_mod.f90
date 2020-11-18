@@ -1,14 +1,14 @@
 
 !----------------------------------------------------------
 !
- !    LIBMESH V 7.50
+!                       LIBMESH V 7.55
 ! 
 !----------------------------------------------------------
 !
-!   Description:     handles .meshb file format I/O
-!   Author:      Loic MARECHAL
-!   Creation date:   dec 08 2015
-!   Last modification:   mar 12 2019
+!   Description:        handles .meshb file format I/O
+!   Author:             Loic MARECHAL
+!   Creation date:      dec 08 2015
+!   Last modification:  mar 12 2019
 !
 !----------------------------------------------------------
 

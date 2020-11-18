@@ -2,20 +2,23 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.54                               */
+/*                               LIBMESH V 7.55                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  sep 25 2020                                          */
+/*   Last modification:  nov 18 2020                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
 /* Headers' macros                                                            */
 /*----------------------------------------------------------------------------*/
+
+// Silent Visual Studio warnings on string functions
+#define _CRT_SECURE_NO_WARNINGS
 
 #ifdef F77API
 
@@ -121,12 +124,22 @@
 #   endif
 #endif
 
-// [Bruno] Made asynchronous I/O optional
+
+// AIO: hardware or software mockup are both encapsulated into my_aio functions
+
 #ifdef WITH_AIO
+
 #include <aio.h>
+
+int    my_aio_error (const struct aiocb *aiocbp){return(aio_error (aiocbp));}
+int    my_aio_read  (      struct aiocb *aiocbp){return(aio_read  (aiocbp));}
+size_t my_aio_return(      struct aiocb *aiocbp){return(aio_return(aiocbp));}
+int    my_aio_write (      struct aiocb *aiocbp){return(aio_write (aiocbp));}
+
 #else
 
 // Mockup aio library
+
 struct aiocb
 {
    FILE   *aio_fildes;         // File descriptor
@@ -136,13 +149,13 @@ struct aiocb
    int    aio_lio_opcode;      // Operation to be performed
 };
 
-int aio_error( const struct aiocb * aiocbp )
+int my_aio_error(const struct aiocb *aiocbp)
 {
    return(aiocbp->aio_lio_opcode);
 }
 
 // Set the file position and read a block of data
-int aio_read( struct aiocb * aiocbp )
+int my_aio_read(struct aiocb *aiocbp)
 {
    if( (MYFSEEK(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
    &&  (fread(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
@@ -158,13 +171,13 @@ int aio_read( struct aiocb * aiocbp )
    return(aiocbp->aio_lio_opcode);
 }
 
-size_t aio_return( struct aiocb * aiocbp )
+size_t my_aio_return(struct aiocb *aiocbp)
 {
    return(aiocbp->aio_nbytes);
 }
 
 // Set the file position and write a block of data
-int aio_write( struct aiocb * aiocbp )
+int my_aio_write(struct aiocb *aiocbp)
 {
    if( (MYFSEEK(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
    &&  (fwrite(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
@@ -181,7 +194,6 @@ int aio_write( struct aiocb * aiocbp )
 }
 
 #endif
-
 
 
 /*----------------------------------------------------------------------------*/
@@ -1644,10 +1656,10 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
          // for the first loop interation
          if(b)
          {
-            while(aio_error(&aio) == EINPROGRESS);
+            while(my_aio_error(&aio) == EINPROGRESS);
 
-            err = aio_error(&aio);
-            ret = aio_return(&aio);
+            err = my_aio_error(&aio);
+            ret = my_aio_return(&aio);
 
             if (err != 0) {
               printf (" Error at aio_error() : %s\n", strerror (err));
@@ -1686,7 +1698,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
 
             aio.aio_nbytes = BlkNmbLin * LinSiz;
 
-            if(aio_read(&aio) == -1)
+            if(my_aio_read(&aio) == -1)
             {
                printf("block      = %d / %d\n", b+1, NmbBlk+1);
                printf("size       = "INT64_T_FMT" lines\n", BlkNmbLin);
@@ -2097,7 +2109,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
          {
             aio.aio_nbytes = BlkNmbLin * LinSiz;
             
-            if(aio_write(&aio) == -1)
+            if(my_aio_write(&aio) == -1)
             {
 #ifdef WITH_AIO
                printf("aio_fildes = %d\n",aio.aio_fildes);
@@ -2216,10 +2228,10 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
          // Wait for write completion execpt at the first loop iteration
          if(b)
          {
-            while(aio_error(&aio) == EINPROGRESS);
+            while(my_aio_error(&aio) == EINPROGRESS);
 
-            err = aio_error(&aio);
-            ret = aio_return(&aio);
+            err = my_aio_error(&aio);
+            ret = my_aio_return(&aio);
 
             if (err != 0) {
               printf (" Error at aio_error() : %s\n", strerror (err));
