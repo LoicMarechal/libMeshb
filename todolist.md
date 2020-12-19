@@ -35,7 +35,6 @@ for example :
 "IHOSolAtVertices",                           "i", "ii" // ii = degree + index in DSol
 "DHOSolAtVertices",                           "i", "hr" // High Order solution
 
-
 ## DONE
 
 - Indirect storage through a renumbering table for parallel reading.

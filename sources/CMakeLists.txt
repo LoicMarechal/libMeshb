@@ -7,11 +7,11 @@ add_library(Meshb.7 libmeshb7.c)
 install (FILES libmeshb7.h DESTINATION include COMPONENT headers)
 target_include_directories(Meshb.7 PUBLIC $<INSTALL_INTERFACE:include>)
 install (TARGETS Meshb.7 EXPORT meshb-target DESTINATION lib COMPONENT libraries)
-install(EXPORT meshb-target NAMESPACE ${PROJECT_NAME}::
-        DESTINATION lib/cmake/${PROJECT_NAME})
+install (EXPORT meshb-target NAMESPACE ${PROJECT_NAME}::
+         DESTINATION lib/cmake/${PROJECT_NAME})
 install (TARGETS Meshb.7 EXPORT libMeshb-target DESTINATION lib COMPONENT libraries)
 install (EXPORT libMeshb-target DESTINATION lib/cmake/${PROJECT_NAME})
-
+export  (PACKAGE libMeshb)
 
 
 ####################################

@@ -1,14 +1,15 @@
 
+
 !----------------------------------------------------------
 !
- !    LIBMESH V 7.50
+!                       LIBMESH V 7.56
 ! 
 !----------------------------------------------------------
 !
-!   Description:     handles .meshb file format I/O
-!   Author:      Loic MARECHAL
-!   Creation date:   dec 08 2015
-!   Last modification:   mar 12 2019
+!   Description:        handles .meshb file format I/O
+!   Author:             Loic MARECHAL
+!   Creation date:      dec 08 2015
+!   Last modification:  nov 27 2020
 !
 !----------------------------------------------------------
 
@@ -293,6 +294,8 @@ module libmeshb7
   integer(4) :: gmfhexahedronreferenceelement    
   integer(4) :: gmfboundarylayers
   integer(4) :: gmfreferencestrings
+  integer(4) :: gmfprisms9
+  integer(4) :: gmfhexahedra12
 
   parameter (gmfmeshversionformatted=1)
   parameter (gmfdimension=3)
@@ -492,6 +495,8 @@ module libmeshb7
   parameter (gmfhexahedronreferenceelement=197)
   parameter (gmfboundarylayers=198)
   parameter (gmfreferencestrings=199)
+  parameter (gmfprisms9=200)
+  parameter (gmfhexahedra12=201)
 
 !   !> interface GmfSetHONodesOrdering_c  
 !   interface

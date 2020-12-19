@@ -9,6 +9,9 @@ set (libMeshb_VERSION_MAJOR 7)
 set (libMeshb_VERSION_MINOR 54)
 project(libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
 
+option(WITH_AIO   "Use Unix low-level and asynchronous I/O for higher speed"       ON )
+option(WITH_CPACK "Enable cpack target to generate a zip file containing binaries" OFF)
+
 include (CheckLanguage)
 check_language (Fortran)
 if(CMAKE_Fortran_COMPILER)
@@ -23,15 +26,21 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif ()
 
+if (CMAKE_HOST_SYSTEM_NAME STREQUAL Linux)
+   set (math_LIBRARIES "m")
+endif ()
+
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
    if (WIN32)
-      set(CMAKE_INSTALL_PREFIX "$ENV{HOMEPATH}/local" CACHE PATH "..." FORCE)
+      set(CMAKE_INSTALL_PREFIX "$ENV{HOMEPATH}/cmakebuilds" CACHE PATH "..." FORCE)
    else ()
-      set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/local" CACHE PATH "..." FORCE)
+      set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/cmakebuilds/$ENV{OSTYPE}-$ENV{MACHTYPE}" CACHE PATH "..." FORCE)
    endif()
 endif ()
 
-if(AIO)
+list (APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}")
+
+if(WITH_AIO)
    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DWITH_AIO")
    IF(${CMAKE_SYSTEM_NAME} MATCHES Linux)
       set(AIO_LIBRARIES rt)
@@ -56,13 +65,13 @@ install (DIRECTORY sample_meshes DESTINATION share/libMeshb)
 # SET PACKAGE AND DEPLOYMENT VARIABLES
 ######################################
 
-if (CPACK)
+if (WITH_CPACK)
    include (InstallRequiredSystemLibraries)
    set (CPACK_GENERATOR TXZ)
    set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/copyright.txt)
    set (CPACK_PACKAGE_VERSION_MAJOR ${libMeshb_VERSION_MAJOR})
    set (CPACK_PACKAGE_VERSION_MINOR ${libMeshb_VERSION_MINOR})
-   set(CPACK_COMPONENTS_ALL applications examples libraries headers)
+   set (CPACK_COMPONENTS_ALL applications examples libraries headers)
    include (CPack)
 endif ()
 
@@ -89,3 +98,13 @@ install(FILES
    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
    DESTINATION lib/cmake/${PROJECT_NAME})
+
+
+##################################
+# PRINT OPERATIONS TO BE CONDUCTED
+##################################
+
+message("-- Build mode            : " ${CMAKE_BUILD_TYPE})
+message("-- cpack target enabled  : " ${WITH_CPACK})
+message("-- Asynchronous IO       : " ${WITH_AIO})
+message("-- Install directory     : " ${CMAKE_INSTALL_PREFIX})

@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.54                               */
+/*                               LIBMESH V 7.56                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  apr 26 2019                                         */
+/*    Last modification:  nov 27 2020                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -250,6 +250,8 @@ enum GmfKwdCod
    GmfHexahedronReferenceElement,
    GmfBoundaryLayers,
    GmfReferenceStrings,
+   GmfPrisms9,
+   GmfHexahedra12,
    GmfLastKeyword
 };
 
