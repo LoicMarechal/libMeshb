@@ -252,7 +252,7 @@ enum GmfKwdCod
    GmfReferenceStrings,
    GmfPrisms9,
    GmfHexahedra12,
-   Quadrilaterals6,
+   GmfQuadrilaterals6,
    GmfLastKeyword
 };
 
