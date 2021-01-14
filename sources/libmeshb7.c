@@ -13,7 +13,6 @@
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
-
 /*----------------------------------------------------------------------------*/
 /* Headers' macros                                                            */
 /*----------------------------------------------------------------------------*/
@@ -2524,10 +2523,10 @@ static int ScaKwdTab(GmfMshSct *msh)
          if(NexPos > EndPos)
             longjmp(msh->err, -24);
 
-         // And achack that that it does not move back
-         if(NexPos <= LstPos)
+         // And check that it does not move back
+         if(NexPos && (NexPos <= LstPos))
             longjmp(msh->err, -30);
-        
+
          LstPos = NexPos;
 
          // Check if this kwd belongs to this mesh version
@@ -2537,6 +2536,7 @@ static int ScaKwdTab(GmfMshSct *msh)
          // Go to the next kwd
          if(NexPos && !(SetFilPos(msh, NexPos)))
             longjmp(msh->err, -25);
+
       }while(NexPos && (KwdCod != GmfEnd));
    }
 
