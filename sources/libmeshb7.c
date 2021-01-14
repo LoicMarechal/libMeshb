@@ -2,16 +2,17 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.57                               */
+/*                               LIBMESH V 7.58                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jan 13 2021                                          */
+/*   Last modification:  jan 14 2021                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
+
 
 /*----------------------------------------------------------------------------*/
 /* Headers' macros                                                            */
@@ -2482,7 +2483,7 @@ void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
 static int ScaKwdTab(GmfMshSct *msh)
 {
    int      KwdCod, c;
-   int64_t  NexPos, EndPos;
+   int64_t  NexPos, EndPos, LstPos;
    char     str[ GmfStrSiz ];
 
    if(msh->typ & Asc)
@@ -2510,6 +2511,7 @@ static int ScaKwdTab(GmfMshSct *msh)
    {
       // Get file size
       EndPos = GetFilSiz(msh);
+      LstPos = -1;
 
       // Jump through kwd positions in the file
       do
@@ -2518,8 +2520,15 @@ static int ScaKwdTab(GmfMshSct *msh)
          ScaWrd(msh, ( char *)&KwdCod);
          NexPos = GetPos(msh);
 
+         // Make sure the flow does not move beyond the file size
          if(NexPos > EndPos)
             longjmp(msh->err, -24);
+
+         // And achack that that it does not move back
+         if(NexPos <= LstPos)
+            longjmp(msh->err, -30);
+        
+         LstPos = NexPos;
 
          // Check if this kwd belongs to this mesh version
          if( (KwdCod >= 1) && (KwdCod <= GmfMaxKwd) )
