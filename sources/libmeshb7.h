@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.58                               */
+/*                               LIBMESHB V7.59                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  jan 14 2021                                         */
+/*    Last modification:  mar 24 2021                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -253,6 +253,12 @@ enum GmfKwdCod
    GmfPrisms9,
    GmfHexahedra12,
    GmfQuadrilaterals6,
+   GmfBoundaryPolygonHeaders,
+   GmfBoundaryPolygonVertices,
+   GmfInnerPolygonHeaders,
+   GmfInnerPolygonVertices,
+   GmfPolyhedraHeaders,
+   GmfPolyhedraFaces,
    GmfLastKeyword
 };
 

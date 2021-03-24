@@ -2,16 +2,17 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.58                               */
+/*                               LIBMESHB V7.59                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jan 14 2021                                          */
+/*   Last modification:  mar 24 2021                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
+
 
 /*----------------------------------------------------------------------------*/
 /* Headers' macros                                                            */
@@ -453,7 +454,13 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"ReferenceStrings",                         "i", "iic"},
    {"Prisms9",                                  "i", "iiiiiiiiii"},
    {"Hexahedra12",                              "i", "iiiiiiiiiiiii"},
-   {"Quadrilaterals6",                          "i", "iiiiiii"}
+   {"Quadrilaterals6",                          "i", "iiiiiii"},
+   {"BoundaryPolygonHeaders",                   "i", "ii"},
+   {"BoundaryPolygonVertices",                  "i", "i"},
+   {"InnerPolygonHeaders",                      "i", "ii"},
+   {"InnerPolygonVertices",                     "i", "i"},
+   {"PolyhedraHeaders",                         "i", "ii"},
+   {"PolyhedraFaces",                           "i", "i"},
 };
 
 #ifdef TRANSMESH
