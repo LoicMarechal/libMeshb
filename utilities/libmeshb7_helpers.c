@@ -9,7 +9,7 @@
 /* Description:         set of helpers functions useful for the libMeshb      */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 24 2021                                           */
-/* Last modification:   mar 24 2021                                           */
+/* Last modification:   mar 25 2021                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -64,11 +64,11 @@ PolMshSct *GmfAllocatePolyghedralStructure(int64_t MshIdx)
       return(NULL);
 
    // Get all the polyhedra related field's sizes
-   NmbBndHdr = GmfStatKwd(MshIdx, GmfBoundaryPolygonHeaders  );
+   NmbBndHdr = GmfStatKwd(MshIdx, GmfBoundaryPolygonHeaders );
    NmbBndVer = GmfStatKwd(MshIdx, GmfBoundaryPolygonVertices);
-   NmbInrHdr = GmfStatKwd(MshIdx, GmfInnerPolygonHeaders     );
+   NmbInrHdr = GmfStatKwd(MshIdx, GmfInnerPolygonHeaders    );
    NmbInrVer = GmfStatKwd(MshIdx, GmfInnerPolygonVertices   );
-   NmbVolHdr = GmfStatKwd(MshIdx, GmfPolyhedraHeaders        );
+   NmbVolHdr = GmfStatKwd(MshIdx, GmfPolyhedraHeaders       );
    NmbVolFac = GmfStatKwd(MshIdx, GmfPolyhedraFaces         );
 
    // There are surface polygons
@@ -170,34 +170,24 @@ void GmfFreePolyghedralStructure(PolMshSct *pol)
 int GmfReadBoundaryPolygons(PolMshSct *pol)
 {
    int ret;
-   puts("1");
+
    if(!pol || !pol->BndHdrTab || !pol->BndVerTab)
       return(0);
 
-   puts("2");
-   printf("read GmfBoundaryPolygonHeaders: %d %p %p\n", pol->NmbBndHdr,pol->BndHdrTab[1],pol->BndHdrTab[ pol->NmbBndHdr ]);
    ret = GmfGetBlock(pol->MshIdx, GmfBoundaryPolygonHeaders,
-                     1, pol->NmbBndHdr, 0, NULL, NULL,
-                     GmfIntVec, 2,
+                     1, pol->NmbBndHdr, 0, NULL, NULL, GmfIntVec, 2,
                      pol->BndHdrTab[1], pol->BndHdrTab[ pol->NmbBndHdr ]);
 
-   puts("3");
    if(!ret)
       return(0);
-   puts("3.2");
 
-   printf("read GmfBoundaryPolygonVertices: %d %p %p\n", pol->NmbBndVer, &pol->BndVerTab[1], &pol->BndVerTab[ pol->NmbBndVer ]);
    ret = GmfGetBlock(pol->MshIdx, GmfBoundaryPolygonVertices,
-                     1, pol->NmbBndVer, 0, NULL, NULL,
-                     GmfInt,
+                     1, pol->NmbBndVer, 0, NULL, NULL, GmfInt,
                      &pol->BndVerTab[1], &pol->BndVerTab[ pol->NmbBndVer ]);
 
-   puts("4");
    if(!ret)
       return(0);
-   puts("4.2");
 
-   puts("5");
    return(1);
 }
 

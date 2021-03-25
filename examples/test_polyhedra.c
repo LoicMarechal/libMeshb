@@ -1,18 +1,18 @@
 
-// libMeshb7_helpers: Read and prints a polyhedral mesh using the helpers functions
+// Read and prints a polyhedral mesh using the helpers functions
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <libmeshb7.h>
-#include "../utilities/libmeshb7_helpers.h"
+#include <libmeshb7_helpers.h>
 
 int main()
 {
-   int         i, j, k, NmbVer, ver, dim, *RefTab, ret, deg, buf[256], deg2, buf2[256];
+   int         i, j, k, NmbVer, ver, dim, *RefTab, ret;
+   int         deg1, buf1[256], deg2, buf2[256];
    int64_t     InpMsh;
    double      (*VerTab)[3];
    PolMshSct   *pol;
-
 
    // Open and check the polyhedral mesh file
    if(!(InpMsh = GmfOpenMesh("../sample_meshes/polyhedra.mesh", GmfRead, &ver, &dim)))
@@ -44,6 +44,7 @@ int main()
       return(1);
    }
 
+   // Read both keyword's fields associated with the boundary polygons
    ret = GmfReadBoundaryPolygons(pol);
 
    if(!ret)
@@ -52,15 +53,20 @@ int main()
       return(1);
    }
 
+   // Print the polygon's degree and vertex indices
    for(i=1;i<=pol->NmbBndHdr;i++)
    {
-      deg = GmfGetBoundaryPolygon(pol, i, buf);
-      printf("polygon %d (%d): ", i, deg);
-      for(j=0;j<deg;j++)
-         printf("%d ", buf[j]);
+      // Extract a polygon's list of vertices to a buffer
+      deg1 = GmfGetBoundaryPolygon(pol, i, buf1);
+      printf("polygon %d (%d): ", i, deg1);
+
+      for(j=0;j<deg1;j++)
+         printf("%d ", buf1[j]);
+
       puts("");
    }
 
+   // Read all four keyword's fields associated with the polyhedra
    ret = GmfReadPolyhedra(pol);
 
    if(!ret)
@@ -69,29 +75,35 @@ int main()
       return(1);
    }
 
+   // Print the polyhedra's degree and face list,
+   // then all the inner faces vertex indices
    for(i=1;i<=pol->NmbVolHdr;i++)
    {
-      deg = GmfGetPolyhedron(pol, i, buf);
-      printf("polyhedron %d (%d): ", i, deg);
+      // Extract a polyhedron's list of inner faces to a buffer
+      deg1 = GmfGetPolyhedron(pol, i, buf1);
+      printf("polyhedron %d (%d): ", i, deg1);
 
-      for(j=0;j<deg;j++)
-         printf("%d ", buf[j]);
+      for(j=0;j<deg1;j++)
+         printf("%d ", buf1[j]);
+
       puts("");
 
-      for(j=0;j<deg;j++)
+      // Print each inner polygon's vertex indices
+      for(j=0;j<deg1;j++)
       {
-         deg2 = GmfGetInnerPolygon(pol, buf[j], buf2);
-         printf("polygon %d (%d): ", buf[j], deg2);
+         // Extract a polygon's list of vertices to a buffer
+         deg2 = GmfGetInnerPolygon(pol, buf1[j], buf2);
+         printf("polygon %d (%d): ", buf1[j], deg2);
+
          for(k=0;k<deg2;k++)
             printf("%d ", buf2[k]);
+
          puts("");
       }
    }
 
-   // Close the quad mesh
+   // Close the mesh and free memories
    GmfCloseMesh(InpMsh);
-
-
    GmfFreePolyghedralStructure(pol);
    free(RefTab);
    free(VerTab);

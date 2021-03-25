@@ -1,11 +1,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## libMeshb version 7.56
+## libMeshb version 7.58
 A library to handle the *.meshb file format.
 
 ## Overview
 The Gamma Mesh Format (*GMF*) and the associated library **libMeshb** provide programers of simulation and meshing software with an easy way to store their meshes and physical solutions.  
-The *GMF* features more than 80 kinds of data types, like vertex, polyhedron, normal vector or vector solution field.  
+The *GMF* features more than 200 kinds of data types, like vertex, polyhedron, normal vector or vector solution field.  
 The **libMeshb** provides a convenient way to move data between those files, via keyword tags, and the user's own structures.  
 Transparent handling of ASCII & binary files.  
 Transparent handling of little & big endian files.  
