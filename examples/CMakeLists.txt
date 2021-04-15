@@ -23,6 +23,11 @@ add_executable(test_libmeshb_p2_sol test_libmeshb_p2_sol.c)
 target_link_libraries(test_libmeshb_p2_sol Meshb.7 ${AIO_LIBRARIES})
 install (TARGETS test_libmeshb_p2_sol DESTINATION share/libMeshb/examples COMPONENT examples)
 
+add_executable(test_polyhedra test_polyhedra.c ${PROJECT_SOURCE_DIR}/utilities/libmeshb7_helpers.c)
+target_link_libraries(test_polyhedra Meshb.7 ${AIO_LIBRARIES})
+install (TARGETS test_polyhedra DESTINATION share/libMeshb/examples COMPONENT examples)
+
+
 ########################
 # BUILD FORTRAN EXAMPLES
 ########################

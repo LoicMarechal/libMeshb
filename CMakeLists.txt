@@ -53,6 +53,7 @@ endif()
 #######################################
 
 include_directories (${PROJECT_SOURCE_DIR}/sources)
+include_directories (${PROJECT_SOURCE_DIR}/utilities)
 add_subdirectory (sources)
 add_subdirectory (examples)
 add_subdirectory (utilities)

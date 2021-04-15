@@ -2,16 +2,17 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESH V 7.56                               */
+/*                               LIBMESHB V7.60                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  nov 27 2020                                          */
+/*   Last modification:  mar 24 2021                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
+
 
 /*----------------------------------------------------------------------------*/
 /* Headers' macros                                                            */
@@ -452,7 +453,14 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"BoundaryLayers",                           "i", "iii"},
    {"ReferenceStrings",                         "i", "iic"},
    {"Prisms9",                                  "i", "iiiiiiiiii"},
-   {"Hexahedra12",                              "i", "iiiiiiiiiiiii"}
+   {"Hexahedra12",                              "i", "iiiiiiiiiiiii"},
+   {"Quadrilaterals6",                          "i", "iiiiiii"},
+   {"BoundaryPolygonHeaders",                   "i", "ii"},
+   {"BoundaryPolygonVertices",                  "i", "i"},
+   {"InnerPolygonHeaders",                      "i", "ii"},
+   {"InnerPolygonVertices",                     "i", "i"},
+   {"PolyhedraHeaders",                         "i", "ii"},
+   {"PolyhedraFaces",                           "i", "i"},
 };
 
 #ifdef TRANSMESH
@@ -2481,7 +2489,7 @@ void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
 static int ScaKwdTab(GmfMshSct *msh)
 {
    int      KwdCod, c;
-   int64_t  NexPos, EndPos;
+   int64_t  NexPos, EndPos, LstPos;
    char     str[ GmfStrSiz ];
 
    if(msh->typ & Asc)
@@ -2509,6 +2517,7 @@ static int ScaKwdTab(GmfMshSct *msh)
    {
       // Get file size
       EndPos = GetFilSiz(msh);
+      LstPos = -1;
 
       // Jump through kwd positions in the file
       do
@@ -2517,8 +2526,15 @@ static int ScaKwdTab(GmfMshSct *msh)
          ScaWrd(msh, ( char *)&KwdCod);
          NexPos = GetPos(msh);
 
+         // Make sure the flow does not move beyond the file size
          if(NexPos > EndPos)
             longjmp(msh->err, -24);
+
+         // And check that it does not move back
+         if(NexPos && (NexPos <= LstPos))
+            longjmp(msh->err, -30);
+
+         LstPos = NexPos;
 
          // Check if this kwd belongs to this mesh version
          if( (KwdCod >= 1) && (KwdCod <= GmfMaxKwd) )
@@ -2527,6 +2543,7 @@ static int ScaKwdTab(GmfMshSct *msh)
          // Go to the next kwd
          if(NexPos && !(SetFilPos(msh, NexPos)))
             longjmp(msh->err, -25);
+
       }while(NexPos && (KwdCod != GmfEnd));
    }
 
