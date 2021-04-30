@@ -13,10 +13,11 @@
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
-
 /*----------------------------------------------------------------------------*/
 /* Defines                                                                    */
 /*----------------------------------------------------------------------------*/
+
+#include <stdint.h>
 
 #ifdef INT64
 #define itg int64_t
@@ -30,28 +31,27 @@
 #define fpn double
 #endif
 
-
 /*----------------------------------------------------------------------------*/
 /* Prototypes of public structures                                            */
 /*----------------------------------------------------------------------------*/
 
 typedef struct
 {
-   int64_t  MshIdx;
-   itg      NmbBndHdr, (*BndHdrTab)[2], NmbBndVer, *BndVerTab;
-   itg      NmbInrHdr, (*InrHdrTab)[2], NmbInrVer, *InrVerTab;
-   itg      NmbVolHdr, (*VolHdrTab)[2], NmbVolFac, *VolFacTab;
-}PolMshSct;
-
+   int64_t MshIdx;
+   itg NmbBndHdr, (*BndHdrTab)[2], NmbBndVer, *BndVerTab;
+   itg NmbInrHdr, (*InrHdrTab)[2], NmbInrVer, *InrVerTab;
+   itg NmbVolHdr, (*VolHdrTab)[2], NmbVolFac, *VolFacTab;
+} PolMshSct;
 
 /*----------------------------------------------------------------------------*/
 /* Prototypes of public procedures                                            */
 /*----------------------------------------------------------------------------*/
 
-PolMshSct  *GmfAllocatePolyghedralStructure  (int64_t);
-void        GmfFreePolyghedralStructure      (PolMshSct *);
-int         GmfReadBoundaryPolygons          (PolMshSct *);
-int         GmfReadPolyhedra                 (PolMshSct *);
-itg         GmfGetBoundaryPolygon            (PolMshSct *, itg, itg *);
-itg         GmfGetInnerPolygon               (PolMshSct *, itg, itg *);
-itg         GmfGetPolyhedron                 (PolMshSct *, itg, itg *);
+PolMshSct *GmfAllocatePolyghedralStructure(int64_t);
+void GmfFreePolyghedralStructure(PolMshSct *);
+int GmfReadBoundaryPolygons(PolMshSct *);
+int GmfReadPolyhedra(PolMshSct *);
+itg GmfGetBoundaryPolygon(PolMshSct *, itg, itg *);
+itg GmfGetInnerPolygon(PolMshSct *, itg, itg *);
+itg GmfGetPolyhedron(PolMshSct *, itg, itg *);
+itg GmfTesselatePolygon(PolMshSct *, itg, itg (*)[3], itg (*)[3]);
