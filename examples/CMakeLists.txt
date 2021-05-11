@@ -33,7 +33,7 @@ install (TARGETS test_polyhedra DESTINATION share/libMeshb/examples COMPONENT ex
 ########################
 
 
-if (CMAKE_Fortran_COMPILER)
+if (CMAKE_Fortran_COMPILER AND WITH_FORTRAN)
    add_executable(test_libmeshb_f77 test_libmeshb.f)
    target_link_libraries(test_libmeshb_f77 Meshbf.7 ${AIO_LIBRARIES})
    install (TARGETS test_libmeshb_f77 DESTINATION share/libMeshb/examples COMPONENT examples)

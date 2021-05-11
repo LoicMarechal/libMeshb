@@ -18,7 +18,7 @@ export  (PACKAGE libMeshb)
 # BUILD THE LIBRARY WITH FORTRAN API
 ####################################
 
-if (CMAKE_Fortran_COMPILER)
+if (CMAKE_Fortran_COMPILER AND WITH_FORTRAN)
    file(GLOB_RECURSE SOURCES *.[chfF] *.[fF]90)
    add_library(Meshbf.7 STATIC ${SOURCES})
    set_target_properties(Meshbf.7 PROPERTIES COMPILE_FLAGS "-DF77API")
