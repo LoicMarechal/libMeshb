@@ -5,7 +5,7 @@
 
 int main(int ArgCnt, char **ArgVec)
 {
-   int      i, ver, dim, ref, nod[8], ArgIdx = 1;
+   int      i, j, ver, dim, ref, nod[8], ArgIdx = 1;
    int      NmbVer, NmbTri, NmbQad, NmbTet, NmbPyr, NmbPri, NmbHex;
    int64_t  InpMsh, OutMsh;
    float    xf, yf, zf;
@@ -74,12 +74,12 @@ int main(int ArgCnt, char **ArgVec)
          if(ver <= 1)
          {
             GmfGetLin(InpMsh, GmfVertices, &xf, &yf, &zf, &ref);
-            GmfSetLin(OutMsh, GmfVertices,  xf,  xf,  zf,  ref);
+            GmfSetLin(OutMsh, GmfVertices,  xf,  yf,  zf,  ref);
          }
          else
          {
             GmfGetLin(InpMsh, GmfVertices, &xd, &yd, &zd, &ref);
-            GmfSetLin(OutMsh, GmfVertices,  xd,  xd,  zd,  ref);
+            GmfSetLin(OutMsh, GmfVertices,  xd,  yd,  zd,  ref);
          }
       }
    }
@@ -108,7 +108,7 @@ int main(int ArgCnt, char **ArgVec)
          for(i=1;i<=NmbQad;i++)
          {
             GmfGetLin(InpMsh, GmfQuadrilaterals, &nod[0], &nod[1], &nod[2], &nod[3], &ref);
-            GmfSetLin(OutMsh, GmfBoundaryPolygonHeaders, (i-1) * 4 + NmbTri * 3, ref);
+            GmfSetLin(OutMsh, GmfBoundaryPolygonHeaders, (i-1) * 4 + NmbTri * 3 + 1, ref);
          }
       }
 
@@ -122,7 +122,9 @@ int main(int ArgCnt, char **ArgVec)
          for(i=1;i<=NmbTri;i++)
          {
             GmfGetLin(InpMsh, GmfTriangles, &nod[0], &nod[1], &nod[2], &ref);
-            GmfSetLin(OutMsh, GmfBoundaryPolygonVertices, nod[0], nod[1], nod[2]);
+
+            for(j=0;j<3;j++)
+               GmfSetLin(OutMsh, GmfBoundaryPolygonVertices, nod[j]);
          }
       }
 
@@ -134,7 +136,9 @@ int main(int ArgCnt, char **ArgVec)
          for(i=1;i<=NmbQad;i++)
          {
             GmfGetLin(InpMsh, GmfQuadrilaterals, &nod[0], &nod[1], &nod[2], &nod[3], &ref);
-            GmfSetLin(OutMsh, GmfBoundaryPolygonVertices, nod[0], nod[1], nod[2], nod[3]);
+
+            for(j=0;j<4;j++)
+               GmfSetLin(OutMsh, GmfBoundaryPolygonVertices, nod[j]);
          }
       }
    }
