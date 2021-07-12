@@ -11,11 +11,11 @@ project(libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LAN
 
 option(WITH_AIO     "Use Unix low-level and asynchronous I/O for higher speed"       ON )
 option(WITH_CPACK   "Enable cpack target to generate a zip file containing binaries" OFF)
-option(WITH_FORTRAN "Build the Fortran API"                                          ON )
+option(MESHB_WITH_FORTRAN "Build the Fortran API"                                          ON )
 
 include (CheckLanguage)
 check_language (Fortran)
-if(CMAKE_Fortran_COMPILER AND WITH_FORTRAN)
+if(CMAKE_Fortran_COMPILER AND MESHB_WITH_FORTRAN)
   enable_language(Fortran)
   set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
   if (CMAKE_Fortran_COMPILER_ID STREQUAL GNU)
