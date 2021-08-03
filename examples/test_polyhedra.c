@@ -36,7 +36,7 @@ int main()
    RefTab = malloc((NmbVer+1) * sizeof(int));
 
    // Read the number of polygons/polyhedra and allocate memory
-   pol = GmfAllocatePolyghedralStructure(InpMsh);
+   pol = GmfAllocatePolyhedralStructure(InpMsh);
 
    if(!pol)
    {

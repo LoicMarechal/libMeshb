@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  mar 24 2021                                          */
+/*   Last modification:  aug 03 2021                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -211,7 +211,7 @@ int my_aio_write(struct aiocb *aiocbp)
 #define CmtKwd    4
 #define WrdSiz    4
 #define FilStrSiz 64
-#define BufSiz    10000
+#define BufSiz    10000L
 #define MaxArg    20
 
 
@@ -242,7 +242,7 @@ typedef struct
    char     *buf;
    char     FilNam[ GmfStrSiz ];
    double   DblBuf[1000/8];
-   unsigned char blk[ BufSiz + 1000 ];
+   unsigned char blk[ BufSiz + 1000L ];
 }GmfMshSct;
 
 
@@ -547,7 +547,11 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
          fclose(msh->hdl);
 
       if(msh->FilDes != 0)
+#ifdef GMF_WINDOWS
+         _close(msh->FilDes);
+#else
          close(msh->FilDes);
+#endif
 
       free(msh);
       return(0);
@@ -1416,17 +1420,17 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL, *BegUsrDat;
    char        *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
    char        **BegTab, **EndTab;
-   int         b, i, j, k, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int         UsrTyp[ GmfMaxTyp ], NmbBlk, TypSiz[5] = {0,4,8,4,8}, VecLen;
+   int         i, j, k, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
+   int         UsrTyp[ GmfMaxTyp ], TypSiz[5] = {0,4,8,4,8};
    int         *IntMapTab = NULL, err, TotSiz = 0, IniFlg = 1, mod = GmfArgLst;
    int         *TypTab, *SizTab, typ, VecCnt, ArgCnt = 0;
    float       *FilPtrR32, *UsrPtrR32;
    double      *FilPtrR64, *UsrPtrR64;
    int64_t     BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx = 0;
-   int64_t     *LngMapTab = NULL, OldIdx = 0, UsrNmbLin;
-   int64_t     FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
+   int64_t     *LngMapTab = NULL, OldIdx = 0, UsrNmbLin, VecLen;
+   size_t      FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
    void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t      UsrLen[ GmfMaxTyp ], ret;
+   size_t      UsrLen[ GmfMaxTyp ], ret, LinSiz, b, NmbBlk;
    va_list     VarArg;
    GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
    KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
@@ -1640,10 +1644,10 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    else
    {
       // Allocate both front and back buffers
-      if(!(BckBuf = malloc((size_t)BufSiz * (size_t)LinSiz)))
+      if(!(BckBuf = malloc(BufSiz * LinSiz)))
          return(0);
 
-      if(!(FrtBuf = malloc((size_t)BufSiz * (size_t)LinSiz)))
+      if(!(FrtBuf = malloc(BufSiz * LinSiz)))
          return(0);
 
       // Setup the ansynchonous parameters
@@ -1655,7 +1659,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
 #else
       aio.aio_fildes = msh->hdl;
 #endif
-      aio.aio_offset = GetFilPos(msh) + (FilBegIdx-1) * (size_t)LinSiz;
+      aio.aio_offset = (off_t)(GetFilPos(msh) + (FilBegIdx-1) * LinSiz);
 
       NmbBlk = UsrNmbLin / BufSiz;
 
@@ -1682,7 +1686,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             }
 
             // Increment the reading position
-            aio.aio_offset += aio.aio_nbytes;
+            aio.aio_offset += (off_t)aio.aio_nbytes;
 
             // and swap the buffers
             if(aio.aio_buf == BckBuf)
@@ -1710,7 +1714,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
 
             if(my_aio_read(&aio) == -1)
             {
-               printf("block      = %d / %d\n", b+1, NmbBlk+1);
+               printf("block      = %zd / %zd\n", b+1, NmbBlk+1);
                printf("size       = "INT64_T_FMT" lines\n", BlkNmbLin);
 #ifdef WITH_AIO
                printf("aio_fildes = %d\n",aio.aio_fildes);
@@ -1860,18 +1864,17 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    char        *StrTab[5] = { "", "%.9g", "%.17g", "%d", "%lld" }, *FilPos;
    char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
    char        **BegTab, **EndTab, *BegUsrDat, *EndUsrDat;
-   int         i, j, LinSiz, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int         UsrTyp[ GmfMaxTyp ], NmbBlk, b, TypSiz[5] = {0,4,8,4,8};
+   int         i, j, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
+   int         UsrTyp[ GmfMaxTyp ], TypSiz[5] = {0,4,8,4,8};
    int         err, *IntMapTab = NULL, typ, mod = GmfArgLst;
    int         *TypTab, *SizTab, IniFlg = 1, TotSiz = 0, VecCnt, ArgCnt = 0;
-   int         VecLen;
    float       *FilPtrR32, *UsrPtrR32;
    double      *FilPtrR64, *UsrPtrR64;
    int64_t     UsrNmbLin, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
    int64_t     *FilPtrI64, *UsrPtrI64, *LngMapTab = NULL, OldIdx = 0;
-   int64_t     FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
+   size_t      FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
    void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t      UsrLen[ GmfMaxTyp ], ret;
+   size_t      UsrLen[ GmfMaxTyp ], ret, LinSiz, VecLen, b, NmbBlk;
    va_list     VarArg;
    GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
    KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
@@ -1909,7 +1912,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    FilEndIdx = kwd->NmbLin;
 
    // Check user's bounds
-   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > kwd->NmbLin) )
+   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > (size_t)kwd->NmbLin) )
       return(0);
 
    // Compute the number of lines to be written
@@ -2092,10 +2095,10 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    else
    {
       // Allocate the front and back buffers
-      if(!(BckBuf = malloc((size_t)BufSiz * (size_t)LinSiz)))
+      if(!(BckBuf = malloc(BufSiz * LinSiz)))
          return(0);
 
-      if(!(FrtBuf = malloc((size_t)BufSiz * (size_t)LinSiz)))
+      if(!(FrtBuf = malloc(BufSiz * LinSiz)))
          return(0);
 
       // Setup the asynchronous parameters
@@ -2106,7 +2109,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
 #else
       aio.aio_fildes = msh->hdl;
 #endif
-      aio.aio_offset = GetFilPos(msh);
+      aio.aio_offset = (off_t)GetFilPos(msh);
 
       NmbBlk = UsrNmbLin / BufSiz;
 
@@ -2254,7 +2257,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             }
 
             // Move the write position
-            aio.aio_offset += aio.aio_nbytes;
+            aio.aio_offset += (off_t)aio.aio_nbytes;
          }
 
          // Swap the buffers
@@ -2371,7 +2374,8 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
 
 char *GmfReadByteFlow(int64_t MshIdx, int *NmbByt)
 {
-   int         i, cod, *WrdTab, NmbWrd;
+   int         cod, *WrdTab;
+   size_t      i, NmbWrd;
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
 
    // Read and allocate the number of 4-byte words in the byteflow

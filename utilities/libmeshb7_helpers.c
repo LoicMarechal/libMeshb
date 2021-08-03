@@ -50,7 +50,7 @@
 /* Allocate a structure to hold all polygons and polyhedra related data       */
 /*----------------------------------------------------------------------------*/
 
-PolMshSct *GmfAllocatePolyghedralStructure(int64_t MshIdx)
+PolMshSct *GmfAllocatePolyhedralStructure(int64_t MshIdx)
 {
    int SrfFlg = 0, VolFlg = 0, ErrFlg = 0;
    itg NmbBndHdr, NmbBndVer, NmbInrHdr, NmbInrVer, NmbVolHdr, NmbVolFac;

@@ -11,18 +11,12 @@
 ## STANDARD PRIORITY
 
 ### Handle arbitrary degree polygons and polyhedra
-- Add a helper that tesselate a polygon int a list of triangles made of vertex nodes and edge visibility flags.
 - Add a helper that cuts a polyhedron through a plane and generates the intersection's triangulated mesh in an STL-like format.
-- Add an option to transmesh that converts and fuse all surface and volume elements to polygons and polyhedra.
-
 
 ### Solution fields comments
 - Add a procedure that would search for a string among comments.
 - Input:  keyword name, physical property, free comment, wildcards.
 - Output: list of solutions keywords and particular field number.
-
-### Arbitrary reference element
-- Add a set of keywords for each kind of element that stores the number of vertices and their barycentric coordinates.
 
 ### Convert HO examples to Fortran
 - test_libmeshb_HO.c
@@ -36,13 +30,21 @@ for example
 "IHOSolAtVertices",                           "i", "ii" // ii = degree + index in DSol
 "DHOSolAtVertices",                           "i", "hr" // High Order solution
 
+### Topological operations
+-Add a helper to build the list of inner or surface triangles from tetrahedra
+-Add a helper to build the list of unique edges from tetrahedra
+-Add a helper to get the face neighborhood between tets and triangles
+-Add a helper to get an edge's shell of triangles or tets
+
+### Documentation
+
 ## DONE
 
 - Indirect storage through a renumbering table for parallel reading.
 - Keyword documentation updated.
 - High-Order multiple solutions per element for DG.
-- Added ByteFlow keyword to store an arbitrary sized byte array
-- Added two examples to read and write EGADS CAD models stores as byte flows
+- Added ByteFlow keyword to store an arbitrary sized byte array.
+- Added two examples to read and write EGADS CAD models stores as byte flows.
 - Give a way to describe the node numbering.
 - Setup a polygon keyword that provides an arbitrary degree and number of nodes.
 - Setup a polyhedron keyword that provides an arbitrary degree and number of oriented polygons.
@@ -53,3 +55,7 @@ for example
 - Add a helper that returns a polygon's degree and nodes list.
 - Add a helper that returns a polyhedron's degree and face indices list.
 - Write the helper's documentation.
+- Added an example that converts and fuses all surfaces and volume elements to polygons and polyhedra.
+- Add a helper to tesselate a polygon into a set of triangles made of nodes and edge visibility flags.
+- Add a set of keywords for each kind of element that stores the number of vertices and their barycentric coordinates.
+- Add a section about the AIO mode (Asynchronous Input Output).

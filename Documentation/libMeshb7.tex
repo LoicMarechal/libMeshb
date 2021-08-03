@@ -36,21 +36,9 @@
 
 \begin{flushright}
 \Large Lo\"ic MAR\'ECHAL / INRIA, Gamma Project\\
-<<<<<<< HEAD
-<<<<<<< HEAD
-\Large November 2018 \\
-\normalsize Document v1.83 \\
-\normalsize Library v7.33
-=======
-\Large December 2018 \\
-\normalsize Document v1.90 \\
-\normalsize Library v7.40
->>>>>>> release/V1.4
-=======
 \Large March 2019 \\
-\normalsize Document v1.91 \\
-\normalsize Library v7.50
->>>>>>> release/RELEASE
+\normalsize Document v1.92 \\
+\normalsize Library v7.60
 \end{flushright}
 
 \end{titlepage}
@@ -74,11 +62,7 @@
 \section{Introduction}
 
 \subsection{What is the Gamma Mesh Format ?}
-<<<<<<< HEAD
-The Gamma Mesh Format (GMF) and the associated library \emph{libMeshb} provide programmers of simulation and meshing softwares with an easy way to store their meshes and physical solutions.
-=======
 The Gamma Mesh Format (GMF) and the associated library \emph{libMeshb} provide programmers of simulation and meshing software with an easy way to store their meshes and physical solutions.
->>>>>>> release/V1.4
 
 The GMF features more than 90 kinds of data types, ranging from vertex to polyhedron or normal vectors to matrix solution fields.
 
@@ -481,6 +465,9 @@ Meshindex = GmfOpenMesh("newfile.meshb", GmfWrite, 2, 3 );
 \end{verbatim}
 \end{tt}
 \normalfont
+
+\paragraph{Asynchronous Input Output:}
+to get best performance out of flash storage SSD (more than a GB/s), the library needs to access the filesystem through low-level functions and perform the reading and processing tasks in parallel using asynchronous I/O. To do so, you need to compile the library with the {\tt -DWITH\_AIO} option and link the final executable with the {\tt -lrt} library under Linux.
 
 
 \subsection{GmfCloseMesh}
@@ -1287,14 +1274,11 @@ data & description \\
 \multicolumn{2}{|l|}{EdgesP4} \\
 \hline
 6 integers & two vertex nodes first then the three middle nodes index and finally the reference \\
-<<<<<<< HEAD
-=======
 \hline\hline
 
 \multicolumn{2}{|l|}{EdgesP4Ordering} \\
 \hline
 1 integer & one single Bezier index for each of the five vertices \\
->>>>>>> release/V1.4
 \hline\hline
 
 \multicolumn{2}{|l|}{ExtraVerticesAtEdges} \\
@@ -1658,9 +1642,6 @@ SolSize * reals & as many reals as returned by the GmfStatKwd() command which is
 
 \multicolumn{2}{|l|}{ISolAtVertices} \\
 \hline
-<<<<<<< HEAD
-1 integer & there must be as many ISolAtVertices as there are Vertices in a mesh, each ISolAtVertices line pointing implicitly to the respective vertex. The integer is an index pointing to a solution field in the DSolAtVertices table. \\
-=======
 1 integer & there must be as many ISolAtVertices as there are vertices in a mesh, each ISolAtVertices line pointing implicitly to the respective vertex. The integer is an index pointing to a solution field in the DSolAtVertices table. \\
 \hline\hline
 
@@ -1677,7 +1658,6 @@ SolSize * reals & as many reals as returned by the GmfStatKwd() command which is
 \multicolumn{2}{|l|}{QuadrilateralReferenceElement} \\
 \hline
 8 reals & two dimensional coordinates of the four reference-quadrilateral vertices \\
->>>>>>> release/V1.4
 \hline\hline
 
 \multicolumn{2}{|l|}{SolAtEdges} \\
@@ -1768,14 +1748,11 @@ data & description \\
 \multicolumn{2}{|l|}{DRefGroups} \\
 \hline
 1 string and 3 integers & name of the supergroup, group index, type of elements and number of references included \\
-<<<<<<< HEAD
-=======
 \hline\hline
 
 \multicolumn{2}{|l|}{FloatingPointPrecision} \\
 \hline
 1 integer & set the real number precision in bits to either 32 or 64, regardless of the file version \\
->>>>>>> release/V1.4
 \hline\hline
 
 \multicolumn{2}{|l|}{IRefGroups} \\

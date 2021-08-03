@@ -9,7 +9,7 @@ set (libMeshb_VERSION_MAJOR 7)
 set (libMeshb_VERSION_MINOR 54)
 project(libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
 
-option(WITH_AIO   "Use Unix low-level and asynchronous I/O for higher speed"       ON )
+option(WITH_AIO   "Use Unix low-level and asynchronous I/O for higher speed"       OFF)
 option(WITH_CPACK "Enable cpack target to generate a zip file containing binaries" OFF)
 
 include (CheckLanguage)

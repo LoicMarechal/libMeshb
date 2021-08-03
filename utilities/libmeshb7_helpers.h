@@ -47,7 +47,7 @@ typedef struct
 /* Prototypes of public procedures                                            */
 /*----------------------------------------------------------------------------*/
 
-PolMshSct *GmfAllocatePolyghedralStructure(int64_t);
+PolMshSct *GmfAllocatePolyhedralStructure(int64_t);
 void GmfFreePolyghedralStructure(PolMshSct *);
 int GmfReadBoundaryPolygons(PolMshSct *);
 int GmfReadPolyhedra(PolMshSct *);
