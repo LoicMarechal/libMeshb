@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  aug 03 2021                                          */
+/*   Last modification:  aug 04 2021                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -1466,7 +1466,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
       return(0);
 
    // Check user's bounds
-   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > kwd->NmbLin) )
+   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > (size_t)kwd->NmbLin) )
       return(0);
 
    // Compute the number of lines to be read
@@ -1874,7 +1874,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    int64_t     *FilPtrI64, *UsrPtrI64, *LngMapTab = NULL, OldIdx = 0;
    size_t      FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
    void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t      UsrLen[ GmfMaxTyp ], ret, LinSiz, VecLen, b, NmbBlk;
+   size_t      UsrLen[ GmfMaxTyp ], ret, LinSiz, VecLen, s, b, NmbBlk;
    va_list     VarArg;
    GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
    KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
@@ -2054,7 +2054,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
          UsrPrc(1, kwd->NmbLin, UsrArg);
 #endif
 
-      for(i=FilBegIdx; i<=FilEndIdx; i++)
+      for(s=FilBegIdx; s<=FilEndIdx; s++)
          for(j=0;j<kwd->SolSiz;j++)
          {
             if(UsrTyp[j] == GmfFloat)
@@ -2085,11 +2085,11 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
 
             //UsrDat[j] += UsrLen[j];
             if(IntMapTab)
-               UsrDat[j] = UsrBas[j] + IntMapTab[i] * UsrLen[j];
+               UsrDat[j] = UsrBas[j] + IntMapTab[s] * UsrLen[j];
             else if(LngMapTab)
-               UsrDat[j] = UsrBas[j] + LngMapTab[i] * UsrLen[j];
+               UsrDat[j] = UsrBas[j] + LngMapTab[s] * UsrLen[j];
             else
-               UsrDat[j] = UsrBas[j] + i * UsrLen[j];
+               UsrDat[j] = UsrBas[j] + s * UsrLen[j];
          }
    }
    else

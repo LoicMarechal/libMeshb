@@ -23,7 +23,7 @@ int main()
       return(1);
 
    // Read the number vertices and associated solution size for memory allocation
-   NmbSol = GmfStatKwd(InpMsh, GmfSolAtVertices, &NmbTyp, &SolSiz, TypTab);
+   NmbSol = (int)GmfStatKwd(InpMsh, GmfSolAtVertices, &NmbTyp, &SolSiz, TypTab);
    printf("NmbSol = %d, NmbTyp = %d, SolSiz = %d\n", NmbSol, NmbTyp, SolSiz);
    SolTab = malloc( (NmbSol+1) * SolSiz * sizeof(double));
    printf("SolTab: %p -> %p\n", SolTab, SolTab+(NmbSol+1) * SolSiz * sizeof(double));

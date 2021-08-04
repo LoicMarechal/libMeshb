@@ -52,13 +52,13 @@ int main(int ArgCnt, char **ArgVec)
       return(5);
    }
 
-   NmbVer = GmfStatKwd(InpMsh, GmfVertices);
-   NmbTri = GmfStatKwd(InpMsh, GmfTriangles);
-   NmbQad = GmfStatKwd(InpMsh, GmfQuadrilaterals);
-   NmbTet = GmfStatKwd(InpMsh, GmfTetrahedra);
-   NmbPri = GmfStatKwd(InpMsh, GmfPrisms);
-   NmbPyr = GmfStatKwd(InpMsh, GmfPyramids);
-   NmbHex = GmfStatKwd(InpMsh, GmfHexahedra);
+   NmbVer = (int)GmfStatKwd(InpMsh, GmfVertices);
+   NmbTri = (int)GmfStatKwd(InpMsh, GmfTriangles);
+   NmbQad = (int)GmfStatKwd(InpMsh, GmfQuadrilaterals);
+   NmbTet = (int)GmfStatKwd(InpMsh, GmfTetrahedra);
+   NmbPri = (int)GmfStatKwd(InpMsh, GmfPrisms);
+   NmbPyr = (int)GmfStatKwd(InpMsh, GmfPyramids);
+   NmbHex = (int)GmfStatKwd(InpMsh, GmfHexahedra);
 
    printf(" InpMsh: idx = %lld, version: %d, dimension: %d\n", InpMsh, ver, dim);
 

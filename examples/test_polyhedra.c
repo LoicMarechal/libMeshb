@@ -30,7 +30,7 @@ int main()
    }
 
    // Read the number of vertices and allocate memory
-   NmbVer = GmfStatKwd(InpMsh, GmfVertices);
+   NmbVer = (int)GmfStatKwd(InpMsh, GmfVertices);
    printf("InpMsh: nmb vertices = %d\n", NmbVer);
    VerTab = malloc((NmbVer+1) * 3 * sizeof(double));
    RefTab = malloc((NmbVer+1) * sizeof(int));

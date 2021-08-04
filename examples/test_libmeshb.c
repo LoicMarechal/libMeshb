@@ -26,13 +26,13 @@ int main()
       exit(1);
 
    // Read the number of vertices and allocate memory
-   NmbVer = GmfStatKwd(InpMsh, GmfVertices);
+   NmbVer = (int)GmfStatKwd(InpMsh, GmfVertices);
    printf("InpMsh: nmb vertices = %d\n", NmbVer);
    VerTab = malloc((NmbVer+1) * 3 * sizeof(double));
    RefTab = malloc((NmbVer+1) * sizeof(int));
 
    // Read the number of quads and allocate memory
-   NmbQad = GmfStatKwd(InpMsh, GmfQuadrilaterals);
+   NmbQad = (int)GmfStatKwd(InpMsh, GmfQuadrilaterals);
    printf("InpMsh: nmb quads = %d\n", NmbQad);
    QadTab = malloc((NmbQad+1) * 5 * sizeof(int));
 
@@ -40,14 +40,14 @@ int main()
    GmfGotoKwd(InpMsh, GmfVertices);
 
    for(i=1;i<=NmbVer;i++)
-      GmfGetLin(  InpMsh, GmfVertices, &VerTab[i][0], &VerTab[i][1], \
+      GmfGetLin(  InpMsh, GmfVertices, &VerTab[i][0], &VerTab[i][1],
                   &VerTab[i][2], &RefTab[i] );
 
    // Read the quads
    GmfGotoKwd(InpMsh, GmfQuadrilaterals);
 
    for(i=1;i<=NmbQad;i++)
-      GmfGetLin(  InpMsh, GmfQuadrilaterals, &QadTab[i][0], &QadTab[i][1], \
+      GmfGetLin(  InpMsh, GmfQuadrilaterals, &QadTab[i][0], &QadTab[i][1],
                   &QadTab[i][2], &QadTab[i][3], &QadTab[i][4] );
 
    // Close the quad mesh
@@ -65,7 +65,7 @@ int main()
    GmfSetKwd(OutMsh, GmfVertices, NmbVer);
 
    for(i=1;i<=NmbVer;i++)
-      GmfSetLin(  OutMsh, GmfVertices, VerTab[i][0], \
+      GmfSetLin(  OutMsh, GmfVertices, VerTab[i][0],
                   VerTab[i][1], VerTab[i][2], RefTab[i] );
 
    // Write the triangles
@@ -74,9 +74,9 @@ int main()
    // Split each quad into two triangles on the fly
    for(i=1;i<=NmbQad;i++)
    {
-      GmfSetLin(  OutMsh, GmfTriangles, QadTab[i][0], \
+      GmfSetLin(  OutMsh, GmfTriangles, QadTab[i][0],
                   QadTab[i][1], QadTab[i][2], QadTab[i][4] );
-      GmfSetLin(  OutMsh, GmfTriangles, QadTab[i][0], \
+      GmfSetLin(  OutMsh, GmfTriangles, QadTab[i][0],
                   QadTab[i][2], QadTab[i][3], QadTab[i][4] );
    }
 

@@ -40,13 +40,13 @@ int main()
       exit(1);
 
    // Read the number of vertices and allocate memory
-   NmbVer = GmfStatKwd(InpMsh, GmfVertices);
+   NmbVer = (int)GmfStatKwd(InpMsh, GmfVertices);
    printf("InpMsh : nmb vertices = %d\n", NmbVer);
    VerTab = malloc((NmbVer+1) * 3 * sizeof(float));
    RefTab = malloc((NmbVer+1) * sizeof(int));
    
    // Read the number of Q2 quads and allocate memory
-   NmbQad = GmfStatKwd(InpMsh, GmfQuadrilateralsQ2);
+   NmbQad = (int)GmfStatKwd(InpMsh, GmfQuadrilateralsQ2);
    printf("InpMsh : nmb Q2 quads = %d\n", NmbQad);
    QadTab = malloc((NmbQad+1) * 10 * sizeof(int));
    TriTab = malloc((NmbQad+1) * 2 * 7 * sizeof(int));

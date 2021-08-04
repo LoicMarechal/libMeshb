@@ -20,8 +20,8 @@
 int main()
 {
    int   i, NmbVer, NmbQad, ver, dim, *RefTab, (*QadTab)[5], (*TriTab)[4];
-   int   TypTab[ GmfMaxTyp ], SizTab[ GmfMaxTyp ];
-   void *BegTab[ GmfMaxTyp ], *EndTab[ GmfMaxTyp ];
+   //int   TypTab[ GmfMaxTyp ], SizTab[ GmfMaxTyp ];
+   //void *BegTab[ GmfMaxTyp ], *EndTab[ GmfMaxTyp ];
    int64_t InpMsh, OutMsh;
    float (*VerTab)[3];
 
@@ -39,13 +39,13 @@ int main()
       exit(1);
 
    // Read the number of vertices and allocate memory
-   NmbVer = GmfStatKwd(InpMsh, GmfVertices);
+   NmbVer = (int)GmfStatKwd(InpMsh, GmfVertices);
    printf("InpMsh : nmb vertices = %d\n", NmbVer);
    VerTab = malloc((NmbVer+1) * 3 * sizeof(float));
    RefTab = malloc((NmbVer+1) * sizeof(int));
 
    // Read the number of quads and allocate memory
-   NmbQad = GmfStatKwd(InpMsh, GmfQuadrilaterals);
+   NmbQad = (int)GmfStatKwd(InpMsh, GmfQuadrilaterals);
    printf("InpMsh : nmb quads = %d\n", NmbQad);
    QadTab = malloc((NmbQad+1) * 5 * sizeof(int));
    TriTab = malloc((NmbQad+1) * 2 * 4 * sizeof(int));
