@@ -9,7 +9,7 @@
 /* Description:         set of helpers functions useful for the libMeshb      */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 24 2021                                           */
-/* Last modification:   mar 25 2021                                           */
+/* Last modification:   aug 05 2021                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -60,12 +60,12 @@ PolMshSct *GmfAllocatePolyhedralStructure(int64_t MshIdx)
       return (NULL);
 
    // Get all the polyhedra related field's sizes
-   NmbBndHdr = GmfStatKwd(MshIdx, GmfBoundaryPolygonHeaders);
-   NmbBndVer = GmfStatKwd(MshIdx, GmfBoundaryPolygonVertices);
-   NmbInrHdr = GmfStatKwd(MshIdx, GmfInnerPolygonHeaders);
-   NmbInrVer = GmfStatKwd(MshIdx, GmfInnerPolygonVertices);
-   NmbVolHdr = GmfStatKwd(MshIdx, GmfPolyhedraHeaders);
-   NmbVolFac = GmfStatKwd(MshIdx, GmfPolyhedraFaces);
+   NmbBndHdr = (itg)GmfStatKwd(MshIdx, GmfBoundaryPolygonHeaders);
+   NmbBndVer = (itg)GmfStatKwd(MshIdx, GmfBoundaryPolygonVertices);
+   NmbInrHdr = (itg)GmfStatKwd(MshIdx, GmfInnerPolygonHeaders);
+   NmbInrVer = (itg)GmfStatKwd(MshIdx, GmfInnerPolygonVertices);
+   NmbVolHdr = (itg)GmfStatKwd(MshIdx, GmfPolyhedraHeaders);
+   NmbVolFac = (itg)GmfStatKwd(MshIdx, GmfPolyhedraFaces);
 
    // There are surface polygons
    if (NmbBndHdr && NmbBndVer)

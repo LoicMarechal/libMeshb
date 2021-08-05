@@ -9,7 +9,7 @@
 /* Description:         convert mesh file from/to ascii/bin                   */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 08 2004                                           */
-/* Last modification:   aug 04 2021                                           */
+/* Last modification:   aug 05 2021                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -78,18 +78,16 @@ int GetKwdIdx(char *KwdStr)
 
 int main(int ArgCnt, char **ArgVec)
 {
-   int i, j, NmbTyp, SolSiz, TypTab[ GmfMaxTyp ], FilVer=0, InpVer, OutVer=1;
-   int dim, MaxRef, ArgIdx = 1, NmbGrp = 0;
-   int TokTab2[ MaxTok ], pos, deg, NmbNod;
-   int64_t NmbLin, InpIdx, OutIdx;
-   char *InpNam, *OutNam, *PtrArg;
-   char *FlgTab;
-   GrpSct GrpTab[ MaxGrp ], *grp;
+   int      NmbTyp, SolSiz, TypTab[ GmfMaxTyp ], FilVer = 0, InpVer, OutVer = 1;
+   int      i, j, dim, MaxRef, ArgIdx = 1, NmbGrp = 0, pos, deg, NmbNod;
+   int64_t  NmbLin, InpIdx, OutIdx;
+   char     *InpNam, *OutNam, *PtrArg, *FlgTab;
+   GrpSct   GrpTab[ MaxGrp ], *grp;
 #ifndef WIN32
-   float f;
-   double d;
-   int NmbTok, NmbTok2, TokTab[ MaxTok ];
-   char *MshNam[ StrSiz ], *TmpStr, *TmpStr2, *TmpStr3;
+   float    f;
+   double   d;
+   int      NmbTok, NmbTok2, TokTab[ MaxTok ], TokTab2[ MaxTok ];
+   char     *MshNam[ StrSiz ], *TmpStr, *TmpStr2, *TmpStr3;
 #endif
 
    if(ArgCnt == 1)
