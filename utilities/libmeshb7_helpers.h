@@ -9,9 +9,14 @@
 /* Description:         libmeshb's helper functions' headers                  */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 24 2021                                           */
-/* Last modification:   mar 24 2021                                           */
+/* Last modification:   aug 13 2021                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
+
+
+#ifndef LIBMESHB7_HELPERS_H
+#define LIBMESHB7_HELPERS_H
+
 
 /*----------------------------------------------------------------------------*/
 /* Defines                                                                    */
@@ -41,17 +46,27 @@ typedef struct
    itg NmbBndHdr, (*BndHdrTab)[2], NmbBndVer, *BndVerTab;
    itg NmbInrHdr, (*InrHdrTab)[2], NmbInrVer, *InrVerTab;
    itg NmbVolHdr, (*VolHdrTab)[2], NmbVolFac, *VolFacTab;
-} PolMshSct;
+}PolMshSct;
 
 /*----------------------------------------------------------------------------*/
 /* Prototypes of public procedures                                            */
 /*----------------------------------------------------------------------------*/
 
-PolMshSct *GmfAllocatePolyhedralStructure(int64_t);
-void GmfFreePolyghedralStructure(PolMshSct *);
-int GmfReadBoundaryPolygons(PolMshSct *);
-int GmfReadPolyhedra(PolMshSct *);
-itg GmfGetBoundaryPolygon(PolMshSct *, itg, itg *);
-itg GmfGetInnerPolygon(PolMshSct *, itg, itg *);
-itg GmfGetPolyhedron(PolMshSct *, itg, itg *);
-itg GmfTesselatePolygon(PolMshSct *, itg, itg (*)[3], itg (*)[3]);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern PolMshSct *GmfAllocatePolyhedralStructure(int64_t);
+extern void       GmfFreePolyghedralStructure   (PolMshSct *);
+extern int        GmfReadBoundaryPolygons       (PolMshSct *);
+extern int        GmfReadPolyhedra              (PolMshSct *);
+extern itg        GmfGetBoundaryPolygon         (PolMshSct *, itg, itg *);
+extern itg        GmfGetInnerPolygon            (PolMshSct *, itg, itg *);
+extern itg        GmfGetPolyhedron              (PolMshSct *, itg, itg *);
+extern itg        GmfTesselatePolygon           (PolMshSct *, itg, itg (*)[3], itg (*)[3]);
+
+#ifdef __cplusplus
+} // end extern "C"
+#endif
+
+#endif
