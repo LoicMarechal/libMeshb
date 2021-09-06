@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  aug 04 2021                                          */
+/*   Last modification:  sep 06 2021                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -2356,6 +2356,27 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
 
          if(flg)
             kwd->OrdTab[j] = i;
+      }
+   }
+
+   // Check the ordering consistency
+   for(i=0;i<NmbNod;i++)
+   {
+      flg = 0;
+
+      for(j=0;j<NmbNod;j++)
+         if(kwd->OrdTab[j] == i)
+         {
+            flg = 1;
+            break;
+         }
+
+      if(!flg)
+      {
+         for(j=0;j<NmbNod;j++)
+            kwd->OrdTab[j] = j;
+
+         return(0);
       }
    }
 
