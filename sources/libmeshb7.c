@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.60                               */
+/*                               LIBMESHB V7.61                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  sep 06 2021                                          */
+/*   Last modification:  sep 27 2021                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -461,6 +461,15 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"InnerPolygonVertices",                     "i", "i"},
    {"PolyhedraHeaders",                         "i", "ii"},
    {"PolyhedraFaces",                           "i", "i"},
+   {"Domains",                                  "",  "ii"},
+   {"VerticesGID",                              "i", "iii"},
+   {"EdgesGID",                                 "i", "iii"},
+   {"TrianglesGID",                             "i", "iii"},
+   {"QuadrilateralsGID",                        "i", "iii"},
+   {"TetrahedraGID",                            "i", "iii"},
+   {"PyramidsGID",                              "i", "iii"},
+   {"PrismsGID",                                "i", "iii"},
+   {"HexahedraGID",                             "i", "iii"},
 };
 
 #ifdef TRANSMESH

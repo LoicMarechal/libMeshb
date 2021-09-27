@@ -9,7 +9,7 @@
 /* Description:         set of helpers functions useful for the libMeshb      */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 24 2021                                           */
-/* Last modification:   aug 05 2021                                           */
+/* Last modification:   sep 16 2021                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -274,7 +274,13 @@ itg GmfGetBoundaryPolygon(PolMshSct *pol, itg EleIdx, itg *UsrTab)
 
 itg GmfGetInnerPolygon(PolMshSct *pol, itg EleIdx, itg *UsrTab)
 {
-   itg i, BegIdx, EndIdx;
+   itg i, BegIdx, EndIdx, ord = 1;
+
+   if(EleIdx < 0)
+   {
+      EleIdx = -EleIdx;
+      ord = -1;
+   }
 
    if (!pol || (EleIdx <= 0) || (EleIdx > pol->NmbInrHdr))
       return (0);
@@ -288,8 +294,12 @@ itg GmfGetInnerPolygon(PolMshSct *pol, itg EleIdx, itg *UsrTab)
 
    EndIdx = MIN(EndIdx, BegIdx + 256);
 
-   for (i = BegIdx; i <= EndIdx; i++)
-      UsrTab[i - BegIdx] = pol->InrVerTab[i];
+   if(ord == 1)
+      for (i = BegIdx; i <= EndIdx; i++)
+         UsrTab[i - BegIdx] = pol->InrVerTab[i];
+   else
+      for (i = EndIdx; i >= BegIdx; i--)
+         UsrTab[EndIdx - i] = pol->InrVerTab[i];
 
    return (EndIdx - BegIdx + 1);
 }

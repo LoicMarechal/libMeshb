@@ -1,14 +1,17 @@
 ## HIGH PRIORITY
 
-### Handle arbitrary degree high-order elements
-- Setup a keyword to store Pk elements.
-- Give along a routine to convert to and from well-known high-order numberings.
+### Develop a helper to build the list of Ghost elements
+- Read and allocate the required ElementGID, then build the list of elements that do not belong to the local domain and return it to the caller.
 
 ### Distributed parallel write
 - Open a mesh file in writing mode but only create the skeleton of the mesh structure to enable further concurrent write access.
 - Open an existing mesh file in writing mode and enable concurrent block write thanks to the existing structure.
 
 ## STANDARD PRIORITY
+
+### Handle arbitrary degree high-order elements
+- Setup a keyword to store Pk elements.
+- Give along a routine to convert to and from well-known high-order numberings.
 
 ### Handle arbitrary degree polygons and polyhedra
 - Add a helper that cuts a polyhedron through a plane and generates the intersection's triangulated mesh in an STL-like format.
