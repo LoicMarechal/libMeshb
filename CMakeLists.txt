@@ -9,12 +9,13 @@ set (libMeshb_VERSION_MAJOR 7)
 set (libMeshb_VERSION_MINOR 54)
 project(libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
 
-option(WITH_AIO   "Use Unix low-level and asynchronous I/O for higher speed"       OFF)
-option(WITH_CPACK "Enable cpack target to generate a zip file containing binaries" OFF)
+option(WITH_GMF_AIO     "Use Unix low-level and asynchronous I/O for higher speed"       OFF)
+option(WITH_GMF_CPACK   "Enable cpack target to generate a zip file containing binaries" OFF)
+option(WITH_GMF_FORTRAN "Build the Fortran API"                                          ON )
 
 include (CheckLanguage)
 check_language (Fortran)
-if(CMAKE_Fortran_COMPILER)
+if(CMAKE_Fortran_COMPILER AND WITH_GMF_FORTRAN)
   enable_language(Fortran)
   set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
   if (CMAKE_Fortran_COMPILER_ID STREQUAL GNU)
@@ -44,8 +45,8 @@ endif ()
 
 list (APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}")
 
-if(WITH_AIO)
-   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DWITH_AIO")
+if(WITH_GMF_AIO)
+   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DWITH_GMF_AIO")
    IF(${CMAKE_SYSTEM_NAME} MATCHES Linux)
       set(AIO_LIBRARIES rt)
    endif()
@@ -70,7 +71,7 @@ install (DIRECTORY sample_meshes DESTINATION share/libMeshb)
 # SET PACKAGE AND DEPLOYMENT VARIABLES
 ######################################
 
-if (WITH_CPACK)
+if (WITH_GMF_CPACK)
    include (InstallRequiredSystemLibraries)
    set (CPACK_GENERATOR TXZ)
    set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/copyright.txt)
@@ -110,6 +111,7 @@ install(FILES
 ##################################
 
 message("-- Build mode            : " ${CMAKE_BUILD_TYPE})
-message("-- cpack target enabled  : " ${WITH_CPACK})
-message("-- Asynchronous IO       : " ${WITH_AIO})
+message("-- cpack target enabled  : " ${WITH_GMF_CPACK})
+message("-- Asynchronous IO       : " ${WITH_GMF_AIO})
+message("-- Fortran API           : " ${WITH_GMF_FORTRAN})
 message("-- Install directory     : " ${CMAKE_INSTALL_PREFIX})

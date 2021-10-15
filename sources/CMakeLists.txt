@@ -5,7 +5,9 @@
 
 add_library(Meshb.7 libmeshb7.c)
 install (FILES libmeshb7.h DESTINATION include COMPONENT headers)
-target_include_directories(Meshb.7 PUBLIC $<INSTALL_INTERFACE:include>)
+target_include_directories(
+  Meshb.7 PUBLIC $<INSTALL_INTERFACE:include>
+                 $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/sources>)
 install (TARGETS Meshb.7 EXPORT meshb-target DESTINATION lib COMPONENT libraries)
 install (EXPORT meshb-target NAMESPACE ${PROJECT_NAME}::
          DESTINATION lib/cmake/${PROJECT_NAME})
@@ -18,7 +20,7 @@ export  (PACKAGE libMeshb)
 # BUILD THE LIBRARY WITH FORTRAN API
 ####################################
 
-if (CMAKE_Fortran_COMPILER)
+if (CMAKE_Fortran_COMPILER AND WITH_GMF_FORTRAN)
    file(GLOB_RECURSE SOURCES *.[chfF] *.[fF]90)
    add_library(Meshbf.7 STATIC ${SOURCES})
    set_target_properties(Meshbf.7 PROPERTIES COMPILE_FLAGS "-DF77API")

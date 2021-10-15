@@ -467,7 +467,7 @@ Meshindex = GmfOpenMesh("newfile.meshb", GmfWrite, 2, 3 );
 \normalfont
 
 \paragraph{Asynchronous Input Output:}
-to get best performance out of flash storage SSD (more than a GB/s), the library needs to access the filesystem through low-level functions and perform the reading and processing tasks in parallel using asynchronous I/O. To do so, you need to compile the library with the {\tt -DWITH\_AIO} option and link the final executable with the {\tt -lrt} library under Linux.
+to get best performance out of flash storage SSD (more than a GB/s), the library needs to access the filesystem through low-level functions and perform the reading and processing tasks in parallel using asynchronous I/O. To do so, you need to compile the library with the {\tt -DWITH\_GMF\_AIO} option and link the final executable with the {\tt -lrt} library under Linux.
 
 
 \subsection{GmfCloseMesh}
