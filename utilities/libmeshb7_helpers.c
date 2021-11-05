@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                            LIBMESHB-HELPERS V0.9                           */
+/*                            LIBMESHB-HELPERS V0.91                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/* Description:         set of helpers functions useful for the libMeshb      */
+/* Description:         Set of helpers functions useful for the libMeshb      */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 24 2021                                           */
-/* Last modification:   sep 16 2021                                           */
+/* Last modification:   nov 05 2021                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -376,4 +376,38 @@ itg GmfTesselatePolygon(PolMshSct *pol, itg EleIdx, itg (*Tri)[3], itg (*VisEdg)
    // }
 
    return NmbTri;
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* Return the percentage of cache hit while doing element to node accesses    */
+/*----------------------------------------------------------------------------*/
+
+float GmfEvaluateNumbering(int NmbEle, int NmbNod, int *PtrEle, int *PtrEnd)
+{
+   int i, j, EleStp, HshTab[256] = {0}, NmbHit = 0;
+
+   if(!NmbEle || !NmbNod || !PtrEle || !PtrEnd || (PtrEnd < PtrEle))
+      return(0.);
+
+   // Compute the user data structure stride between two lines of elements
+   EleStp = (NmbEle > 1) ? (PtrEnd - PtrEle) / (NmbEle - 1) : 0;
+
+   // Simulate the search and insert in a 256 entries hash table
+   for(i=0;i<NmbEle;i++)
+   {
+      // Get the next element's pointer on its nodes
+      PtrEle += EleStp;
+
+      // Search for each node in the hash table:
+      // if its found, increase the hit counter and insert it otherwise
+      for(j=0;j<NmbNod;j++)
+         if(HshTab[ PtrEle[j] & 0xff ] == PtrEle[j])
+            NmbHit++;
+         else
+            HshTab[ PtrEle[j] & 0xff ] = PtrEle[j];
+   }
+
+   // Return the percentage of cache hits
+   return( (100. * NmbHit) / (NmbEle * NmbNod) );
 }
