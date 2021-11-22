@@ -1141,7 +1141,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 
 int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...)
 {
-   int         i, pos, *IntBuf;
+   int         i, pos, *IntBuf, err;
    int64_t     *LngBuf;
    float       *FltSolTab, *FltBuf;
    double      *DblSolTab, *DblBuf;
