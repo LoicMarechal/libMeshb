@@ -1151,6 +1151,16 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
 
    if( ( VALF77(KwdCod) < 1) || ( VALF77(KwdCod) > GmfMaxKwd) )
       return(0);
+ 
+   // Save the current stack environment for longjmp
+   // This is needed in RecBlk()
+   if( (err = setjmp(msh->err)) != 0)
+   {
+#ifdef GMFDEBUG
+      printf("libMeshb : mesh %p : error %d\n", msh, err);
+#endif
+      return(0);
+   }
 
    // Start decoding the arguments
    va_start(VarArg, KwdCod);
