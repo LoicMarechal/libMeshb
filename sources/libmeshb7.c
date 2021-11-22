@@ -1154,6 +1154,7 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
  
    // Save the current stack environment for longjmp
    // This is needed in RecBlk()
+   int err;
    if( (err = setjmp(msh->err)) != 0)
    {
 #ifdef GMFDEBUG
