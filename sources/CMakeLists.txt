@@ -4,7 +4,7 @@
 ##########################
 
 add_library(Meshb.7 libmeshb7.c ../utilities/libmeshb7_helpers.c)
-install (FILES libmeshb7.h ../utilities/libmeshb7_helpers.c DESTINATION include COMPONENT headers)
+install (FILES libmeshb7.h ../utilities/libmeshb7_helpers.h DESTINATION include COMPONENT headers)
 target_include_directories(
   Meshb.7 PUBLIC $<INSTALL_INTERFACE:include>
                  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/sources>)
