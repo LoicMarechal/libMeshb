@@ -1,7 +1,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef _WIN32
+#include <sys/timeb.h>
+#else
 #include <sys/time.h>
+#endif
+
 #include <libmeshb7.h>
 
 
