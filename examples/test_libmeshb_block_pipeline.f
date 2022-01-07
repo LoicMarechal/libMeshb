@@ -1,5 +1,5 @@
 
-c     libmeshb example : transform a quadrilateral mesh into a triangular one
+c     libmeshb example: transform a quadrilateral mesh into a triangular one
 c     using fast block transfer and pipelined post processing
 
       include 'libmeshb7.ins'
@@ -39,14 +39,15 @@ c     Check memory bounds
 
 c     Read the vertices
       res = gmfgetblock(InpMsh, GmfVertices, 1_8, NmbVer,
-     +                  movver, 1, VerTab,
+     +                  0, %val(0), movver, 1, VerTab,
      +                  GmfDouble, VerTab(1,1), VerTab(1,2),
      +                  GmfDouble, VerTab(2,1), VerTab(2,2),
      +                  GmfDouble, VerTab(3,1), VerTab(3,2),
      +                  GmfInt,    RefTab(1),   RefTab(2))
 
 c     Read the quads
-      res = gmfgetblock(InpMsh, GmfQuadrilaterals, 1_8, NmbQad,0,
+      res = gmfgetblock(InpMsh, GmfQuadrilaterals, 1_8, NmbQad,
+     +                  0, %val(0), %val(0),
      +                  GmfInt, QadTab(1,1), QadTab(1,2),
      +                  GmfInt, QadTab(2,1), QadTab(2,2),
      +                  GmfInt, QadTab(3,1), QadTab(3,2),
@@ -79,7 +80,7 @@ c     Then write them down
 c     Write the triangles
       res = gmfsetkwd(OutMsh, GmfTriangles, 2*NmbQad, 0, 0)
       res = gmfsetblock(OutMsh, GmfTriangles, 1_8, 2*NmbQad,
-     +                  0,%val(0),%val(0),
+     +                  0,%val(0),
      +                  qad2tri, 2, QadTab, TriTab,
      +                  GmfInt, TriTab(1,1), TriTab(1,2),
      +                  GmfInt, TriTab(2,1), TriTab(2,2),

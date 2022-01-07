@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.61                               */
+/*                               LIBMESHB V7.62                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  sep 27 2021                                          */
+/*   Last modification:  jan 07 2022                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -655,7 +655,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 
          do
          {
-            res = fscanf(msh->hdl, "%s", str);
+            res = fscanf(msh->hdl, "%100s", str);
          }while( (res != EOF) && strcmp(str, "MeshVersionFormatted") );
 
          if(res == EOF)
@@ -668,7 +668,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 
          do
          {
-            res = fscanf(msh->hdl, "%s", str);
+            res = fscanf(msh->hdl, "%100s", str);
          }while( (res != EOF) && strcmp(str, "Dimension") );
 
          if(res == EOF)
@@ -2539,7 +2539,7 @@ static int ScaKwdTab(GmfMshSct *msh)
    if(msh->typ & Asc)
    {
       // Scan each string in the file until the end
-      while(fscanf(msh->hdl, "%s", str) != EOF)
+      while(fscanf(msh->hdl, "%100s", str) != EOF)
       {
          // Fast test in order to reject quickly the numeric values
          if(isalpha(str[0]))
