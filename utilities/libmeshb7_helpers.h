@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                            LIBMESHB-HELPERS V0.9                           */
+/*                            LIBMESHB-HELPERS V0.91                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /* Description:         libmeshb's helper functions' headers                  */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 24 2021                                           */
-/* Last modification:   aug 13 2021                                           */
+/* Last modification:   nov 05 2021                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -64,6 +64,7 @@ extern itg        GmfGetBoundaryPolygon         (PolMshSct *, itg, itg *);
 extern itg        GmfGetInnerPolygon            (PolMshSct *, itg, itg *);
 extern itg        GmfGetPolyhedron              (PolMshSct *, itg, itg *);
 extern itg        GmfTesselatePolygon           (PolMshSct *, itg, itg (*)[3], itg (*)[3]);
+extern float      GmfEvaluateNumbering          (int, int, int *, int *);
 
 #ifdef __cplusplus
 } // end extern "C"

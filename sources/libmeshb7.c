@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.60                               */
+/*                               LIBMESHB V7.62                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  aug 04 2021                                          */
+/*   Last modification:  jan 07 2022                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -128,7 +128,7 @@
 
 // AIO: hardware or software mockup are both encapsulated into my_aio functions
 
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
 
 #include <aio.h>
 
@@ -461,6 +461,15 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"InnerPolygonVertices",                     "i", "i"},
    {"PolyhedraHeaders",                         "i", "ii"},
    {"PolyhedraFaces",                           "i", "i"},
+   {"Domains",                                  "",  "ii"},
+   {"VerticesGID",                              "i", "iii"},
+   {"EdgesGID",                                 "i", "iii"},
+   {"TrianglesGID",                             "i", "iii"},
+   {"QuadrilateralsGID",                        "i", "iii"},
+   {"TetrahedraGID",                            "i", "iii"},
+   {"PyramidsGID",                              "i", "iii"},
+   {"PrismsGID",                                "i", "iii"},
+   {"HexahedraGID",                             "i", "iii"},
 };
 
 #ifdef TRANSMESH
@@ -599,7 +608,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       if(msh->typ & Bin)
       {
          // Create the name string and open the file
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
          // [Bruno] added binary flag (necessary under Windows)
          msh->FilDes = open(msh->FilNam, OPEN_READ_FLAGS, OPEN_READ_MODE);
 
@@ -646,7 +655,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 
          do
          {
-            res = fscanf(msh->hdl, "%s", str);
+            res = fscanf(msh->hdl, "%100s", str);
          }while( (res != EOF) && strcmp(str, "MeshVersionFormatted") );
 
          if(res == EOF)
@@ -659,7 +668,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 
          do
          {
-            res = fscanf(msh->hdl, "%s", str);
+            res = fscanf(msh->hdl, "%100s", str);
          }while( (res != EOF) && strcmp(str, "Dimension") );
 
          if(res == EOF)
@@ -728,7 +737,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
           * with a call to open(), because Windows needs the
           * binary flag to be specified.
           */
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
          msh->FilDes = open(msh->FilNam, OPEN_WRITE_FLAGS, OPEN_WRITE_MODE);
 
          if(msh->FilDes <= 0)
@@ -794,7 +803,7 @@ int GmfCloseMesh(int64_t MshIdx)
 
    // Close the file and free the mesh structure
    if(msh->typ & Bin)
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
       close(msh->FilDes);
 #else
       fclose(msh->hdl);
@@ -1162,6 +1171,16 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
       return(0);
    }
 
+   // Save the current stack environment for longjmp
+   // This is needed in RecBlk()
+   if( (err = setjmp(msh->err)) != 0)
+   {
+#ifdef GMFDEBUG
+      printf("libMeshb : mesh %p : error %d\n", msh, err);
+#endif
+      return(0);
+   }
+
    // Start decoding the arguments
    va_start(VarArg, KwdCod);
 
@@ -1386,7 +1405,7 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
          if(InpMsh->typ & Asc)
             safe_fgets(s, WrdSiz * FilStrSiz, InpMsh->hdl, InpMsh->err);
          else
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
             read(InpMsh->FilDes, s, WrdSiz * FilStrSiz);
 #else
             safe_fread(s, WrdSiz, FilStrSiz, InpMsh->hdl, InpMsh->err);
@@ -1394,7 +1413,7 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
          if(OutMsh->typ & Asc)
             fprintf(OutMsh->hdl, "%s ", s);
          else
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
             write(OutMsh->FilDes, s, WrdSiz * FilStrSiz);
 #else
             fwrite(s, WrdSiz, FilStrSiz, OutMsh->hdl);
@@ -1664,7 +1683,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
       memset(&aio, 0, sizeof(struct aiocb));
       FilBuf = BckBuf;
       aio.aio_buf = BckBuf;
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
       aio.aio_fildes = msh->FilDes;
 #else
       aio.aio_fildes = msh->hdl;
@@ -1726,7 +1745,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             {
                printf("block      = %zd / %zd\n", b+1, NmbBlk+1);
                printf("size       = "INT64_T_FMT" lines\n", BlkNmbLin);
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
                printf("aio_fildes = %d\n",aio.aio_fildes);
 #else
                printf("aio_fildes = %p\n",aio.aio_fildes);
@@ -2114,7 +2133,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
       // Setup the asynchronous parameters
       memset(&aio, 0, sizeof(struct aiocb));
       FilBuf = BckBuf;
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
       aio.aio_fildes = msh->FilDes;
 #else
       aio.aio_fildes = msh->hdl;
@@ -2134,7 +2153,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             
             if(my_aio_write(&aio) == -1)
             {
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
                printf("aio_fildes = %d\n",aio.aio_fildes);
 #else
                printf("aio_fildes = %p\n",aio.aio_fildes);
@@ -2369,6 +2388,27 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
       }
    }
 
+   // Check the ordering consistency
+   for(i=0;i<NmbNod;i++)
+   {
+      flg = 0;
+
+      for(j=0;j<NmbNod;j++)
+         if(kwd->OrdTab[j] == i)
+         {
+            flg = 1;
+            break;
+         }
+
+      if(!flg)
+      {
+         for(j=0;j<NmbNod;j++)
+            kwd->OrdTab[j] = j;
+
+         return(0);
+      }
+   }
+
    return(1);
 }
 
@@ -2509,7 +2549,7 @@ static int ScaKwdTab(GmfMshSct *msh)
    if(msh->typ & Asc)
    {
       // Scan each string in the file until the end
-      while(fscanf(msh->hdl, "%s", str) != EOF)
+      while(fscanf(msh->hdl, "%100s", str) != EOF)
       {
          // Fast test in order to reject quickly the numeric values
          if(isalpha(str[0]))
@@ -2729,7 +2769,7 @@ static void ExpFmt(GmfMshSct *msh, int KwdCod)
 
 static void ScaWrd(GmfMshSct *msh, void *ptr)
 {
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
    if(read(msh->FilDes, ptr, WrdSiz) != WrdSiz)
 #else
    if(fread(ptr, WrdSiz, 1, msh->hdl) != 1)
@@ -2747,7 +2787,7 @@ static void ScaWrd(GmfMshSct *msh, void *ptr)
 
 static void ScaDblWrd(GmfMshSct *msh, void *ptr)
 {
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
    if(read(msh->FilDes, ptr, WrdSiz * 2) != WrdSiz * 2)
 #else
    if( fread(ptr, WrdSiz, 2, msh->hdl) != 2 )
@@ -2787,7 +2827,7 @@ static int64_t GetPos(GmfMshSct *msh)
 static void RecWrd(GmfMshSct *msh, const void *wrd)
 {
    // [Bruno] added error control
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
    if(write(msh->FilDes, wrd, WrdSiz) != WrdSiz)
 #else
    if(fwrite(wrd, WrdSiz, 1, msh->hdl) != 1)
@@ -2803,7 +2843,7 @@ static void RecWrd(GmfMshSct *msh, const void *wrd)
 static void RecDblWrd(GmfMshSct *msh, const void *wrd)
 {
    // [Bruno] added error control
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
    if(write(msh->FilDes, wrd, WrdSiz * 2) != WrdSiz*2)
 #else
    if(fwrite(wrd, WrdSiz, 2, msh->hdl) != 2)
@@ -2841,14 +2881,14 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
        * the cache size is 10000 words, this is much much smaller than 4Gb
        * so there is probably no problem.
        */
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
       if(write(msh->FilDes, msh->blk, (int)msh->pos) != (ssize_t)msh->pos)
 #else      
       if(fwrite(msh->blk, 1, (size_t)msh->pos, msh->hdl) != msh->pos)
 #endif      
          longjmp(msh->err, -30);
 #else      
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
       if(write(msh->FilDes, msh->blk, msh->pos) != (ssize_t)msh->pos)
 #else      
       if(fwrite(msh->blk, 1, msh->pos, msh->hdl) != msh->pos)
@@ -2902,7 +2942,7 @@ static void SwpWrd(char *wrd, int siz)
 
 static int SetFilPos(GmfMshSct *msh, int64_t pos)
 {
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
    if(msh->typ & Bin)
       return((lseek(msh->FilDes, (off_t)pos, 0) != -1));
    else
@@ -2919,7 +2959,7 @@ static int SetFilPos(GmfMshSct *msh, int64_t pos)
 
 static int64_t GetFilPos(GmfMshSct *msh)
 {
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
    if(msh->typ & Bin)
       return(lseek(msh->FilDes, 0, 1));
    else
@@ -2940,7 +2980,7 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 
    if(msh->typ & Bin)
    {
-#ifdef WITH_AIO
+#ifdef WITH_GMF_AIO
       CurPos = lseek(msh->FilDes, 0, 1);
       EndPos = lseek(msh->FilDes, 0, 2);
       lseek(msh->FilDes, (off_t)CurPos, 0);

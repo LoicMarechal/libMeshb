@@ -87,3 +87,12 @@ Synopsis: extract a polyhedron's face list from the main global table and copy t
 
 - input: a pointer to an allocated PolMshSct structure, the index of a polyhedral element, a pointer to a table of **itg** that you have previously allocated with at least 256 entries.
 - output: the polyhedron's number of faces is the function's returned value (0 in case of failure) and the provided table is filled with the polyhedron's face indices.
+
+### GmlEvaluateNumbering
+Synopsis: Evaluate the quality of a mesh elements and nodes numbering. Usually, Delaunay meshes are quite bad (quality < 50) and need renumbering, octree or advancing front meshes are tolerable (from 50 to 90), and Hilbert renumbered meshes have a quality greater than 90.
+
+-input: the number of elements.
+-input: the number of nodes that make-up this kind of element (edge = 2, tetrahedron = 4).
+-input pointer to the first node of the first element.
+-input pointer to the first node of the last element.
+-output: a quality factor that ranges from 0 (bad) to 100 (perfect).
