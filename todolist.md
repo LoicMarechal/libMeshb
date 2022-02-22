@@ -53,12 +53,13 @@ for example
 - Setup a polyhedron keyword that provides an arbitrary degree and number of oriented polygons.
 - Setup a boundary polygon keyword that lists the boundary faces among the ensemble of volume polygons.
 - Create a separate helper file to be optionally compiled along the libMeshb.
-- Add a helper to allocate and read the boundary polygons.
-- Add a helper to allocate and read the polyhedra and inner polygons.
-- Add a helper that returns a polygon's degree and nodes list.
-- Add a helper that returns a polyhedron's degree and face indices list.
+- Added a helper to allocate and read the boundary polygons.
+- Added a helper to allocate and read the polyhedra and inner polygons.
+- Added a helper that returns a polygon's degree and nodes list.
+- Added a helper that returns a polyhedron's degree and face indices list.
 - Write the helper's documentation.
 - Added an example that converts and fuses all surfaces and volume elements to polygons and polyhedra.
-- Add a helper to tesselate a polygon into a set of triangles made of nodes and edge visibility flags.
-- Add a set of keywords for each kind of element that stores the number of vertices and their barycentric coordinates.
-- Add a section about the AIO mode (Asynchronous Input Output).
+- Added a helper to tesselate a polygon into a set of triangles made of nodes and edge visibility flags.
+- Added a set of keywords for each kind of element that stores the number of vertices and their barycentric coordinates.
+- Added a section about the AIO mode (Asynchronous Input Output).
+- Added a helper that evaluates the quality of a mesh numbering in terms of efficient cache reuse and inner concurrency.
