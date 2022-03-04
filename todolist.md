@@ -4,8 +4,8 @@
 - Read and allocate the required ElementGID, then build the list of elements that do not belong to the local domain and return it to the caller.
 
 ### Distributed parallel write
-- Open a mesh file in writing mode but only create the skeleton of the mesh structure to enable further concurrent write access.
-- Open an existing mesh file in writing mode and enable concurrent block write thanks to the existing structure.
+- Open a mesh file in write mode but only create the skeleton of the mesh structure to enable further concurrent write access.
+- Open an existing mesh file in write mode and enable concurrent block writes, thanks to the existing file structure.
 
 ## STANDARD PRIORITY
 
@@ -29,15 +29,17 @@
 An easy one.
 
 ### Add IHOSol* + DHOSol* for each element kinds,
-for example
+For example:
+
 "IHOSolAtVertices",                           "i", "ii" // ii = degree + index in DSol
+
 "DHOSolAtVertices",                           "i", "hr" // High Order solution
 
 ### Topological operations
--Add a helper to build the list of inner or surface triangles from tetrahedra
--Add a helper to build the list of unique edges from tetrahedra
--Add a helper to get the face neighborhood between tets and triangles
--Add a helper to get an edge's shell of triangles or tets
+- Add a helper to build the list of inner or surface triangles from tetrahedra
+- Add a helper to build the list of unique edges from tetrahedra
+- Add a helper to get the face neighborhood between tets and triangles
+- Add a helper to get an edge's shell of triangles or tets
 
 ### Documentation
 

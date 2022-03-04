@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.62                               */
+/*                               LIBMESHB V7.63                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jan 07 2022                                          */
+/*   Last modification:  mar 04 2022                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -1520,7 +1520,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
 #endif
 
    if( (kwd->typ != RegKwd) && (kwd->typ != SolKwd) )
-      return(0);
+      longjmp(msh->err, -36);
 
    // Read the first data type to select between list and table mode
    typ = VALF77(va_arg(VarArg, TYPF77(int)));
@@ -1664,10 +1664,10 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    {
       // Allocate both front and back buffers
       if(!(BckBuf = malloc(BufSiz * LinSiz)))
-         return(0);
+         longjmp(msh->err, -37);
 
       if(!(FrtBuf = malloc(BufSiz * LinSiz)))
-         return(0);
+         longjmp(msh->err, -38);
 
       // Setup the ansynchonous parameters
       memset(&aio, 0, sizeof(struct aiocb));
@@ -1696,12 +1696,12 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
 
             if (err != 0) {
               printf (" Error at aio_error() : %s\n", strerror (err));
-              exit(1);
+              longjmp(msh->err, -39);
             }
 
             if (ret != aio.aio_nbytes) {
               printf(" Error at aio_return()\n");
-              exit(1);
+              longjmp(msh->err, -40);
             }
 
             // Increment the reading position
@@ -1744,7 +1744,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
                printf("aio_offset = " INT64_T_FMT "\n",(int64_t)aio.aio_offset);
                printf("aio_nbytes = " INT64_T_FMT "\n",(int64_t)aio.aio_nbytes);
                printf("errno      = %d\n",errno);
-               exit(1);
+               longjmp(msh->err, -41);
             }
          }
 
@@ -1966,7 +1966,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
 #endif
 
    if( (kwd->typ != RegKwd) && (kwd->typ != SolKwd) )
-      return(0);
+      longjmp(msh->err, -42);
 
    // Read the first data type to select between list and table mode
    typ = VALF77(va_arg(VarArg, TYPF77(int)));
@@ -2115,10 +2115,10 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    {
       // Allocate the front and back buffers
       if(!(BckBuf = malloc(BufSiz * LinSiz)))
-         return(0);
+         longjmp(msh->err, -43);
 
       if(!(FrtBuf = malloc(BufSiz * LinSiz)))
-         return(0);
+         longjmp(msh->err, -44);
 
       // Setup the asynchronous parameters
       memset(&aio, 0, sizeof(struct aiocb));
@@ -2152,7 +2152,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
                printf("aio_offset = " INT64_T_FMT "\n",(int64_t)aio.aio_offset);
                printf("aio_nbytes = " INT64_T_FMT "\n",(int64_t)aio.aio_nbytes);
                printf("errno      = %d\n",errno);
-               exit(1);
+               longjmp(msh->err, -45);
             }
          }
 
@@ -2267,12 +2267,12 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
 
             if (err != 0) {
               printf (" Error at aio_error() : %s\n", strerror (err));
-              exit(1);
+              longjmp(msh->err, -46);
             }
 
             if (ret != aio.aio_nbytes) {
               printf(" Error at aio_return()\n");
-              exit(1);
+              longjmp(msh->err, -47);
             }
 
             // Move the write position
