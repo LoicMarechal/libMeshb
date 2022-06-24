@@ -25,9 +25,9 @@
 /* Defines                                                                    */
 /*----------------------------------------------------------------------------*/
 
-#define MESHB_VERSION_MAJOR "7"
-#define MESHB_VERSION_MINOR "62"
-#define MESHB_VERSION_PATCH "0"
+#define MESHB_VERSION_MAJOR 7
+#define MESHB_VERSION_MINOR 62
+#define MESHB_VERSION_PATCH 0
 
 #define GmfStrSiz    1024
 #define GmfMaxTyp    1000
