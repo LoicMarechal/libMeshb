@@ -296,6 +296,8 @@ module libmeshb7
   integer(4) :: gmfreferencestrings
   integer(4) :: gmfprisms9
   integer(4) :: gmfhexahedra12
+  integer(4) :: gmfsolatboundarypolygons
+  integer(4) :: gmfsolatpolyhedra
 
   parameter (gmfmeshversionformatted=1)
   parameter (gmfdimension=3)
@@ -497,6 +499,8 @@ module libmeshb7
   parameter (gmfreferencestrings=199)
   parameter (gmfprisms9=200)
   parameter (gmfhexahedra12=201)
+  parameter (gmfsolatboundarypolygons=202)
+  parameter (gmfsolatpolyhedra=203)
 
 !   !> interface GmfSetHONodesOrdering_c  
 !   interface

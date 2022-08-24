@@ -268,6 +268,8 @@ enum GmfKwdCod
    GmfPyramidsGID,
    GmfPrismsGID,
    GmfHexahedraGID,
+   GmfSolAtBoundaryPolygons,
+   GmfSolAtPolyhedra,
    GmfLastKeyword
 };
 
