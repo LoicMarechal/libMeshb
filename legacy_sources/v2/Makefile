@@ -41,6 +41,11 @@ ifeq ($(ARCHI),macintel)
 	CFLAGS = -O3 -m64 -c -I. -I$(INCDIR)
 endif
 
+ifeq ($(ARCHI),macarm)
+	CC     = gcc
+	CFLAGS = -O3 -m64 -c -I. -I$(INCDIR)
+endif
+
 
 # List of objects
 
