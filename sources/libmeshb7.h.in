@@ -2,7 +2,7 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.62                               */
+/*                               LIBMESHB                                     */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
@@ -25,9 +25,9 @@
 /* Defines                                                                    */
 /*----------------------------------------------------------------------------*/
 
-#define MESHB_VERSION_MAJOR 7
-#define MESHB_VERSION_MINOR 62
-#define MESHB_VERSION_PATCH 2
+#define LIBMESHB_VERSION_MAJOR "@PROJECT_VERSION_MAJOR@"
+#define LIBMESHB_VERSION_MINOR "@PROJECT_VERSION_MINOR@"
+#define LIBMESHB_VERSION_PATCH "@PROJECT_VERSION_PATCH@"
 
 #define GmfStrSiz    1024
 #define GmfMaxTyp    1000
@@ -59,12 +59,19 @@ enum GmfKwdCod
    GmfReserved2,
    GmfDimension,
    GmfVertices,
+   GmfVerticesGlobalIndex,
    GmfEdges,
+   GmfEdgesGlobalIndex,
    GmfTriangles,
+   GmfTrianglesGlobalIndex,
    GmfQuadrilaterals,
+   GmfTQuadrilateralsGlobalIndex,
    GmfTetrahedra,
+   GmfTetrahedraGlobalIndex,
    GmfPrisms,
+   GmfPrismsGlobalIndex,
    GmfHexahedra,
+   GmfHexahedraGlobalIndex,
    GmfReserved3,
    GmfReserved4,
    GmfCorners,

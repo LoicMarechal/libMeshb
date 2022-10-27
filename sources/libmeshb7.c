@@ -2,7 +2,7 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.62                               */
+/*                               LIBMESHB                                     */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
@@ -257,12 +257,19 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"Reserved",                                 "", ""},
    {"Dimension",                                "", "i"},
    {"Vertices",                                 "i", "dri"},
+   {"VerticesGlobalIndex",                      "i", "i"},
    {"Edges",                                    "i", "iii"},
+   {"EdgesGlobalIndex",                         "i", "i"},
    {"Triangles",                                "i", "iiii"},
+   {"TrianglesGlobalIndex",                     "i", "i"},
    {"Quadrilaterals",                           "i", "iiiii"},
+   {"QuadrilateralsGlobalIndex",                "i", "i"},
    {"Tetrahedra",                               "i", "iiiii"},
+   {"TetrahedraGlobalIndex",                    "i", "i"},
    {"Prisms",                                   "i", "iiiiiii"},
+   {"PrismsGlobalIndex",                        "i", "i"},
    {"Hexahedra",                                "i", "iiiiiiiii"},
+   {"HexahedraGlobalIndex",                     "i", "i"},
    {"Reserved",                                 "",  ""},
    {"Reserved",                                 "",  ""},
    {"Corners",                                  "i", "i"},
