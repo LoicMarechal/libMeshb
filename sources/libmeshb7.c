@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.63                               */
+/*                               LIBMESHB V7.64                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  mar 04 2022                                          */
+/*   Last modification:  jan 13 2023                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -144,7 +144,7 @@ int    my_aio_write (      struct aiocb *aiocbp){return(aio_write (aiocbp));}
 struct aiocb
 {
    FILE   *aio_fildes;         // File descriptor
-   off_t  aio_offset;          // File offset
+   size_t  aio_offset;          // File offset
    void   *aio_buf;            // Location of buffer
    size_t aio_nbytes;          // Length of transfer
    int    aio_lio_opcode;      // Operation to be performed
@@ -158,7 +158,7 @@ int my_aio_error(const struct aiocb *aiocbp)
 // Set the file position and read a block of data
 int my_aio_read(struct aiocb *aiocbp)
 {
-   if( (MYFSEEK(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   if( (MYFSEEK(aiocbp->aio_fildes, (size_t)aiocbp->aio_offset, SEEK_SET) == 0)
    &&  (fread(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
@@ -180,7 +180,7 @@ size_t my_aio_return(struct aiocb *aiocbp)
 // Set the file position and write a block of data
 int my_aio_write(struct aiocb *aiocbp)
 {
-   if( (MYFSEEK(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   if( (MYFSEEK(aiocbp->aio_fildes, (size_t)aiocbp->aio_offset, SEEK_SET) == 0)
    &&  (fwrite(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
@@ -1680,7 +1680,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
 #else
       aio.aio_fildes = msh->hdl;
 #endif
-      aio.aio_offset = (off_t)(GetFilPos(msh) + (FilBegIdx-1) * LinSiz);
+      aio.aio_offset = (size_t)(GetFilPos(msh) + (FilBegIdx-1) * LinSiz);
 
       NmbBlk = UsrNmbLin / BufSiz;
 
@@ -1707,7 +1707,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             }
 
             // Increment the reading position
-            aio.aio_offset += (off_t)aio.aio_nbytes;
+            aio.aio_offset += (size_t)aio.aio_nbytes;
 
             // and swap the buffers
             if(aio.aio_buf == BckBuf)
@@ -2130,7 +2130,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
 #else
       aio.aio_fildes = msh->hdl;
 #endif
-      aio.aio_offset = (off_t)GetFilPos(msh);
+      aio.aio_offset = (size_t)GetFilPos(msh);
 
       NmbBlk = UsrNmbLin / BufSiz;
 
@@ -2278,7 +2278,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             }
 
             // Move the write position
-            aio.aio_offset += (off_t)aio.aio_nbytes;
+            aio.aio_offset += (size_t)aio.aio_nbytes;
          }
 
          // Swap the buffers
@@ -2936,11 +2936,11 @@ static int SetFilPos(GmfMshSct *msh, int64_t pos)
 {
 #ifdef WITH_GMF_AIO
    if(msh->typ & Bin)
-      return((lseek(msh->FilDes, (off_t)pos, 0) != -1));
+      return((lseek(msh->FilDes, (size_t)pos, 0) != -1));
    else
-      return((MYFSEEK(msh->hdl, (off_t)pos, SEEK_SET) == 0));
+      return((MYFSEEK(msh->hdl, (size_t)pos, SEEK_SET) == 0));
 #else
-   return((MYFSEEK(msh->hdl, (off_t)pos, SEEK_SET) == 0));
+   return((MYFSEEK(msh->hdl, (size_t)pos, SEEK_SET) == 0));
 #endif
 }
 
@@ -2975,7 +2975,7 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 #ifdef WITH_GMF_AIO
       CurPos = lseek(msh->FilDes, 0, 1);
       EndPos = lseek(msh->FilDes, 0, 2);
-      lseek(msh->FilDes, (off_t)CurPos, 0);
+      lseek(msh->FilDes, (size_t)CurPos, 0);
 #else
       CurPos = MYFTELL(msh->hdl);
 
@@ -2984,7 +2984,7 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 
       EndPos = MYFTELL(msh->hdl);
 
-      if(MYFSEEK(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
+      if(MYFSEEK(msh->hdl, (size_t)CurPos, SEEK_SET) != 0)
          longjmp(msh->err, -33);
 #endif
    }
@@ -2997,7 +2997,7 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 
       EndPos = MYFTELL(msh->hdl);
 
-      if(MYFSEEK(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
+      if(MYFSEEK(msh->hdl, (size_t)CurPos, SEEK_SET) != 0)
          longjmp(msh->err, -35);
    }
 
