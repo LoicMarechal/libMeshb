@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.64                               */
+/*                               LIBMESHB V7.66                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jan 13 2023                                          */
+/*   Last modification:  feb 24 2023                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -231,7 +231,7 @@ typedef struct
 
 typedef struct
 {
-   int      dim, ver, mod, typ, cod, FilDes, FltSiz;
+   int      dim, ver, mod, typ, cod, FilDes, FltSiz, SolTypSiz[5];
    int64_t  NexKwdPos, siz;
    size_t   pos;
    jmp_buf  err;
@@ -699,6 +699,12 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       if(!ScaKwdTab(msh))
          return(0);
 
+      // Preset solution entities sizes
+      msh->SolTypSiz[ GmfSca    ] = 1;
+      msh->SolTypSiz[ GmfVec    ] = msh->dim;
+      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim - 1);
+      msh->SolTypSiz[ GmfMat    ] = msh->dim * msh->dim;
+
       return(MshIdx);
    }
    else if(msh->mod == GmfWrite)
@@ -772,6 +778,12 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
          GmfSetKwd(MshIdx, GmfDimension, 0);
          RecWrd(msh, (unsigned char *)&msh->dim);
       }
+
+      // Preset solution entities sizes
+      msh->SolTypSiz[ GmfSca    ] = 1;
+      msh->SolTypSiz[ GmfVec    ] = msh->dim;
+      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim - 1);
+      msh->SolTypSiz[ GmfMat    ] = msh->dim * msh->dim;
 
       return(MshIdx);
    }
@@ -898,7 +910,7 @@ int GmfGotoKwd(int64_t MshIdx, int KwdCod)
 
 int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 {
-   int         i, *TypTab;
+   int         i, typ, *TypTab;
    int64_t     CurPos;
    va_list     VarArg;
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
@@ -971,7 +983,10 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
          fprintf(msh->hdl, "%d ", kwd->NmbTyp);
 
          for(i=0;i<kwd->NmbTyp;i++)
-            fprintf(msh->hdl, "%d ", kwd->TypTab[i]);
+         {
+            typ = kwd->TypTab[i] > GmfMat ? GmfSca : kwd->TypTab[i];
+            fprintf(msh->hdl, "%d ", typ);
+         }
 
          fprintf(msh->hdl, "\n");
       }
@@ -1002,7 +1017,10 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
          RecWrd(msh, (unsigned char *)&kwd->NmbTyp);
 
          for(i=0;i<kwd->NmbTyp;i++)
-            RecWrd(msh, (unsigned char *)&kwd->TypTab[i]);
+         {
+            typ = kwd->TypTab[i] > GmfMat ? GmfSca : kwd->TypTab[i];
+            RecWrd(msh, (unsigned char *)&typ);
+         }
 
          if(!strcmp("hr", GmfKwdFmt[ KwdCod ][2]))
          {
@@ -1439,10 +1457,10 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
 {
    char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ], *FilPos, *EndUsrDat;
    char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL, *BegUsrDat;
-   char        *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
+   char        *StrTab[4] = { "%f", "%lf", "%d", INT64_T_FMT };
    char        **BegTab, **EndTab;
    int         i, j, k, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int         UsrTyp[ GmfMaxTyp ], TypSiz[5] = {0,4,8,4,8};
+   int         UsrTyp[ GmfMaxTyp ], TypSiz[4] = {4,8,4,8};
    int         *IntMapTab = NULL, err, TotSiz = 0, IniFlg = 1, mod = GmfArgLst;
    int         *TypTab, *SizTab, typ, VecCnt, ArgCnt = 0;
    float       *FilPtrR32, *UsrPtrR32;
@@ -1551,12 +1569,19 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
          else
             typ = VALF77(va_arg(VarArg, TYPF77(int)));
 
-         // In case the type is a vector. get its size and change the type
-         // for the corresponding scalar type
          if(typ >= GmfFloatVec && typ <= GmfLongVec)
          {
+            // In case the type is a vector, get its size and change
+            // the type for the corresponding scalar type
             typ -= 4;
             VecCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+         }
+         else if(typ >= GmfSca && typ <= GmfMat)
+         {
+            // In case it is a mathematical solution, expand it
+            // to the right size with the mesh file's own real kind
+            VecCnt = msh->SolTypSiz[ typ ];
+            typ = (msh->ver == 1) ? GmfFloat : GmfDouble;
          }
          else
             VecCnt = 1;
@@ -1575,6 +1600,13 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             typ -= 4;
             VecCnt = SizTab[ ArgCnt ];
          }
+         else if(typ >= GmfSca && typ <= GmfMat)
+         {
+            // In case it is a mathematical solution, expand it
+            //  to the right size with the mesh file's own real kind
+            VecCnt = msh->SolTypSiz[ typ ];
+            typ = (msh->ver == 1) ? GmfFloat : GmfDouble;
+         }
          else
             VecCnt = 1;
 
@@ -1584,7 +1616,10 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
       }
 
       if(UsrNmbLin > 1)
-         VecLen = (size_t)(EndUsrDat - BegUsrDat) / (UsrNmbLin - 1);
+      {
+         VecLen = (size_t)(EndUsrDat - BegUsrDat);
+         VecLen /= UsrNmbLin - 1;
+      }
       else
          VecLen = 0;
 
@@ -1592,7 +1627,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
       for(i=0;i<VecCnt;i++)
       {
          UsrTyp[ TotSiz ]  = typ;
-         UsrBas[ TotSiz ]  = BegUsrDat + i * TypSiz[ typ ];
+         UsrBas[ TotSiz ]  = BegUsrDat + i * TypSiz[ typ - GmfFloat ];
          UsrDat[ TotSiz ]  = UsrBas[ TotSiz ];
          UsrLen[ TotSiz ]  = VecLen;
          TotSiz++;
@@ -1614,7 +1649,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             FilTyp[i] = GmfLong;
 
       // Compute the file stride
-      LinSiz += TypSiz[ FilTyp[i] ];
+      LinSiz += TypSiz[ FilTyp[i] - GmfFloat ];
    }
 
    va_end(VarArg);
@@ -1647,7 +1682,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             else
                UsrDat[j] = UsrBas[k] + (OldIdx - 1) * UsrLen[k];
 
-            safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] ], UsrDat[j], msh->err);
+            safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], UsrDat[j], msh->err);
          }
 
          if(i >= FilBegIdx)
@@ -1771,7 +1806,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
                for(j=0;j<kwd->SolSiz;j++)
                {
                   if(msh->cod != 1)
-                     SwpWrd(FilPos, TypSiz[ FilTyp[j] ]);
+                     SwpWrd(FilPos, TypSiz[ FilTyp[j] - GmfFloat ]);
 
                   // Reorder HO nodes on the fly
                   if(kwd->OrdTab && (j != kwd->SolSiz-1))
@@ -1847,7 +1882,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
                      }
                   }
 
-                  FilPos += TypSiz[ FilTyp[j] ];
+                  FilPos += TypSiz[ FilTyp[j] - GmfFloat ];
                }
             }
 
@@ -1882,11 +1917,11 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
                                        void           *prc, ... )
 {
    char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ];
-   char        *StrTab[5] = { "", "%.9g", "%.17g", "%d", "%lld" }, *FilPos;
+   char        *StrTab[4] = {"%.9g", "%.17g", "%d", "%lld" }, *FilPos;
    char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
    char        **BegTab, **EndTab, *BegUsrDat, *EndUsrDat;
    int         i, j, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int         UsrTyp[ GmfMaxTyp ], TypSiz[5] = {0,4,8,4,8};
+   int         UsrTyp[ GmfMaxTyp ], TypSiz[4] = {4,8,4,8};
    int         err, *IntMapTab = NULL, typ, mod = GmfArgLst;
    int         *TypTab, *SizTab, IniFlg = 1, TotSiz = 0, VecCnt, ArgCnt = 0;
    float       *FilPtrR32, *UsrPtrR32;
@@ -2004,6 +2039,13 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             typ -= 4;
             VecCnt = VALF77(va_arg(VarArg, TYPF77(int)));
          }
+         else if(typ >= GmfSca && typ <= GmfMat)
+         {
+            // In case it is a mathematical solution, expand it
+            //  to the right size with the mesh file's own real kind
+            VecCnt = msh->SolTypSiz[ typ ];
+            typ = (msh->ver == 1) ? GmfFloat : GmfDouble;
+         }
          else
             VecCnt = 1;
 
@@ -2021,6 +2063,13 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             typ -= 4;
             VecCnt = SizTab[ ArgCnt ];
          }
+         else if(typ >= GmfSca && typ <= GmfMat)
+         {
+            // In case it is a mathematical solution, expand it
+            // to the right size with the mesh file's own real kind
+            VecCnt = msh->SolTypSiz[ typ ];
+            typ = (msh->ver == 1) ? GmfFloat : GmfDouble;
+         }
          else
             VecCnt = 1;
 
@@ -2030,7 +2079,10 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
       }
 
       if(UsrNmbLin > 1)
-         VecLen = (size_t)(EndUsrDat - BegUsrDat) / (UsrNmbLin - 1);
+      {
+         VecLen = EndUsrDat - BegUsrDat;
+         VecLen /= UsrNmbLin - 1;
+      }
       else
          VecLen = 0;
 
@@ -2038,7 +2090,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
       for(i=0;i<VecCnt;i++)
       {
          UsrTyp[ TotSiz ]  = typ;
-         UsrBas[ TotSiz ]  = BegUsrDat + i * TypSiz[ typ ];
+         UsrBas[ TotSiz ]  = BegUsrDat + i * TypSiz[ typ - GmfFloat ];
          UsrDat[ TotSiz ]  = UsrBas[ TotSiz ];
          UsrLen[ TotSiz ]  = VecLen;
          TotSiz++;
@@ -2060,7 +2112,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             FilTyp[i] = GmfLong;
 
       // Compute the file stride
-      LinSiz += TypSiz[ FilTyp[i] ];
+      LinSiz += TypSiz[ FilTyp[i] - GmfFloat ];
    }
 
    va_end(VarArg);
@@ -2081,22 +2133,22 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             if(UsrTyp[j] == GmfFloat)
             {
                UsrPtrR32 = (float *)UsrDat[j];
-               fprintf(msh->hdl, StrTab[ UsrTyp[j] ], (double)*UsrPtrR32);
+               fprintf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], (double)*UsrPtrR32);
             }
             else if(UsrTyp[j] == GmfDouble)
             {
                UsrPtrR64 = (double *)UsrDat[j];
-               fprintf(msh->hdl, StrTab[ UsrTyp[j] ], *UsrPtrR64);
+               fprintf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], *UsrPtrR64);
             }
             else if(UsrTyp[j] == GmfInt)
             {
                UsrPtrI32 = (int *)UsrDat[j];
-               fprintf(msh->hdl, StrTab[ UsrTyp[j] ], *UsrPtrI32);
+               fprintf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], *UsrPtrI32);
             }
             else if(UsrTyp[j] == GmfLong)
             {
                UsrPtrI64 = (int64_t *)UsrDat[j];
-               fprintf(msh->hdl, StrTab[ UsrTyp[j] ], *UsrPtrI64);
+               fprintf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], *UsrPtrI64);
             }
 
             if(j < kwd->SolSiz -1)
@@ -2254,7 +2306,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
                      }
                   }
 
-                  FilPos += TypSiz[ FilTyp[j] ];
+                  FilPos += TypSiz[ FilTyp[j] - GmfFloat ];
                }
             }
          }
