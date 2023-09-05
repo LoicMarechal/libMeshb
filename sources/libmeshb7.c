@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.66                               */
+/*                               LIBMESHB V7.67                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  feb 24 2023                                          */
+/*   Last modification:  sep 05 2023                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -1107,8 +1107,9 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
                }
                else if(kwd->fmt[i] == 'c')
                {
-                  safe_fgets( va_arg(VarArg, char *),
-                              WrdSiz * FilStrSiz, msh->hdl, msh->err);
+                  safe_fscanf(msh->hdl, "%s", va_arg(VarArg, char *), msh->err);
+                  //safe_fgets( va_arg(VarArg, char *),
+                  //            WrdSiz * FilStrSiz, msh->hdl, msh->err);
                }
             }
          }
@@ -1413,7 +1414,10 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
          memset(s, 0, FilStrSiz * WrdSiz);
 
          if(InpMsh->typ & Asc)
-            safe_fgets(s, WrdSiz * FilStrSiz, InpMsh->hdl, InpMsh->err);
+         {
+            //safe_fgets(s, WrdSiz * FilStrSiz, InpMsh->hdl, InpMsh->err);
+            safe_fscanf(InpMsh->hdl, "%s", s, InpMsh->err);
+         }
          else
 #ifdef WITH_GMF_AIO
             read(InpMsh->FilDes, s, WrdSiz * FilStrSiz);
