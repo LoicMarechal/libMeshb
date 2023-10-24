@@ -470,6 +470,12 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"PyramidsGID",                              "i", "iii"},
    {"PrismsGID",                                "i", "iii"},
    {"HexahedraGID",                             "i", "iii"},
+   {"GmfVertexOn0DGeometry",					"i", "iiiidr"},
+   {"GmfVertexOn1DGeometry",                    "i", "iiiirdr"},
+   {"GmfVertexOn2DGeometry",                    "i", "iiiirrdr"},
+   {"GmfVertexOn3DGeometry",					"i", "iiiirrrdr"},
+   {"GmfRefEdgeOn1DGeometry",						"i","iiii"},
+   {"GmfRefTriangleOn2DGeometry",					"i","iiii"}
 };
 
 #ifdef TRANSMESH
