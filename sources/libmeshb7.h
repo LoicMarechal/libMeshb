@@ -268,12 +268,12 @@ enum GmfKwdCod
    GmfPyramidsGID,
    GmfPrismsGID,
    GmfHexahedraGID,
-   GmfVertexOn0DGeometry,
-   GmfVertexOn1DGeometry,
-   GmfVertexOn2DGeometry,
-   GmfVertexOn3DGeometry,
-   GmfEdgeOn1DGeometry,
-   GmfTriangleOn1DGeometry,
+   GmfVerticesOn0DGeometry,
+   GmfVerticesOn1DGeometry,
+   GmfVerticesOn2DGeometry,
+   GmfVerticesOn3DGeometry,
+   GmfRefEdgesOn1DGeometry,
+   GmfRefTrianglesOn1DGeometry,
    GmfLastKeyword
 };
 
