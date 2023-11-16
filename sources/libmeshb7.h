@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.66                               */
+/*                               LIBMESHB V7.68                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  feb 24 2023                                         */
+/*    Last modification:  nov 16 2023                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -270,6 +270,14 @@ enum GmfKwdCod
    GmfHexahedraGID,
    GmfSolAtBoundaryPolygons,
    GmfSolAtPolyhedra,
+   GmfVerticesOnGeometryNodes,
+   GmfVerticesOnGeometryEdges,
+   GmfEdgesOnGeometryEdges,
+   GmfVerticesOnGeometryFaces,
+   GmfEdgesOnGeometryFaces,
+   GmfTrianglesOnGeometryFaces,
+   GmfQuadrialteralsOnGeometryFaces,
+   GmfMeshOnGeometry,
    GmfLastKeyword
 };
 
