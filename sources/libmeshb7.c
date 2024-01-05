@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.68                               */
+/*                               LIBMESHB V7.69                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  nov 16 2023                                          */
+/*   Last modification:  jan 04 2024                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -1058,6 +1058,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
    float       *FltSolTab, FltVal, *PtrFlt;
    double      *DblSolTab, *PtrDbl;
    va_list     VarArg;
+
    GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
    KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
 
@@ -1095,8 +1096,8 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
                   }                     
                   else
                   {
-                     safe_fscanf(msh->hdl, "%lf",
-                              va_arg(VarArg, double *), msh->err);
+                     PtrDbl = va_arg(VarArg, double *);
+                     safe_fscanf(msh->hdl, "%lf",PtrDbl, msh->err);
                   }
                }
                else if(kwd->fmt[i] == 'i')
@@ -1481,7 +1482,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    int64_t     *LngMapTab = NULL, OldIdx = 0, UsrNmbLin, VecLen;
    size_t      FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
    void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t      UsrLen[ GmfMaxTyp ], ret, LinSiz, b, NmbBlk;
+   size_t      UsrLen[ GmfMaxTyp ], ret, LinSiz, b, l, NmbBlk;
    va_list     VarArg;
    GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
    KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
@@ -1674,7 +1675,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    {
       OldIdx = 1;
 
-      for(i=1;i<=FilEndIdx;i++)
+      for(l=1;l<=FilEndIdx;l++)
       {
          for(j=0;j<kwd->SolSiz;j++)
          {
@@ -1697,7 +1698,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], UsrDat[j], msh->err);
          }
 
-         if(i >= FilBegIdx)
+         if(l >= FilBegIdx)
             OldIdx++;
 
          // Call the user's preprocessing procedure
@@ -2377,8 +2378,6 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
    KwdSct      *kwd;
    
-   // printf("\n\tGmfSetHONodesOrdering 0\n");
-
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
 

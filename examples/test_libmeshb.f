@@ -6,7 +6,7 @@ c     read a quad mesh, split it into triangles and write the result back
 
       integer n
       parameter (n=4000)
-      integer i,NmbVer,NmbQad,ver,dim,res,RefTab(n),QadTab(5,n)
+      integer i,NmbVer,NmbQad,ver,dim,res,RefTab(n),QadTab(5,n),kwd
       integer*8 InpMsh, OutMsh
       real*8 VerTab(3,n)
 
@@ -30,18 +30,21 @@ c     Check memory bounds
       if(NmbQad.gt.n) STOP 'Too many quads'
       print*, 'input mesh : ',NmbVer,' vertices,',NmbQad,'quads'
 
-c     Read the vertices
-      res = gmfgotokwd(InpMsh, GmfVertices)
-      do i = 1, NmbVer
-          res = gmfgetlin(InpMsh, GmfVertices
-     +, VerTab(1,i), VerTab(2,i), VerTab(3,i), RefTab(i))
-      end do
-
 c     Read the quads
       res = gmfgotokwd(InpMsh, GmfQuadrilaterals)
       do i = 1, NmbQad
           res = gmfgetlin(InpMsh, GmfQuadrilaterals
      +, QadTab(1,i),QadTab(2,i),QadTab(3,i),QadTab(4,i),QadTab(5,i))
+      end do
+
+c     Read the vertices
+      kwd = GmfVertices
+      print*, 'InpMsh: ', InpMsh, 'kwd: ', kwd
+      res = gmfgotokwd(InpMsh, kwd)
+      do i = 1, NmbVer
+          VerTab(1,i) = -1
+          res = gmfgetlin(InpMsh, kwd
+     +, VerTab(1,i), VerTab(2,i), VerTab(3,i), RefTab(i))
       end do
 
 c     Close the quadrilateral mesh
