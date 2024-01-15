@@ -2,14 +2,14 @@
 
 c----------------------------------------------------------
 c
-c                     LIBMESH V 7.56
+c                     LIBMESH V 7.69
 c 
 c----------------------------------------------------------
 c
 c   Description:         handles .meshb file format I/O
 c   Author:              Loic MARECHAL
 c   Creation date:       dec 08 2015
-c   Last modification:   nov 27 2020
+c   Last modification:   jan 15 2024
 c
 c----------------------------------------------------------
 
@@ -76,16 +76,16 @@ c     Parameters definition
       parameter (gmfvec=2)
       parameter (gmfsymmat=3)
       parameter (gmfmat=4)
-      parameter (gmffloat=1)
-      parameter (gmfdouble=2)
-      parameter (gmfint=3)
-      parameter (gmflong=4)
-      parameter (gmfinttab=7)
-      parameter (gmflongtab=8)
-      parameter (gmffloatvec=5)
-      parameter (gmfdoublevec=6)
-      parameter (gmfintvec=7)
-      parameter (gmflongvec=8)
+      parameter (gmffloat=8)
+      parameter (gmfdouble=9)
+      parameter (gmfint=10)
+      parameter (gmflong=11)
+      parameter (gmfinttab=14)
+      parameter (gmflongtab=15)
+      parameter (gmffloatvec=12)
+      parameter (gmfdoublevec=13)
+      parameter (gmfintvec=14)
+      parameter (gmflongvec=15)
       parameter (gmfargtab=100)
       parameter (gmfarglst=101)
 
@@ -291,8 +291,32 @@ c     Keywords list
       integer gmfreferencestrings
       integer gmfprisms9
       integer gmfhexahedra12
+      integer gmfquadrilaterals6
+      integer gmfboundarypolygonheaders
+      integer gmfboundarypolygonvertices
+      integer gmfinnerpolygonheaders
+      integer gmfinnerpolygonvertices
+      integer gmfpolyhedraheaders
+      integer gmfpolyhedrafaces
+      integer gmfdomains
+      integer gmfverticesgid
+      integer gmfedgesgid
+      integer gmftrianglesgid
+      integer gmfquadrilateralsgid
+      integer gmftetrahedragid
+      integer gmfpyramidsgid
+      integer gmfprismsgid
+      integer gmfhexahedragid
       integer gmfsolatboundarypolygons
       integer gmfsolatpolyhedra
+      integer gmfverticesongeometrynodes
+      integer gmfverticesongeometryedges
+      integer gmfedgesongeometryedges
+      integer gmfverticesongeometryfaces
+      integer gmfedgesongeometryfaces
+      integer gmftrianglesongeometryfaces
+      integer gmfquadrialteralsongeometryfaces
+      integer gmfmeshongeometry
 
       parameter (gmfmeshversionformatted=1)
       parameter (gmfdimension=3)
@@ -494,5 +518,29 @@ c     Keywords list
       parameter (gmfreferencestrings=199)
       parameter (gmfprisms9=200)
       parameter (gmfhexahedra12=201)
-      parameter (gmfsolatboundarypolygons=202)
-      parameter (gmfsolatpolyhedra=203)
+      parameter (gmfquadrilaterals6=202)
+      parameter (gmfboundarypolygonheaders=203)
+      parameter (gmfboundarypolygonvertices=204)
+      parameter (gmfinnerpolygonheaders=205)
+      parameter (gmfinnerpolygonvertices=206)
+      parameter (gmfpolyhedraheaders=207)
+      parameter (gmfpolyhedrafaces=208)
+      parameter (gmfdomains=209)
+      parameter (gmfverticesgid=210)
+      parameter (gmfedgesgid=211)
+      parameter (gmftrianglesgid=212)
+      parameter (gmfquadrilateralsgid=213)
+      parameter (gmftetrahedragid=214)
+      parameter (gmfpyramidsgid=215)
+      parameter (gmfprismsgid=216)
+      parameter (gmfhexahedragid=217)
+      parameter (gmfsolatboundarypolygons=218)
+      parameter (gmfsolatpolyhedra=219)
+      parameter (gmfverticesongeometrynodes=220)
+      parameter (gmfverticesongeometryedges=221)
+      parameter (gmfedgesongeometryedges=222)
+      parameter (gmfverticesongeometryfaces=223)
+      parameter (gmfedgesongeometryfaces=224)
+      parameter (gmftrianglesongeometryfaces=225)
+      parameter (gmfquadrialteralsongeometryfaces=226)
+      parameter (gmfmeshongeometry=227)
