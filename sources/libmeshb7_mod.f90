@@ -2,14 +2,14 @@
 
 !----------------------------------------------------------
 !
-!                       LIBMESH V 7.56
+!                       LIBMESH V 7.69
 ! 
 !----------------------------------------------------------
 !
 !   Description:        handles .meshb file format I/O
 !   Author:             Loic MARECHAL
 !   Creation date:      dec 08 2015
-!   Last modification:  nov 27 2020
+!   Last modification:  jan 15 2024
 !
 !----------------------------------------------------------
 
@@ -74,23 +74,23 @@ module libmeshb7
   integer(4) :: gmfarglst
 
   parameter (gmfmaxtyp=1000)
-  parameter (gmfmaxkwd=103)
+  parameter (gmfmaxkwd=207)
   parameter (gmfread=1)
   parameter (gmfwrite=2)
   parameter (gmfsca=1)
   parameter (gmfvec=2)
   parameter (gmfsymmat=3)
   parameter (gmfmat=4)
-  parameter (gmffloat=1)
-  parameter (gmfdouble=2)
-  parameter (gmfint=3)
-  parameter (gmflong=4)
-  parameter (gmfinttab=7)
-  parameter (gmflongtab=8)
-  parameter (gmffloatvec=5)
-  parameter (gmfdoublevec=6)
-  parameter (gmfintvec=7)
-  parameter (gmflongvec=8)
+  parameter (gmffloat=8)
+  parameter (gmfdouble=9)
+  parameter (gmfint=10)
+  parameter (gmflong=11)
+  parameter (gmfinttab=14)
+  parameter (gmflongtab=15)
+  parameter (gmffloatvec=12)
+  parameter (gmfdoublevec=13)
+  parameter (gmfintvec=14)
+  parameter (gmflongvec=15)
   parameter (gmfargtab=100)
   parameter (gmfarglst=101)
 
@@ -296,8 +296,32 @@ module libmeshb7
   integer(4) :: gmfreferencestrings
   integer(4) :: gmfprisms9
   integer(4) :: gmfhexahedra12
+  integer(4) :: gmfquadrilaterals6
+  integer(4) :: gmfboundarypolygonheaders
+  integer(4) :: gmfboundarypolygonvertices
+  integer(4) :: gmfinnerpolygonheaders
+  integer(4) :: gmfinnerpolygonvertices
+  integer(4) :: gmfpolyhedraheaders
+  integer(4) :: gmfpolyhedrafaces
+  integer(4) :: gmfdomains
+  integer(4) :: gmfverticesgid
+  integer(4) :: gmfedgesgid
+  integer(4) :: gmftrianglesgid
+  integer(4) :: gmfquadrilateralsgid
+  integer(4) :: gmftetrahedragid
+  integer(4) :: gmfpyramidsgid
+  integer(4) :: gmfprismsgid
+  integer(4) :: gmfhexahedragid
   integer(4) :: gmfsolatboundarypolygons
   integer(4) :: gmfsolatpolyhedra
+  integer(4) :: gmfverticesongeometrynodes
+  integer(4) :: gmfverticesongeometryedges
+  integer(4) :: gmfedgesongeometryedges
+  integer(4) :: gmfverticesongeometryfaces
+  integer(4) :: gmfedgesongeometryfaces
+  integer(4) :: gmftrianglesongeometryfaces
+  integer(4) :: gmfquadrialteralsongeometryfaces
+  integer(4) :: gmfmeshongeometry
 
   parameter (gmfmeshversionformatted=1)
   parameter (gmfdimension=3)
@@ -499,8 +523,32 @@ module libmeshb7
   parameter (gmfreferencestrings=199)
   parameter (gmfprisms9=200)
   parameter (gmfhexahedra12=201)
-  parameter (gmfsolatboundarypolygons=202)
-  parameter (gmfsolatpolyhedra=203)
+  parameter (gmfquadrilaterals6=202)
+  parameter (gmfboundarypolygonheaders=203)
+  parameter (gmfboundarypolygonvertices=204)
+  parameter (gmfinnerpolygonheaders=205)
+  parameter (gmfinnerpolygonvertices=206)
+  parameter (gmfpolyhedraheaders=207)
+  parameter (gmfpolyhedrafaces=208)
+  parameter (gmfdomains=209)
+  parameter (gmfverticesgid=210)
+  parameter (gmfedgesgid=211)
+  parameter (gmftrianglesgid=212)
+  parameter (gmfquadrilateralsgid=213)
+  parameter (gmftetrahedragid=214)
+  parameter (gmfpyramidsgid=215)
+  parameter (gmfprismsgid=216)
+  parameter (gmfhexahedragid=217)
+  parameter (gmfsolatboundarypolygons=218)
+  parameter (gmfsolatpolyhedra=219)
+  parameter (gmfverticesongeometrynodes=220)
+  parameter (gmfverticesongeometryedges=221)
+  parameter (gmfedgesongeometryedges=222)
+  parameter (gmfverticesongeometryfaces=223)
+  parameter (gmfedgesongeometryfaces=224)
+  parameter (gmftrianglesongeometryfaces=225)
+  parameter (gmfquadrialteralsongeometryfaces=226)
+  parameter (gmfmeshongeometry=227)
 
 !   !> interface GmfSetHONodesOrdering_c  
 !   interface
