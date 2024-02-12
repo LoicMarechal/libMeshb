@@ -30,10 +30,6 @@ module libmeshb7
   external gmfgetblock
   external gmfsetblock
   external gmfsethonodesordering
- !external gmfreadbyteflow
- !external gmfwritebyteflow
- !external gmfgetfloatprecision
- !external gmfsetfloatprecision
 
   integer(8) :: gmfopenmesh
   integer(4) :: gmfclosemesh
@@ -45,10 +41,6 @@ module libmeshb7
   integer(4) :: gmfgetblock
   integer(4) :: gmfsetblock
   integer(4) :: gmfsethonodesordering
- !integer(4) :: gmfreadbyteflow
- !integer(4) :: gmfwritebyteflow
- !integer(4) :: gmfgetfloatprecision
- !integer(4) :: gmfsetfloatprecision
 
 
  !Parameters definition

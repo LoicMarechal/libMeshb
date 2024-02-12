@@ -1,8 +1,6 @@
-## Release 7.62
+## Release 7.79
 
-1. Corrected two bugs:
-  - GmfOpenMesh: could crash with a stack overflow a present some security issues
-  - test\_libmeshb\_pipeline.f: the Fortran version of the user's procedure call was crashing
-
-2. New helpers functions system to easily add specific features related to the libMeshb:
-  - See the helper's [readme](utilities/libmeshb7_helpers.md) for more information about the new functions to handle polyhedral meshes.
+1. Complete rewrite of the Fortran API:
+  - No more variable arguments procedures are used in Fortran as such feature is no more supported by gfortran
+  - Addhoc procedures to handle a few keywords are provided
+  - Users are encouraged to add their own !

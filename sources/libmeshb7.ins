@@ -2,48 +2,64 @@
 
 c----------------------------------------------------------
 c
-c                     LIBMESH V 7.69
+c                     LIBMESH V 7.79
 c 
 c----------------------------------------------------------
 c
 c   Description:         handles .meshb file format I/O
 c   Author:              Loic MARECHAL
 c   Creation date:       dec 08 2015
-c   Last modification:   jan 15 2024
+c   Last modification:   feb 12 2024
 c
 c----------------------------------------------------------
 
 
 c     Procedures definition
-      external gmfopenmesh
-      external gmfclosemesh
-      external gmfstatkwd
-      external gmfsetkwd
-      external gmfgotokwd
-      external gmfgetlin
-      external gmfsetlin
-      external gmfgetblock
-      external gmfsetblock
-      external gmfsethonodesordering
-c     external gmfreadbyteflow
-c     external gmfwritebyteflow
-c     external gmfgetfloatprecision
-c     external gmfsetfloatprecision
+      external gmfopenmeshf77
+      external gmfclosemeshf77
+      external gmfstatkwdf77
+      external gmfsetkwdf77
+      external gmfgotokwdf77
+      external gmfgetvertex
+      external gmfsetvertex
+      external gmfgettriangle
+      external gmfsettriangle
+      external gmfgetquadrilateral
+      external gmfsetquadrilateral
+      external gmfgettetrahedron
+      external gmfsettetrahedron
+      external gmfsethonodesorderingf77
+      external gmfgetvertices
+      external gmfsetvertices
+      external gmfgettriangles
+      external gmfsettriangles
+      external gmfgetquadrilaterals
+      external gmfsetquadrilaterals
+      external gmfgettetrahedra
+      external gmfsettetrahedra
 
-      integer*8 gmfopenmesh
-      integer gmfclosemesh
-      integer gmfstatkwd
-      integer gmfsetkwd
-      integer gmfgotokwd
-      integer gmfgetlin
-      integer gmfsetlin
-      integer gmfgetblock
-      integer gmfsetblock
-      integer gmfsethonodesordering
-c     integer gmfreadbyteflow
-c     integer gmfwritebyteflow
-c     integer gmfgetfloatprecision
-c     integer gmfsetfloatprecision
+      integer*8 gmfopenmeshf77
+      integer gmfclosemeshf77
+      integer gmfstatkwdf77
+      integer gmfsetkwdf77
+      integer gmfgotokwdf77
+      integer gmfgetvertex
+      integer gmfsetvertex
+      integer gmfgettriangle
+      integer gmfsettriangle
+      integer gmfgetquadrilateral
+      integer gmfsetquadrilateral
+      integer gmfgettetrahedron
+      integer gmfsettetrahedron
+      integer gmfsethonodesorderingf77
+      integer gmfgetvertices
+      integer gmfsetvertices
+      integer gmfgettriangles
+      integer gmfsettriangles
+      integer gmfgetquadrilaterals
+      integer gmfsetquadrilaterals
+      integer gmfgettetrahedra
+      integer gmfsettetrahedra
 
 
 c     Parameters definition
