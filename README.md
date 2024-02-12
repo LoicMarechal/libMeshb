@@ -33,7 +33,7 @@ Can call user's own pre and post processing routines in a separate thread while 
 ## Usage
 The **libMeshb** library is written in *ANSI C*.  
 It is made of a single C file and a header file to be compiled and linked alongside the calling program.  
-It may be used in C and C++ programs (a partial Fortran77 APIs is provided).  
+It may be used in C and C++ programs (a partial Fortran77 API is provided).  
 Tested on *Linux*, *macOS*, and *Windows 7->10*.
 
 Reading a mesh file is fairly easy:

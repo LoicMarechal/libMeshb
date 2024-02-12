@@ -44,7 +44,7 @@ c     to store the coordinates
      +        RefTab(  1), RefTab(  NmbVer))
 
 c     Read the quads using one single vector of 5 consecutive integers
-      res = gmfgetquadrilaterals(InpMsh,
+      res = gmfgetelements(InpMsh, GmfQuadrilaterals,
      +        1, NmbQad, 0, %val(0),
      +        QadTab(1,1), QadTab(1,NmbQad),
      +        QadTab(5,1), QadTab(5,NmbQad))
@@ -91,7 +91,7 @@ c     Write them down using separate pointers for each scalar entry
 c     Write the triangles using 4 independant set of arguments
 c     for each scalar entry: node1, node2, node3 and reference
       res = gmfsetkwdf77(OutMsh, GmfTriangles, 2*NmbQad, 0, 0)
-      res = gmfsettriangles(OutMsh,
+      res = gmfsetelements(OutMsh, GmfTriangles,
      +                  1, 2*NmbQad, 0, %val(0),
      +                  TriTab(1,1), TriTab(1,2*NmbQad),
      +                  TriTab(4,1), TriTab(4,2*NmbQad))

@@ -3094,106 +3094,82 @@ int APIF77(gmfsetvertices)(int64_t *MshIdx, int *BegIdx, int *EndIdx,
 }
 
 
-// TRIANGLES
+// ELEMENTS
 
-int APIF77(gmfgettriangle)(int64_t *MshIdx, int *nod, int *ref)
+int APIF77(gmfgetelement)(int64_t *MshIdx, int *kwd, int *nod, int *ref)
 {
-   return(GmfGetLin(*MshIdx, GmfTriangles, &nod[0], &nod[1], &nod[2], ref));
+   switch(*kwd)
+   {
+      case GmfEdges :
+         return(GmfGetLin(*MshIdx, *kwd, &nod[0], &nod[1], ref));
+      case GmfTriangles :
+         return(GmfGetLin(*MshIdx, *kwd, &nod[0], &nod[1], &nod[2], ref));
+      case GmfQuadrilaterals :
+         return(GmfGetLin(*MshIdx, *kwd, &nod[0], &nod[1], &nod[2], &nod[3], ref));
+      case GmfTetrahedra :
+         return(GmfGetLin(*MshIdx, *kwd, &nod[0], &nod[1], &nod[2], &nod[3], ref));
+      default :
+         return(0);
+   }
 }
 
-int APIF77(gmfsettriangle)(int64_t *MshIdx, int *nod, int *ref)
+int APIF77(gmfsetelement)(int64_t *MshIdx, int *kwd, int *nod, int *ref)
 {
-   return(GmfSetLin(*MshIdx, GmfTriangles, nod[0], nod[1], nod[2], *ref));
+   switch(*kwd)
+   {
+      case GmfEdges :
+         return(GmfSetLin(*MshIdx, *kwd, nod[0], nod[1], *ref));
+      case GmfTriangles :
+         return(GmfSetLin(*MshIdx, *kwd, nod[0], nod[1], nod[2], *ref));
+      case GmfQuadrilaterals :
+         return(GmfSetLin(*MshIdx, *kwd, nod[0], nod[1], nod[2], nod[3], *ref));
+      case GmfTetrahedra :
+         return(GmfSetLin(*MshIdx, *kwd, nod[0], nod[1], nod[2], nod[3], *ref));
+      default :
+         return(0);
+   }
 }
 
-int APIF77(gmfgettriangles)(  int64_t *MshIdx, int *BegIdx, int *EndIdx,
-                              int *MapTyp, int64_t *map,
-                              int *BegEle, int *EndEle,
-                              int *BegRef, int *EndRef )
+int APIF77(gmfgetelements)(int64_t *MshIdx, int *kwd, int *BegIdx, int *EndIdx,
+                           int *MapTyp, int64_t *map,
+                           int *BegEle, int *EndEle,
+                           int *BegRef, int *EndRef)
 {
-   return(GmfGetBlock(  *MshIdx, GmfTriangles, *BegIdx, *EndIdx,
+   int EleSiz;
+
+   switch(*kwd)
+   {
+      case GmfEdges :            EleSiz = 2; break;
+      case GmfTriangles :        EleSiz = 3; break;
+      case GmfQuadrilaterals :   EleSiz = 4; break;
+      case GmfTetrahedra :       EleSiz = 4; break;
+      default : return(0);
+   }
+
+   return(GmfGetBlock(  *MshIdx, *kwd, *BegIdx, *EndIdx,
                         *MapTyp, map, NULL,
-                        GmfIntVec, 3, BegEle, EndEle,
+                        GmfIntVec, EleSiz, BegEle, EndEle,
                         GmfInt, BegRef, EndRef ));
 }
 
-int APIF77(gmfsettriangles)(  int64_t *MshIdx, int *BegIdx, int *EndIdx,
-                              int *MapTyp, int64_t *map,
-                              int *BegEle, int *EndEle,
-                              int *BegRef, int *EndRef )
+int APIF77(gmfsetelements)(int64_t *MshIdx, int *kwd, int *BegIdx, int *EndIdx,
+                           int *MapTyp, int64_t *map,
+                           int *BegEle, int *EndEle,
+                           int *BegRef, int *EndRef)
 {
-   return(GmfSetBlock(  *MshIdx, GmfTriangles, *BegIdx, *EndIdx,
+   int EleSiz;
+
+   switch(*kwd)
+   {
+      case GmfEdges :            EleSiz = 2; break;
+      case GmfTriangles :        EleSiz = 3; break;
+      case GmfQuadrilaterals :   EleSiz = 4; break;
+      case GmfTetrahedra :       EleSiz = 4; break;
+      default : return(0);
+   }
+
+   return(GmfSetBlock(  *MshIdx, *kwd, *BegIdx, *EndIdx,
                         *MapTyp, map, NULL,
-                        GmfIntVec, 3, BegEle, EndEle,
-                        GmfInt, BegRef, EndRef ));
-}
-
-
-// QUADS
-
-int APIF77(gmfgetquadrilateral)(int64_t *MshIdx, int *nod, int *ref)
-{
-   return(GmfGetLin(*MshIdx, GmfQuadrilaterals, &nod[0], &nod[1], &nod[2], &nod[3], ref));
-}
-
-int APIF77(gmfsetquadrilateral)(int64_t *MshIdx, int *nod, int *ref)
-{
-   return(GmfGetLin(*MshIdx, GmfQuadrilaterals, nod[0], nod[1], nod[2], nod[3], *ref));
-}
-
-int APIF77(gmfgetquadrilaterals)(int64_t *MshIdx, int *BegIdx, int *EndIdx,
-                                 int *MapTyp, int64_t *map,
-                                 int *BegEle, int *EndEle,
-                                 int *BegRef, int *EndRef )
-{
-   return(GmfGetBlock(  *MshIdx, GmfQuadrilaterals, *BegIdx, *EndIdx,
-                        *MapTyp, map, NULL,
-                        GmfIntVec, 4, BegEle, EndEle,
-                        GmfInt, BegRef, EndRef ));
-}
-
-int APIF77(gmfsetquadrilaterals)(int64_t *MshIdx, int *BegIdx, int *EndIdx,
-                                 int *MapTyp, int64_t *map,
-                                 int *BegEle, int *EndEle,
-                                 int *BegRef, int *EndRef )
-{
-   return(GmfSetBlock(  *MshIdx, GmfQuadrilaterals, *BegIdx, *EndIdx,
-                        *MapTyp, map, NULL,
-                        GmfIntVec, 4, BegEle, EndEle,
-                        GmfInt, BegRef, EndRef ));
-}
-
-
-// TETS
-
-int APIF77(gmfgettetrahedron)(int64_t *MshIdx, int *nod, int *ref)
-{
-   return(GmfGetLin(*MshIdx, GmfTetrahedra, &nod[0], &nod[1], &nod[2], &nod[3], ref));
-}
-
-int APIF77(gmfsettetrahedron)(int64_t *MshIdx, int *nod, int *ref)
-{
-   return(GmfGetLin(*MshIdx, GmfTetrahedra, nod[0], nod[1], nod[2], nod[3], *ref));
-}
-
-int APIF77(gmfgettetrahedra)( int64_t *MshIdx, int *BegIdx, int *EndIdx,
-                              int *MapTyp, int64_t *map,
-                              int *BegEle, int *EndEle,
-                              int *BegRef, int *EndRef )
-{
-   return(GmfGetBlock(  *MshIdx, GmfTetrahedra, *BegIdx, *EndIdx,
-                        *MapTyp, map, NULL,
-                        GmfIntVec, 4, BegEle, EndEle,
-                        GmfInt, BegRef, EndRef ));
-}
-
-int APIF77(gmfsettetrahedra)( int64_t *MshIdx, int *BegIdx, int *EndIdx,
-                              int *MapTyp, int64_t *map,
-                              int *BegEle, int *EndEle,
-                              int *BegRef, int *EndRef )
-{
-   return(GmfSetBlock(  *MshIdx, GmfTetrahedra, *BegIdx, *EndIdx,
-                        *MapTyp, map, NULL,
-                        GmfIntVec, 4, BegEle, EndEle,
+                        GmfIntVec, EleSiz, BegEle, EndEle,
                         GmfInt, BegRef, EndRef ));
 }

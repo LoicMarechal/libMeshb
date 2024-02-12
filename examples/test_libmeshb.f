@@ -33,7 +33,8 @@ c     Check memory bounds
 c     Read the quads
       res = gmfgotokwdf77(InpMsh, GmfQuadrilaterals)
       do i = 1, NmbQad
-          res =gmfgetquadrilateral(InpMsh,QadTab(1,i),QadTab(5,i))
+          res =gmfgetelement(InpMsh, GmfQuadrilaterals,
+     +    QadTab(1,i), QadTab(5,i))
       end do
 
 c     Read the vertices
@@ -65,11 +66,13 @@ c     Then write them down
 c     Write the triangles
       res = gmfsetkwdf77(OutMsh, GmfTriangles, 2*NmbQad, 0, 0)
       do i=1,NmbQad
-          res = gmfsettriangle(OutMsh,QadTab(1,i),QadTab(5,i))
+          res = gmfsetelement(OutMsh, GmfTriangles,
+     +    QadTab(1,i), QadTab(5,i))
 c     Modify the quad to build the other triangle's diagonal
           QadTab(2,i) = QadTab(3,i);
           QadTab(3,i) = QadTab(4,i);
-          res = gmfsettriangle(OutMsh,QadTab(1,i),QadTab(5,i))
+          res = gmfsetelement(OutMsh, GmfTriangles,
+     +    QadTab(1,i),QadTab(5,i))
       end do
 
 c     Don't forget to close the file
