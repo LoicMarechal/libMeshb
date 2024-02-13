@@ -2979,7 +2979,7 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 /*----------------------------------------------------------------------------*/
 
 int64_t APIF77(gmfopenmeshf77)(  char *FilNam, int *mod,
-                                 int *ver, int *dim, int StrSiz )
+                                 int *ver, int *dim, long int StrSiz )
 {
    int   i = 0;
    char  TmpNam[ GmfStrSiz ];
@@ -3013,7 +3013,7 @@ int APIF77(gmfgotokwdf77)(int64_t *MshIdx, int *KwdIdx)
 }
 
 int APIF77(gmfstatkwdf77)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp,
-                           int *SolSiz, int *TypTab,  int *deg, int *NmbNod )
+                           int *SolSiz, int *TypTab, int *deg, int *NmbNod )
 {
    if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "hr"))
       return(GmfStatKwd(*MshIdx, *KwdIdx, NmbTyp, SolSiz, TypTab, deg, NmbNod));

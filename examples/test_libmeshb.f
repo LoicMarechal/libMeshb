@@ -7,6 +7,7 @@ c     read a quad mesh, split it into triangles and write the result back
       integer n
       parameter (n=4000)
       integer i,NmbVer,NmbQad,ver,dim,res,RefTab(n),QadTab(5,n),kwd
+      integer t(1),d,ho,s
       integer*8 InpMsh, OutMsh
       real*8 VerTab(3,n)
 
@@ -24,9 +25,9 @@ c     Open the mesh file and check the version and dimension
       if(dim.ne.3) STOP ' dimension <> 3'
 
 c     Check memory bounds
-      NmbVer = gmfstatkwdf77(InpMsh, GmfVertices)
+      NmbVer = gmfstatkwdf77(InpMsh, GmfVertices, 0, s, t, 0, ho)
       if(NmbVer.gt.n) STOP 'Too many vertices'
-      NmbQad = gmfstatkwdf77(InpMsh, GmfQuadrilaterals)
+      NmbQad = gmfstatkwdf77(InpMsh, GmfQuadrilaterals, 0, s, t, 0, ho)
       if(NmbQad.gt.n) STOP 'Too many quads'
       print*, 'input mesh : ',NmbVer,' vertices,',NmbQad,'quads'
 
@@ -56,7 +57,7 @@ c     ------------------------
       print*, 'output IDX: ',OutMsh
 
 c     Set the number of vertices
-      res = gmfsetkwdf77(OutMsh, GmfVertices, NmbVer, 0 , 0)
+      res = gmfsetkwdf77(OutMsh, GmfVertices, NmbVer, 0, t, 0, ho)
 
 c     Then write them down
       do i = 1, NmbVer
@@ -64,7 +65,7 @@ c     Then write them down
       end do
 
 c     Write the triangles
-      res = gmfsetkwdf77(OutMsh, GmfTriangles, 2*NmbQad, 0, 0)
+      res = gmfsetkwdf77(OutMsh, GmfTriangles, 2*NmbQad, 0, t, 0, ho)
       do i=1,NmbQad
           res = gmfsetelement(OutMsh, GmfTriangles,
      +    QadTab(1,i), QadTab(5,i))

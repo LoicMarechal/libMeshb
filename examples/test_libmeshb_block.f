@@ -8,7 +8,8 @@ c     using fast block transfer
       parameter (n=4000)
       integer i, ver, dim, res, NmbVer, NmbQad
      +, RefTab(n), TriTab(4,2*n), QadTab(5,n)
-      integer*8 InpMsh, OutMsh
+      integer t(1),d,ho,s
+      integer*8 InpMsh, OutMsh, m(1)
       real*8 VerTab(3,n)
 
 
@@ -23,10 +24,10 @@ c     --------------------------------------------
       if(dim.ne.3) STOP ' dimension <> 3'
 
 c     Check memory bounds
-      NmbVer = gmfstatkwdf77(InpMsh, GmfVertices)
+      NmbVer = gmfstatkwdf77(InpMsh, GmfVertices, 0, s, t, 0, ho)
       if(NmbVer.gt.n) STOP 'Too many vertices'
 
-      NmbQad = gmfstatkwdf77(InpMsh, GmfQuadrilaterals)
+      NmbQad = gmfstatkwdf77(InpMsh, GmfQuadrilaterals, 0, s, t, 0, ho)
       if(NmbQad.gt.n) STOP 'Too many quads'
 
 c     Print some information on the open file
@@ -39,13 +40,13 @@ c     Print some information on the open file
 c     Read the vertices using a vector of 3 consecutive doubles
 c     to store the coordinates
       res = gmfgetvertices(InpMsh,
-     +        1, NmbVer, 0, %val(0),
+     +        1, NmbVer, 0, m,
      +        VerTab(1,1), VerTab(1,NmbVer),
      +        RefTab(  1), RefTab(  NmbVer))
 
 c     Read the quads using one single vector of 5 consecutive integers
       res = gmfgetelements(InpMsh, GmfQuadrilaterals,
-     +        1, NmbQad, 0, %val(0),
+     +        1, NmbQad, 0, m,
      +        QadTab(1,1), QadTab(1,NmbQad),
      +        QadTab(5,1), QadTab(5,NmbQad))
 
@@ -80,19 +81,19 @@ c     -----------------------
       if(OutMsh.eq.0) STOP ' OutMsh = 0'
 
 c     Set the number of vertices
-      res = gmfsetkwdf77(OutMsh, GmfVertices, NmbVer, 0, 0)
+      res = gmfsetkwdf77(OutMsh, GmfVertices, NmbVer, 0, t, 0, ho)
 
 c     Write them down using separate pointers for each scalar entry
       res = gmfsetvertices(OutMsh,
-     +         1, NmbVer, 0, %val(0),
+     +         1, NmbVer, 0, m,
      +         VerTab(1,1), VerTab(1,NmbVer),
      +         RefTab(1),   RefTab(NmbVer))
 
 c     Write the triangles using 4 independant set of arguments
 c     for each scalar entry: node1, node2, node3 and reference
-      res = gmfsetkwdf77(OutMsh, GmfTriangles, 2*NmbQad, 0, 0)
+      res = gmfsetkwdf77(OutMsh, GmfTriangles, 2*NmbQad, 0, t, 0, ho)
       res = gmfsetelements(OutMsh, GmfTriangles,
-     +                  1, 2*NmbQad, 0, %val(0),
+     +                  1, 2*NmbQad, 0, m,
      +                  TriTab(1,1), TriTab(1,2*NmbQad),
      +                  TriTab(4,1), TriTab(4,2*NmbQad))
 
