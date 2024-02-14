@@ -36,9 +36,9 @@
 
 \begin{flushright}
 \Large Lo\"ic MAR\'ECHAL / INRIA, Gamma Project\\
-\Large March 2019 \\
-\normalsize Document v1.92 \\
-\normalsize Library v7.60
+\Large February 2024 \\
+\normalsize Document v1.93 \\
+\normalsize Library v7.79
 \end{flushright}
 
 \end{titlepage}
@@ -80,7 +80,7 @@ The \emph{libMeshb} provides programmers with a comprehensive set of commands an
 
 Reading, writing and querying files is easily done by calling a couple of commands which are provided in an ANSI C file ``libmeshb7.c'' and a header file ``libmeshb7.h''. All is needed is compiling those files along with the calling software.
 
-Fortran APIs are also available: ``libmeshb7.ins'' for F77 and F90.
+A partial Fortran API is also available: ``libmeshb7.ins'' for F77 and F90. Refer to fortran\_api.md for more information.
 
 
 \subsection{ASCII vs. Binary}
@@ -100,6 +100,8 @@ Binary files have a slightly smaller footprint than their ASCII counterparts (ty
 Great care has been taken on performance issues when creating the \emph{libMeshb}. When dealing with binary files, reading and writing throughput will only be limited by the speed of the physical media where those files are located. Speed ranging from 20 MB/s to 60 MB/s can be achieved with hard drives and 10 MB/s or 100 MB/s with fast ethernet and gigabit ethernet networks, respectively.
 
 The \emph{libMeshb} performs very poorly in ASCII mode, which is more processor bound rather than hard-drive bound. Don't expect more than 5 or 10 MB/s throughput.
+
+Higher performance can be achieved through \emph{asynchronous} and \emph{low-level} I/O. This mode is enabled by setting a flag while compiling: (-DWITH\_GMF\_AIO) and linking with an additional library (-lrt).
 
 \subsubsection{Compatibility issue: little vs. big endian}
 When it comes to binary storage, the compatibility problem posed by endianness always comes to mind.
@@ -467,7 +469,7 @@ Meshindex = GmfOpenMesh("newfile.meshb", GmfWrite, 2, 3 );
 \normalfont
 
 \paragraph{Asynchronous Input Output:}
-to get best performance out of flash storage SSD (more than a GB/s), the library needs to access the filesystem through low-level functions and perform the reading and processing tasks in parallel using asynchronous I/O. To do so, you need to compile the library with the {\tt -DWITH\_GMF\_AIO} option and link the final executable with the {\tt -lrt} library under Linux.
+to get best performance out of flash storage SSD (more than a GB/s), the library needs to access the filesystem through low-level functions and perform the reading and processing tasks in parallel using asynchronous I/O. To do so, you need to compile the library with the {\tt -DWITH\_AIO} option and link the final executable with the {\tt -lrt} library under Linux.
 
 
 \subsection{GmfCloseMesh}

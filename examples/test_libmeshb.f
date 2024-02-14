@@ -25,9 +25,9 @@ c     Open the mesh file and check the version and dimension
       if(dim.ne.3) STOP ' dimension <> 3'
 
 c     Check memory bounds
-      NmbVer = gmfstatkwdf77(InpMsh, GmfVertices, 0, s, t, 0, ho)
+      NmbVer = gmfstatkwdf77(InpMsh, GmfVertices, 0, s, t, d, ho)
       if(NmbVer.gt.n) STOP 'Too many vertices'
-      NmbQad = gmfstatkwdf77(InpMsh, GmfQuadrilaterals, 0, s, t, 0, ho)
+      NmbQad = gmfstatkwdf77(InpMsh, GmfQuadrilaterals, 0, s, t, d, ho)
       if(NmbQad.gt.n) STOP 'Too many quads'
       print*, 'input mesh : ',NmbVer,' vertices,',NmbQad,'quads'
 
@@ -82,4 +82,4 @@ c     Don't forget to close the file
       print*, 'output mesh: ',NmbVer,' vertices,',
      +         2*NmbQad,'triangles'
 
-      end      
+      end

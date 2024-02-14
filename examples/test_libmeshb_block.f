@@ -24,10 +24,10 @@ c     --------------------------------------------
       if(dim.ne.3) STOP ' dimension <> 3'
 
 c     Check memory bounds
-      NmbVer = gmfstatkwdf77(InpMsh, GmfVertices, 0, s, t, 0, ho)
+      NmbVer = gmfstatkwdf77(InpMsh, GmfVertices, 0, s, t, d, ho)
       if(NmbVer.gt.n) STOP 'Too many vertices'
 
-      NmbQad = gmfstatkwdf77(InpMsh, GmfQuadrilaterals, 0, s, t, 0, ho)
+      NmbQad = gmfstatkwdf77(InpMsh, GmfQuadrilaterals, 0, s, t, d, ho)
       if(NmbQad.gt.n) STOP 'Too many quads'
 
 c     Print some information on the open file
