@@ -89,3 +89,19 @@ Calls C GmfGetBlock() with the provided element keyword, a pointer on the first 
 
 Writes a block of elements.
 Calls C GmfSetBlock() with the provided element keyword, a pointer on the first element's nodes, a pointer on the last element's nodes, a pointer on the first element's reference and a pointer on the last element's reference.
+
+
+## SOLUTIONS
+
+Solution fields are stored in REAL8 into a .sol or .solb file.
+All fields must be stored in a consecutive table.
+
+### gmfgetsolution(lib, solution-keyword, solutions)
+
+Reads one line of solution fields concatenated into a single REAL8 table.
+Calls C GmfGetLin() with the provided solution keyword and a pointer on a vector of sufficent consecutive REAL8 to store a whole line of solution fields.
+
+### gmfsetsolution(lib, solution-keyword, solutions)
+
+Writes one line of solution fields concatenated into a single REAL8 table.
+Calls C GmfSetLin() with the provided solution keyword and a pointer on a vector of sufficient consecutive REAL8 to store a whole line of solution fields.

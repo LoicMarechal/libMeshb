@@ -1,15 +1,16 @@
 
-c     libMeshb 7.79 basic example: 
+c     libMeshb 7.79 basic example:
 c     read a quad mesh, split it into triangles and write the result back
+c     write an associated dummy .sol file containing some data
 
       include 'libmeshb7.ins'
 
       integer n
       parameter (n=4000)
       integer i,NmbVer,NmbQad,ver,dim,res,RefTab(n),QadTab(5,n),kwd
-      integer t(1),d,ho,s
+      integer t(10),d,ho,s
       integer*8 InpMsh, OutMsh
-      real*8 VerTab(3,n)
+      real*8 VerTab(3,n), sol(10)
 
 
 c     --------------------------------------------
@@ -81,5 +82,36 @@ c     Don't forget to close the file
 
       print*, 'output mesh: ',NmbVer,' vertices,',
      +         2*NmbQad,'triangles'
+
+
+c     ----------------------
+c     Create a solution file
+c     ----------------------
+
+      OutMsh = gmfopenmeshf77('tri.sol', GmfWrite, 2, 3)
+      if(OutMsh.eq.0) STOP ' OutMsh = 0'
+      print*, 'output IDX: ',OutMsh
+
+c     Set the solution kinds
+      t(1) = GmfSca;
+      t(2) = GmfVec;
+      t(3) = GmfSca;
+c     Set the number of solutions (one per vertex)
+      res = gmfsetkwdf77(OutMsh, GmfSolAtVertices, NmbVer, 3, t, 0, ho)
+
+c     Write the dummy solution fields
+      do i = 1, NmbVer
+         sol(1) = i
+         sol(2) = i*2
+         sol(3) = i*3
+         sol(4) = i*4
+         sol(5) = -i
+         res = gmfsetsolution(OutMsh, GmfSolAtVertices, sol)
+      end do
+
+c     Don't forget to close the file
+      res = gmfclosemeshf77(OutMsh)
+
+      print*, 'output sol: ',NmbVer,' solutions'
 
       end

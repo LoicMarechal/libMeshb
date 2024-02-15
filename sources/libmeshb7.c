@@ -3173,3 +3173,16 @@ int APIF77(gmfsetelements)(int64_t *MshIdx, int *kwd, int *BegIdx, int *EndIdx,
                         GmfIntVec, EleSiz, BegEle, EndEle,
                         GmfInt, BegRef, EndRef ));
 }
+
+
+// SOLUTION FIELDS
+
+int APIF77(gmfgetsolution)(int64_t *MshIdx, int *kwd, double *sol)
+{
+   return(GmfGetLin(*MshIdx, *kwd, sol));
+}
+
+int APIF77(gmfsetsolution)(int64_t *MshIdx, int *kwd, double *sol)
+{
+   return(GmfSetLin(*MshIdx, *kwd, sol));
+}
