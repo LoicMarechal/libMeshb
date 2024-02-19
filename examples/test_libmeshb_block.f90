@@ -28,7 +28,7 @@ program test_libmeshb_block_f90
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   InpFile='../sample_meshes/quad.mesh'
-  OutFile='./tri.meshb'
+  OutFile='./tri.mesh'
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -45,13 +45,12 @@ program test_libmeshb_block_f90
   NmbVer = Gmfstatkwdf77(InpMsh, GmfVertices, 0, s, t, d, ho)
   allocate(VerTab(1:3,1:NmbVer))
   allocate(VerRef(    1:NmbVer))
+  print '("vertices  : ",i0)', NmbVer
   
   ! Allocate QadTab and QadRef
   NmbQad=Gmfstatkwdf77(InpMsh, GmfQuadrilaterals, 0, s, t, d, ho)  
   allocate(QadTab(1:4,1:NmbQad))
-  allocate(QadRef(    1:NmbQad))
-  
-  print '("vertices  : ",i0)', NmbVer
+  allocate(QadRef(    1:NmbQad))  
   print '("quads     : ",i0)', NmbQad
   
   ! Read the vertices using a vector of 3 consecutive doubles to store the coordinates
@@ -63,15 +62,33 @@ program test_libmeshb_block_f90
   &   VerTab(1,1), VerTab(1,NmbVer) ,&
   &   VerRef(  1), VerRef(  NmbVer)  )
   
-  ! Read the quads using one single vector of 5 consecutive integers
-  res=GmfGetElements(               &
-  &   InpMsh                       ,&
-  &   GmfQuadrilaterals            ,&
-  &   1                            ,& 
-  &   NmbQad                       ,&
-  &   0, m                         ,&
-  &   QadTab(1,1), QadTab(1,NmbQad),&
-  &   QadRef(  1), QadRef(  NmbQad) )
+  ! Read the quads using one single vector of 4 consecutive integers
+  
+  !res=GmfGetElements(                &
+  !&   InpMsh                        ,&
+  !&   GmfQuadrilaterals             ,&
+  !&   1                             ,&
+  !&   NmbQad                        ,&
+  !&   0, m                          ,&
+  !&   QadTab(1,1), QadTab(1,NmbQad) ,&
+  !&   QadRef(  1), QadRef(  NmbQad)  )
+  
+  !> test lecture par tableau 1D
+  block 
+    use iso_c_binding, only: c_loc,c_f_pointer
+    integer     , pointer :: nodes(:)
+    
+    call c_f_pointer(cptr=c_loc(QadTab), fptr=nodes, shape=[4*NmbQad]) !> binding QadTab(:,:) and nodes(:)
+    
+    res=GmfGetElements(                &
+    &   InpMsh                        ,&
+    &   GmfQuadrilaterals             ,&
+    &   1                             ,&
+    &   NmbQad                        ,&
+    &   0, m                          ,&
+    &   nodes(   1), nodes(4*NmbQad-3),&
+    &   QadRef(  1), QadRef(NmbQad)    )
+  end block
   
   ! Close the quadrilateral mesh
   res=GmfCloseMeshf77(InpMsh)
@@ -113,7 +130,7 @@ program test_libmeshb_block_f90
   res=Gmfsetkwdf77(OutMsh, GmfVertices, NmbVer, 0, t, 0, ho)
   
   ! Write them down using separate pointers for each scalar entry
-  res=Gmfsetvertices(               &
+  res=GmfSetVertices(               &
   &   OutMsh                       ,&
   &   1                            ,&
   &   NmbVer                       ,&
@@ -124,17 +141,46 @@ program test_libmeshb_block_f90
   ! Write the triangles using 4 independant set of arguments 
   ! for each scalar entry: node1, node2, node3 and reference
   res=Gmfsetkwdf77(OutMsh, GmfTriangles, NmbTri, 0, t, 0, ho)
-  res = GmfSetElements(               &
-  &     OutMsh                       ,&
-  &     GmfTriangles                 ,&
-  &     1                            ,&
-  &     NmbTri                       ,&
-  &     0, m                         ,&
-  &     TriTab(1,1), TriTab(1,NmbTri),&
-  &     TriRef(  1), TriRef(  NmbTri) )
+
+  !res = GmfSetElements(               &
+  !&     OutMsh                       ,&
+  !&     GmfTriangles                 ,&
+  !&     1                            ,&
+  !&     NmbTri                       ,&
+  !&     0, m                         ,&
+  !&     TriTab(1,1), TriTab(1,NmbTri),&
+  !&     TriRef(  1), TriRef(  NmbTri) )
   
+  !> test ecriture par tableau 1D
+  block 
+    use iso_c_binding, only: c_loc,c_f_pointer
+    integer     , pointer :: nodes(:)
+    
+    print '(/"binding TriTab(:,:) and nodes(:)")'
+    
+    call c_f_pointer(cptr=c_loc(TriTab), fptr=nodes, shape=[3*NmbTri]) !> binding TriTab(:,:) and nodes(:)
+    
+    print '(/"Triangle: ",i6)',1
+    print '( "TriTab:",3(i6,1x) )',TriTab(1,1),TriTab(2,1),TriTab(3,1)
+    print '( "nodes: ",3(i6,1x)/)',nodes(1),nodes(2),nodes(3)
+    print '(/"Triangle: ",i6)',NmbTri
+    print '( "TriTab:",3(i6,1x) )',TriTab(1,NmbTri),TriTab(2,NmbTri),TriTab(3,NmbTri)
+    print '( "nodes: ",3(i6,1x)/)',nodes(3*NmbTri-2),nodes(3*NmbTri-1),nodes(3*NmbTri)
+    
+    res=GmfSetElements(                &
+    &   InpMsh                        ,&
+    &   GmfTriangles                  ,&
+    &   1                             ,&
+    &   NmbTri                        ,&
+    &   0, m                          ,&
+    &   nodes(   1), nodes(3*NmbTri-2),&
+    &   TriRef(  1), TriRef(NmbTri)    )
+    
+  end block
+
   ! Don't forget to close the file
   res=GmfCloseMeshf77(OutMsh)
+
   
   print '("output mesh :",i0," vertices: ",i0," triangles")',NmbVer,NmbTri
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
