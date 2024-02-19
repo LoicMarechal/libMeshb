@@ -53,4 +53,8 @@ if (CMAKE_Fortran_COMPILER)
    add_executable(test_libmeshb_block_f90 test_libmeshb_block.f90)
    target_link_libraries(test_libmeshb_block_f90 Meshb.7 ${AIO_LIBRARIES})
    install (TARGETS test_libmeshb_block_f90 DESTINATION share/libMeshb/examples COMPONENT examples)
+   
+   add_executable(test_libmeshb_HO_f90 test_libmeshb_HO.f90)
+   target_link_libraries(test_libmeshb_HO_f90 Meshb.7 ${AIO_LIBRARIES})
+   install (TARGETS test_libmeshb_HO_f90 DESTINATION share/libMeshb/examples COMPONENT examples)
 endif ()

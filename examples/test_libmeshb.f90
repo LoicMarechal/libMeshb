@@ -11,10 +11,12 @@ program  test_libmeshb_f90
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
   
-  integer               :: i
-  integer               :: NmbVer,NmbQad,ver,dim,res,kwd
-  integer               :: t(1:10),d,ho,s
   integer(8)            :: InpMsh, OutMsh
+  character(80)         :: InpFile
+  character(80)         :: OutFile
+  integer               :: i
+  integer               :: NmbVer,NmbQad,NmbTri,ver,dim,res,kwd
+  integer               :: t(1:10),d,ho,s
   real(real64)          :: sol(1:10)
   real(real64), pointer :: VerTab(:,:)
   integer     , pointer :: VerRef(  :)
@@ -23,11 +25,20 @@ program  test_libmeshb_f90
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  print '(/"test_libmeshb_f90")'
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  InpFile='../sample_meshes/quad.mesh'
+  OutFile='./tri.meshb'
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! Open the quadrilateral mesh file for reading
   
   ! Open the mesh file and check the version and dimension
-  InpMsh = GmfOpenMeshf77('../sample_meshes/quad.mesh ', GmfRead,ver,dim)
-  print '("Input mesh :",i0," version: ",i0," dim: ",i0)',InpMsh,ver,dim
+  InpMsh = GmfOpenMeshf77(trim(InpFile),GmfRead,ver,dim)
+  print '(/"Input Mesh File: ",a," Idx=",i0," version: ",i0," dim: ",i0)',trim(InpFile),InpMsh,ver,dim
   if( InpMsh==0) stop ' InpMsh = 0'
   if( ver<=1   ) stop ' version <= 1'
   if( dim/=3   ) stop ' dimension <> 3'
@@ -62,10 +73,13 @@ program  test_libmeshb_f90
 
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! Create a triangular mesh
+  NmbTri=2*NmbQad
   
-  OutMsh=GmfOpenMeshf77('tri.mesh', GmfWrite, 2, 3)
+  OutMsh = GmfOpenMeshf77(trim(OutFile), GmfWrite, ver, dim)
+  print '(/"Output Mesh File: ",a," Idx=",i0," version: ",i0," dim: ",i0)',trim(OutFile),OutMsh,ver,dim
+  print '( "vertices  : ",i0)', NmbVer
+  print '( "triangles : ",i0)', NmbTri
   if(OutMsh==0) STOP ' OutMsh = 0'
-  print '(/"output tri.mesh  IDX: ",i0)',OutMsh
   
   ! Set the number of vertices
   res=GmfSetKwdf77(OutMsh, GmfVertices, NmbVer, 0, t, 0, ho)
@@ -97,7 +111,7 @@ program  test_libmeshb_f90
   deallocate(VerTab,VerRef)
   deallocate(QadTab,QadRef)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! Create a solution file
   
@@ -123,5 +137,11 @@ program  test_libmeshb_f90
   
   print '("output sol: ",i0," solutions")',NmbVer
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  print '(/"vizir4 -in ",a," -sol tri.sol")',trim(OutFile)
+  print '(/"test_libmeshb_f90")'
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 
 end program test_libmeshb_f90
