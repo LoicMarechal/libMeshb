@@ -317,8 +317,6 @@ contains
   
   function GmfStatKwdf77_0(unit, GmfKey) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use iso_fortran_env
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     integer(int64) :: unit
     integer(int32) :: GmfKey
     integer(int32) :: Nmb
@@ -334,8 +332,6 @@ contains
   
   function     GmfStatKwdf77_1(unit, GmfKey, r, s, t, d, ho) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use iso_fortran_env
-    !>
     integer(int64) :: unit
     integer(int32) :: GmfKey
     integer(int32) :: Nmb
@@ -351,8 +347,6 @@ contains
   
   function    GmfSetKwdF77_0(unit, GmfKey, Nmb) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    use iso_fortran_env
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     integer(int64) :: unit
     integer(int32) :: GmfKey
     integer(int32) :: Nmb
@@ -368,8 +362,6 @@ contains
   
   function     GmfSetKwdF77_1(unit, GmfKey, Nmb, d, t, s, ho) result(res)
    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   use iso_fortran_env
-   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
    integer(int64) :: unit
    integer(int32) :: GmfKey
    integer(int32) :: Nmb
