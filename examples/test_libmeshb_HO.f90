@@ -1,4 +1,3 @@
-
 ! libMeshb 7 basic example:
 ! read a Q2 quad mesh while using the automatic HO reordering feature,
 ! split it into P2 triangles and write the result back using fast block transfer
@@ -10,19 +9,20 @@ program test_libmeshb_HO_f90
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     implicit none
-    integer(8)            :: InpMsh, OutMsh, m(1)
-    character(80)         :: InpFile
-    character(80)         :: OutFile
-    integer               :: i,iTria
-    integer               :: NmbVer,NmbQad,NmbTri,ver,dim,res
-      real(real64)          :: sol(1:10)
-    real(real64), pointer :: VerTab(:,:)
-    integer     , pointer :: VerRef(  :)
-    integer     , pointer :: QadTab(:,:),QadRef(  :)
-    integer     , pointer :: TriTab(:,:),TriRef(  :)
-    integer               :: t(1),d,ho,s
+    integer(int64)          :: InpMsh, OutMsh, m(1)
+    character(80)           :: InpFile
+    character(80)           :: OutFile
+    character(80)           :: SolFile
+    integer(int32)          :: i,iTria
+    integer(int32)          :: GmfCell,GmfOrd
+    integer(int32)          :: NmbVer,NmbQad,NmbTri,ver,dim,res
+    real(real64)  , pointer :: VerTab(:,:)
+    integer(int32), pointer :: VerRef(  :)
+    integer(int32), pointer :: QadTab(:,:),QadRef(  :)
+    integer(int32), pointer :: TriTab(:,:),TriRef(  :)
+    integer(int32)          :: t(1),d,ho,s
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
+    
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     print '(/"test_libmeshb_HO_f90")'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -30,37 +30,30 @@ program test_libmeshb_HO_f90
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     InpFile='../sample_meshes/quad_q2.mesh'
     OutFile='./tri_p2.mesh'
+    SolFile='./tri_p2.sol'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! Open the quadrilateral mesh file for reading
+    print '(/"Input  Mesh File  : ",a )',trim(InpFile)
     
     ! Open the mesh file and check the version and dimension
     InpMsh = GmfOpenMeshf77(trim(InpFile),GmfRead,ver,dim)
-    print '(/"Input Mesh File: ",a," Idx=",i0," version: ",i0," dim: ",i0)',trim(InpFile),InpMsh,ver,dim
-    if( InpMsh==0) stop ' InpMsh = 0'
-    if( ver<=1   ) stop ' version <= 1'
-    if( dim/=3   ) stop ' dimension <> 3'
+    print '( "Input  Mesh Idx   : ",i0)',InpMsh
+    print '( "Input  Mesh ver   : ",i0)',ver
+    print '( "Input  Mesh dim   : ",i0)',dim
     
-    ! Allocate VerTab and VerRef
-    NmbVer = Gmfstatkwdf77(InpMsh, GmfVertices, 0, s, t, d, ho)
+    if( InpMsh==0 ) stop ' InpMsh = 0'
+    if( ver<=1    ) stop ' version <= 1'
+    if( dim/=3    ) stop ' dimension <> 3'
+    
+    ! Read the vertices using a vector of 3 consecutive doubles to store the coordinates
+    
+    NmbVer = Gmfstatkwdf77(InpMsh, GmfVertices      , 0, s, t, d, ho)
+    print '( "Input  Mesh NmbVer: ",i0)', NmbVer
     allocate(VerTab(1:3,1:NmbVer))
     allocate(VerRef(    1:NmbVer))
     
-    ! Allocate QadTab and QadRef
-    NmbQad=Gmfstatkwdf77(InpMsh, GmfQuadrilateralsQ2, 0, s, t, d, ho)  
-    allocate(QadTab(1:9,1:NmbQad))
-    allocate(QadRef(    1:NmbQad))
-    
-    print '("Input mesh : ",i0," vertices: ",i0," quadsQ2")',NmbVer,NmbQad
-    
-    print '("input mesh: ",i0)', InpMsh
-    print '("version   : ",i0)', ver
-    print '("dimension : ",i0)', dim
-    print '("vertices  : ",i0)', NmbVer
-    print '("quadsQ2   : ",i0)', NmbQad
-    
-    ! Read the vertices using a vector of 3 consecutive doubles to store the coordinates
     res=GmfGetVertices(                &
     &   InpMsh                        ,&
     &   1                             ,&
@@ -69,28 +62,104 @@ program test_libmeshb_HO_f90
     &   VerTab(1,1), VerTab(1,NmbVer) ,&
     &   VerRef(  1), VerRef(  NmbVer)  )
     
+    
+    ! Read GmfQuadrilateralsQ2
+    GmfCell=GmfQuadrilateralsQ2                 ! <=
+    GmfOrd =GmfQuadrilateralsQ2Ordering         ! <=
+    
+    NmbQad=Gmfstatkwdf77(InpMsh, GmfCell, 0, s, t, d, ho)
+    print '( "Input  Mesh NmbQad: ",i0)', NmbQad
+    allocate(QadTab(1:9,1:NmbQad))
+    allocate(QadRef(    1:NmbQad))
+    
+    if( .not. Gmfstatkwdf77(InpMsh,GmfOrd,0,s,t,d,ho)==0 )then
+      print '("Input  Mesh Reordering HO Nodes")'
+      block
+        integer :: orderingSpace(1:2,1:9)
+        integer :: orderingMesh (1:2,1:9)
+        integer :: ord
+        integer :: nNode
+        integer :: nUVW
+        !>  04 07 03 
+        !>  08 09 06
+        !>  01 05 02
+        orderingSpace(1:2,01)=[0,0]
+        orderingSpace(1:2,02)=[2,0]
+        orderingSpace(1:2,03)=[2,2]
+        orderingSpace(1:2,04)=[0,2]
+        orderingSpace(1:2,05)=[1,0]
+        orderingSpace(1:2,06)=[2,1]
+        orderingSpace(1:2,07)=[1,2]
+        orderingSpace(1:2,08)=[0,1]
+        orderingSpace(1:2,09)=[1,1]
+        
+        print '("Input  Mesh Requested Order")'
+        do i=1,size(orderingSpace,2)
+          print '(3x,"uv(",i2.2,")=",2(i2,1x))',i,orderingSpace(1:2,i)
+        enddo
+        
+        !> Q2 -> ord=2
+        ord=2
+        nNode=(ord+1)*(ord+1)  ! <=
+        nUVW=2                 ! <=
+        
+        !res=GmfGetBlock(                                              &
+        !&   InpMsh                                                   ,&
+        !&   GmfOrd                                                   ,&
+        !&   int(    1,kind=8)                                        ,&
+        !&   int(nNode,kind=8)                                        ,&
+        !&   0, %val(0), %val(0)                                      ,&
+        !&   GmfIntTab, nUVW, orderingMesh(1,1), orderingMesh(1,nNode) )
+        
+        !> en attendant de pouvoir récupérer orderingMesh ses valeurs sont imposées manuellement
+        orderingMesh(1:2,01)=[0,0]
+        orderingMesh(1:2,02)=[2,0]
+        orderingMesh(1:2,03)=[2,2]
+        orderingMesh(1:2,04)=[0,2]
+        orderingMesh(1:2,05)=[1,0]
+        orderingMesh(1:2,06)=[2,1]
+        orderingMesh(1:2,07)=[1,2]
+        orderingMesh(1:2,08)=[0,1]
+        orderingMesh(1:2,09)=[1,1]
+
+        print '("Input  Mesh Gmf HO Order")'
+        do i=1,size(orderingSpace,2)
+          print '(3x,"uv(",i2.2,")=",2(i2,1x))',i,orderingMesh(1:2,i)
+        enddo
+        
+        !res=GmfSetHONodesOrdering(InpMsh,GmfCell,orderingSpace,orderingMesh)
+        res=GmfSetHONodesOrderingF77(InpMsh,GmfCell,orderingSpace,orderingMesh)
+      end block
+    endif
+    
     ! Read the quads using one single vector of 5 consecutive integers
     res=GmfGetElements(               &
     &   InpMsh                       ,&
-    &   GmfQuadrilateralsQ2          ,&
+    &   GmfCell                      ,&
     &   1                            ,& 
     &   NmbQad                       ,&
     &   0, m                         ,&
     &   QadTab(1,1), QadTab(1,NmbQad),&
     &   QadRef(  1), QadRef(  NmbQad) )
-      
+    
     ! Close the quadrilateral mesh
     res=GmfCloseMeshf77(InpMsh)
+    print '("Input  Mesh Close : ",a)',trim(InpFile)
+    
+    print '("Input  Mesh")'
+    do i=1,10 !NmbQad
+      print '(3x,"qad",i6," nd:",9(i6,1x)," ref: ",i0)',i,QadTab(1:9,i),QadRef(i)
+    enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      
+    ! Convert the quad Q2 mesh into a triangular P2 one
+    
     ! Allocate TriTab and TriRef
     NmbTri=2*NmbQad
     allocate(TriTab(1:6,1:NmbTri))
     allocate(TriRef(    1:NmbTri))
     
-    ! Convert the quad Q2 mesh into a triangular P2 one
     do i=1,NmbQad
        iTria=2*i-1
        TriTab(1,iTria) = QadTab(1,i)
@@ -114,16 +183,24 @@ program test_libmeshb_HO_f90
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! Write a triangular mesh
-       
+    
+    print '(/"Output Mesh File  : ",a )',trim(OutFile)
+    
+    print '("Output Mesh")'
+    do i=1,10 !NmbQad
+      print '(3x,"tri",i6," nd:",6(i6,1x)," ref: ",i0)',i,TriTab(1:6,i),TriRef(i)
+    enddo
+    
+    ! Open the mesh file and check the version and dimension
     OutMsh = GmfOpenMeshf77(trim(OutFile), GmfWrite, ver, dim)
-    print '(/"Output Mesh File: ",a," Idx=",i0," version: ",i0," dim: ",i0)',trim(OutFile),OutMsh,ver,dim
-    print '( "vertices   : ",i0)', NmbVer
-    print '( "triangleP2 : ",i0)', NmbTri
-
-    if(OutMsh==0) STOP ' OutMsh = 0'
+    print '( "Output Mesh Idx   : ",i0)',InpMsh
+    print '( "Output Mesh ver   : ",i0)',ver
+    print '( "Output Mesh dim   : ",i0)',dim
+    if( OutMsh==0 ) STOP ' OutMsh = 0'
     
     ! Set the number of vertices
     res=Gmfsetkwdf77(OutMsh, GmfVertices, NmbVer, 0, t, 0, ho)
+    print '( "Output Mesh NmbVer: ",i0)', NmbVer
     
     ! Write them down using separate pointers for each scalar entry
     res=Gmfsetvertices(               &
@@ -137,7 +214,8 @@ program test_libmeshb_HO_f90
     ! Write the triangles using 4 independant set of arguments 
     ! for each scalar entry: node1, node2, node3 and reference
     res=Gmfsetkwdf77(OutMsh, GmfTrianglesP2, NmbTri, 0, t, 0, ho)
-
+    print '( "Output Mesh NmbTri: ",i0)', NmbTri
+    
     res = GmfSetElements(               &
     &     OutMsh                       ,&
     &     GmfTrianglesP2               ,&
@@ -148,9 +226,7 @@ program test_libmeshb_HO_f90
     &     TriRef(  1), TriRef(  NmbTri) )
     
     ! Don't forget to close the file
-    res=GmfCloseMeshf77(OutMsh)
-    
-    print '("output mesh :",i0," vertices: ",i0," triangles")',NmbVer,NmbTri
+    res=GmfCloseMeshf77(OutMsh)    
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -161,8 +237,7 @@ program test_libmeshb_HO_f90
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print '(/"vizir4 -in ",a)',trim(OutFile)
-    print '(/"test_libmeshb_HO_f90")'
+    print '(/"control:"/"vizir4 -in ",a/)',trim(OutFile)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 end program test_libmeshb_HO_f90
