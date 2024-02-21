@@ -469,6 +469,238 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
 int GmfMaxRefTab[ GmfMaxKwd + 1 ];
 #endif
 
+static char NmbEleNod[ GmfMaxKwd + 1 ] =
+{
+   0,
+   0,
+   0,
+   0,
+   0,
+   2,
+   3,
+   4,
+   4,
+   6,
+   8,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   6,
+   3,
+   0,
+   0,
+   0,
+   0,
+   10,
+   0,
+   0,
+   27,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   32,
+   8,
+   0,
+   5,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   18,
+   14,
+   14,
+   25,
+   9,
+   13,
+   4,
+   5,
+   0,
+   0,
+   20,
+   35,
+   64,
+   125,
+   30,
+   55,
+   40,
+   75,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+};
+
 
 /*----------------------------------------------------------------------------*/
 /* Prototypes of local procedures                                             */
@@ -3096,35 +3328,59 @@ int APIF77(gmfsetvertices)(int64_t *MshIdx, int *BegIdx, int *EndIdx,
 
 // ELEMENTS
 
-int APIF77(gmfgetelement)(int64_t *MshIdx, int *kwd, int *nod, int *ref)
+int APIF77(gmfgetelement)(int64_t *MshIdx, int *kwd, int *n, int *r)
 {
-   switch(*kwd)
+   switch(NmbEleNod[ *kwd ])
    {
-      case GmfEdges :
-         return(GmfGetLin(*MshIdx, *kwd, &nod[0], &nod[1], ref));
-      case GmfTriangles :
-         return(GmfGetLin(*MshIdx, *kwd, &nod[0], &nod[1], &nod[2], ref));
-      case GmfQuadrilaterals :
-         return(GmfGetLin(*MshIdx, *kwd, &nod[0], &nod[1], &nod[2], &nod[3], ref));
-      case GmfTetrahedra :
-         return(GmfGetLin(*MshIdx, *kwd, &nod[0], &nod[1], &nod[2], &nod[3], ref));
+      case 1 :
+         return(GmfGetLin(*MshIdx, *kwd, &n[0], r));
+      case 2 :
+         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], r));
+      case 3 :
+         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], r));
+      case 4 :
+         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], r));
+      case 5 :
+         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], &n[4], r));
+      case 6 :
+         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], &n[4], &n[5], r));
+      case 7 :
+         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], &n[4], &n[5], &n[6], r));
+      case 8 :
+         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], &n[4], &n[5], &n[6], &n[7], r));
+      case 9 :
+         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], &n[4], &n[5], &n[6], &n[7], &n[8], r));
+      case 10 :
+         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], &n[4], &n[5], &n[6], &n[7], &n[8], &n[9], r));
       default :
          return(0);
    }
 }
 
-int APIF77(gmfsetelement)(int64_t *MshIdx, int *kwd, int *nod, int *ref)
+int APIF77(gmfsetelement)(int64_t *MshIdx, int *kwd, int *n, int *r)
 {
-   switch(*kwd)
+   switch(NmbEleNod[ *kwd ])
    {
-      case GmfEdges :
-         return(GmfSetLin(*MshIdx, *kwd, nod[0], nod[1], *ref));
-      case GmfTriangles :
-         return(GmfSetLin(*MshIdx, *kwd, nod[0], nod[1], nod[2], *ref));
-      case GmfQuadrilaterals :
-         return(GmfSetLin(*MshIdx, *kwd, nod[0], nod[1], nod[2], nod[3], *ref));
-      case GmfTetrahedra :
-         return(GmfSetLin(*MshIdx, *kwd, nod[0], nod[1], nod[2], nod[3], *ref));
+      case 1 :
+         return(GmfSetLin(*MshIdx, *kwd, n[0], *r));
+      case 2 :
+         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], *r));
+      case 3 :
+         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], *r));
+      case 4 :
+         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], *r));
+      case 5 :
+         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], n[4], *r));
+      case 6 :
+         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], n[4], n[5], *r));
+      case 7 :
+         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], n[4], n[5], n[6], *r));
+      case 8 :
+         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], *r));
+      case 9 :
+         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[8], *r));
+      case 10 :
+         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[8], n[9], *r));
       default :
          return(0);
    }
@@ -3135,16 +3391,10 @@ int APIF77(gmfgetelements)(int64_t *MshIdx, int *kwd, int *BegIdx, int *EndIdx,
                            int *BegEle, int *EndEle,
                            int *BegRef, int *EndRef)
 {
-   int EleSiz;
+   int EleSiz = NmbEleNod[ *kwd ];
 
-   switch(*kwd)
-   {
-      case GmfEdges :            EleSiz = 2; break;
-      case GmfTriangles :        EleSiz = 3; break;
-      case GmfQuadrilaterals :   EleSiz = 4; break;
-      case GmfTetrahedra :       EleSiz = 4; break;
-      default : return(0);
-   }
+   if(!EleSiz)
+      return(0);
 
    return(GmfGetBlock(  *MshIdx, *kwd, *BegIdx, *EndIdx,
                         *MapTyp, map, NULL,
@@ -3157,16 +3407,11 @@ int APIF77(gmfsetelements)(int64_t *MshIdx, int *kwd, int *BegIdx, int *EndIdx,
                            int *BegEle, int *EndEle,
                            int *BegRef, int *EndRef)
 {
-   int EleSiz;
+   int EleSiz = NmbEleNod[ *kwd ];
 
-   switch(*kwd)
-   {
-      case GmfEdges :            EleSiz = 2; break;
-      case GmfTriangles :        EleSiz = 3; break;
-      case GmfQuadrilaterals :   EleSiz = 4; break;
-      case GmfTetrahedra :       EleSiz = 4; break;
-      default : return(0);
-   }
+   if(!EleSiz)
+      return(0);
+
 
    return(GmfSetBlock(  *MshIdx, *kwd, *BegIdx, *EndIdx,
                         *MapTyp, map, NULL,
