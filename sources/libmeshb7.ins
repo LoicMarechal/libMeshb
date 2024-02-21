@@ -9,7 +9,7 @@ c
 c   Description:         handles .meshb file format I/O
 c   Author:              Loic MARECHAL
 c   Creation date:       dec 08 2015
-c   Last modification:   feb 15 2024
+c   Last modification:   feb 21 2024
 c
 c----------------------------------------------------------
 
@@ -31,6 +31,12 @@ c     Procedures definition
       external gmfsetelements
       external gmfgetsolution
       external gmfsetsolution
+      external gmfgetsolutions
+      external gmfsetsolutions
+      external gmfgetlinei4
+      external gmfsetlinei4
+      external gmfgetblocki4
+      external gmfsetblocki4
 
       integer*8 gmfopenmeshf77
       integer gmfclosemeshf77
@@ -48,6 +54,12 @@ c     Procedures definition
       integer gmfsetelements
       integer gmfgetsolution
       integer gmfsetsolution
+      integer gmfgetsolutions
+      integer gmfsetsolutions
+      integer gmfgetlinei4
+      integer gmfsetlinei4
+      integer gmfgetblocki4
+      integer gmfsetblocki4
 
 
 c     Parameters definition
