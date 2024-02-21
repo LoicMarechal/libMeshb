@@ -49,7 +49,7 @@ program test_libmeshb_HO_f90
     
     ! Read the vertices using a vector of 3 consecutive doubles to store the coordinates
     
-    NmbVer = Gmfstatkwdf77(InpMsh, GmfVertices      , 0, s, t, d, ho)
+    NmbVer = Gmfstatkwd(unit=InpMsh, GmfKey=GmfVertices)
     print '( "Input  Mesh NmbVer: ",i0)', NmbVer
     allocate(VerTab(1:3,1:NmbVer))
     allocate(VerRef(    1:NmbVer))
@@ -67,12 +67,12 @@ program test_libmeshb_HO_f90
     GmfCell=GmfQuadrilateralsQ2                 ! <=
     GmfOrd =GmfQuadrilateralsQ2Ordering         ! <=
     
-    NmbQad=Gmfstatkwdf77(InpMsh, GmfCell, 0, s, t, d, ho)
+    NmbQad=Gmfstatkwd(unit=InpMsh,GmfKey=GmfCell)
     print '( "Input  Mesh NmbQad: ",i0)', NmbQad
     allocate(QadTab(1:9,1:NmbQad))
     allocate(QadRef(    1:NmbQad))
     
-    if( .not. Gmfstatkwdf77(InpMsh,GmfOrd,0,s,t,d,ho)==0 )then
+    if( .not. Gmfstatkwd(unit=InpMsh,GmfKey=GmfOrd)==0 )then
       print '("Input  Mesh Reordering HO Nodes")'
       block
         integer :: orderingSpace(1:2,1:9)
@@ -199,7 +199,7 @@ program test_libmeshb_HO_f90
     if( OutMsh==0 ) STOP ' OutMsh = 0'
     
     ! Set the number of vertices
-    res=Gmfsetkwdf77(OutMsh, GmfVertices, NmbVer, 0, t, 0, ho)
+    res=GmfSetKwd(OutMsh, GmfVertices, NmbVer)
     print '( "Output Mesh NmbVer: ",i0)', NmbVer
     
     ! Write them down using separate pointers for each scalar entry
@@ -213,7 +213,7 @@ program test_libmeshb_HO_f90
     
     ! Write the triangles using 4 independant set of arguments 
     ! for each scalar entry: node1, node2, node3 and reference
-    res=Gmfsetkwdf77(OutMsh, GmfTrianglesP2, NmbTri, 0, t, 0, ho)
+    res=GmfSetKwd(OutMsh, GmfTrianglesP2, NmbTri)
     print '( "Output Mesh NmbTri: ",i0)', NmbTri
     
     res = GmfSetElements(               &

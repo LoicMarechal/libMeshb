@@ -44,7 +44,7 @@ program test_libmeshb_block_f90
   print '( "Input  Mesh dim     : ",i0)',dim
   
   ! Allocate VerRef
-  NmbVer = Gmfstatkwdf77(InpMsh, GmfVertices, 0, s, t, d, ho)
+  NmbVer = GmfStatKwd(InpMsh, GmfVertices)
   print '( "Input  Mesh NmbVer  : ",i0)', NmbVer
   allocate(VerTab(1:3,1:NmbVer))
   allocate(VerRef(    1:NmbVer))
@@ -59,7 +59,7 @@ program test_libmeshb_block_f90
   &   VerRef(  1), VerRef(  NmbVer)  )
   
   ! Allocate QadTab
-  NmbQad=Gmfstatkwdf77(InpMsh, GmfQuadrilaterals, 0, s, t, d, ho)
+  NmbQad=GmfStatKwd(InpMsh, GmfQuadrilaterals)
   print '( "Input  Mesh NmbQad  : ",i0)', NmbQad
   allocate(QadTab(1:4,1:NmbQad))
   allocate(QadRef(    1:NmbQad))  
@@ -130,7 +130,7 @@ program test_libmeshb_block_f90
   if(OutMsh==0) STOP ' OutMsh = 0'
   
   ! Set the number of vertices
-  res=Gmfsetkwdf77(OutMsh, GmfVertices, NmbVer, 0, t, 0, ho)
+  res=GmfSetKwd(OutMsh, GmfVertices, NmbVer)
   print '( "Output Mesh NmbVer  : ",i0)', NmbVer
   
   ! Write them down using separate pointers for each scalar entry
@@ -144,7 +144,7 @@ program test_libmeshb_block_f90
   
   ! Write the triangles using 4 independant set of arguments 
   ! for each scalar entry: node1, node2, node3 and reference
-  res=Gmfsetkwdf77(OutMsh, GmfTriangles, NmbTri, 0, t, 0, ho)
+  res=GmfSetKwd(OutMsh, GmfTriangles, NmbTri)
   print '( "Output Mesh NmbTri  : ",i0)', NmbTri
   
   res = GmfSetElements(               &

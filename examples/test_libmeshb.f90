@@ -51,7 +51,7 @@ program  test_libmeshb_f90
   
   ! Read the vertices
   
-  NmbVer = Gmfstatkwdf77(InpMsh, GmfVertices, 0, s, fields, d, ho)
+  NmbVer = Gmfstatkwd(unit=InpMsh, GmfKey=GmfVertices)
   print '( "Input  Mesh NmbVer  : ",i0)', NmbVer
   allocate(VerTab(1:3,1:NmbVer))
   allocate(VerRef(    1:NmbVer))
@@ -63,7 +63,7 @@ program  test_libmeshb_f90
   
   ! Read the quads
   
-  NmbQad=Gmfstatkwdf77(InpMsh, GmfQuadrilaterals, 0, s, fields, d, ho)
+  NmbQad = Gmfstatkwd(unit=InpMsh, GmfKey=GmfQuadrilaterals)
   print '( "Input  Mesh NmbQad  : ",i0)', NmbQad
   allocate(QadTab(1:4,1:NmbQad))
   allocate(QadRef(    1:NmbQad))
@@ -90,7 +90,7 @@ program  test_libmeshb_f90
   if( OutMsh==0 ) STOP ' OutMsh = 0'
 
   ! Set the number of vertices
-  res=GmfSetKwdf77(OutMsh, GmfVertices, NmbVer, 0, fields, 0, ho)
+  res=GmfSetKwd(OutMsh, GmfVertices, NmbVer)
   print '( "Output Mesh NmbVer  : ",i0)', NmbVer
   
   ! Then write them down
@@ -99,7 +99,7 @@ program  test_libmeshb_f90
   end do
   
   ! Write the triangles
-  res = Gmfsetkwdf77(OutMsh, GmfTriangles, 2*NmbQad, 0, fields, 0, ho)
+  res = GmfSetKwd(OutMsh, GmfTriangles, 2*NmbQad)
   print '( "Output Mesh NmbTri  : ",i0)', NmbTri
   
   do i=1,NmbQad
@@ -134,7 +134,7 @@ program  test_libmeshb_f90
   print '( "Output Solu fields  : ", *(i0,1x))',fields(1:NmbField)
   
   ! Set the number of solutions (one per vertex)
-  res = GmfSetKwdF77(OutSol, GmfSolAtVertices, NmbVer, NmbField, fields(1:NmbField), 0, ho)
+  res = GmfSetKwd(OutSol, GmfSolAtVertices, NmbVer, NmbField, fields(1:NmbField), 0, ho)
   
   ! Write the dummy solution fields
   do i=1,NmbVer
