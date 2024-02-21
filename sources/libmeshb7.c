@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  feb 13 2024                                          */
+/*   Last modification:  feb 21 2024                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -206,7 +206,7 @@ int my_aio_write(struct aiocb *aiocbp)
 typedef struct
 {
    int      typ, deg, NmbNod, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
-   int      *OrdTab;
+   int      *OrdTab, NmbInt, NmbDbl;
    int64_t  NmbLin;
    size_t   pos;
    char     fmt[ GmfMaxTyp*9 ];
@@ -498,7 +498,7 @@ static char NmbEleNod[ GmfMaxKwd + 1 ] =
    6,
    3,
    0,
-   0,
+   9,
    0,
    0,
    10,
@@ -2953,6 +2953,13 @@ static void ExpFmt(GmfMshSct *msh, int KwdCod)
       kwd->SolSiz *= kwd->NmbNod;
       kwd->NmbWrd *= kwd->NmbNod;
    }
+
+   // Count the final number of intergers and reals needed by the Fortran API
+   for(i=0;i<kwd->SolSiz;i++)
+      if(kwd->fmt[i] == 'i')
+         kwd->NmbInt++;
+      else if(kwd->fmt[i] == 'r')
+         kwd->NmbDbl++;
 }
 
 
@@ -3430,4 +3437,129 @@ int APIF77(gmfgetsolution)(int64_t *MshIdx, int *kwd, double *sol)
 int APIF77(gmfsetsolution)(int64_t *MshIdx, int *kwd, double *sol)
 {
    return(GmfSetLin(*MshIdx, *kwd, sol));
+}
+
+int APIF77(gmfgetsolutionss)(int64_t *MshIdx, int *KwdCod, int *BegIdx, int *EndIdx,
+                           int *MapTyp, int64_t *map,
+                           double *BegSol, double *EndSol)
+{
+   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
+   KwdSct *kwd = &msh->KwdTab[ *KwdCod ];
+   
+   return(GmfGetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx,
+                        *MapTyp, map, NULL,
+                        GmfDoubleVec, kwd->SolSiz, BegSol, EndSol ));
+}
+
+int APIF77(gmfsetsolutionss)(int64_t *MshIdx, int *KwdCod, int *BegIdx, int *EndIdx,
+                           int *MapTyp, int64_t *map,
+                           double *BegSol, double *EndSol)
+{
+   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
+   KwdSct *kwd = &msh->KwdTab[ *KwdCod ];
+   
+   return(GmfSetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx,
+                        *MapTyp, map, NULL,
+                        GmfDoubleVec, kwd->SolSiz, BegSol, EndSol ));
+}
+
+
+// INTERGER BASED KEYWORDS
+
+int APIF77(gmfgetlinei4)(int64_t *MshIdx, int *KwdCod, int *i)
+{
+   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
+   KwdSct *kwd = &msh->KwdTab[ *KwdCod ];
+
+   if(kwd->SolSiz != kwd->NmbInt)
+      return(0);
+
+   switch(kwd->NmbInt)
+   {
+      case 1 :
+         return(GmfGetLin(*MshIdx, *KwdCod, &i[0]));
+      case 2 :
+         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1]));
+      case 3 :
+         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2]));
+      case 4 :
+         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3]));
+      case 5 :
+         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3], &i[4]));
+      case 6 :
+         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3], &i[4], &i[5]));
+      case 7 :
+         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3], &i[4], &i[5], &i[6]));
+      case 8 :
+         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3], &i[4], &i[5], &i[6], &i[7]));
+      case 9 :
+         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3], &i[4], &i[5], &i[6], &i[7], &i[8]));
+      case 10 :
+         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3], &i[4], &i[5], &i[6], &i[7], &i[8], &i[9]));
+      default :
+         return(0);
+   }
+}
+
+int APIF77(gmfsetlinei4)(int64_t *MshIdx, int *KwdCod, int *i)
+{
+   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
+   KwdSct *kwd = &msh->KwdTab[ *KwdCod ];
+
+   if(kwd->SolSiz != kwd->NmbInt)
+      return(0);
+
+   switch(kwd->NmbInt)
+   {
+      case 1 :
+         return(GmfSetLin(*MshIdx, *KwdCod, i[0]));
+      case 2 :
+         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1]));
+      case 3 :
+         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2]));
+      case 4 :
+         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3]));
+      case 5 :
+         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3], i[4]));
+      case 6 :
+         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3], i[4], i[5]));
+      case 7 :
+         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3], i[4], i[5], i[6]));
+      case 8 :
+         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7]));
+      case 9 :
+         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8]));
+      case 10 :
+         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9]));
+      default :
+         return(0);
+   }
+}
+
+int APIF77(gmfgetblocki4)( int64_t *MshIdx, int *KwdCod,
+                           int *BegIdx, int *EndIdx,
+                           int *BegDat, int *EndDat )
+{
+   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
+   KwdSct *kwd = &msh->KwdTab[ *KwdCod ];
+
+   if(kwd->SolSiz != kwd->NmbInt)
+      return(0);
+
+   return(GmfGetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx, 0, NULL, NULL,
+                        GmfIntVec, kwd->NmbInt, BegDat, EndDat ));
+}
+
+int APIF77(gmfsetblocki4)( int64_t *MshIdx, int *KwdCod,
+                           int *BegIdx, int *EndIdx,
+                           int *BegDat, int *EndDat )
+{
+   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
+   KwdSct *kwd = &msh->KwdTab[ *KwdCod ];
+
+   if(kwd->SolSiz != kwd->NmbInt)
+      return(0);
+
+   return(GmfSetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx, 0, NULL, NULL,
+                        GmfIntVec, kwd->NmbInt, BegDat, EndDat ));
 }
