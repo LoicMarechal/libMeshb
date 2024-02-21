@@ -12,6 +12,7 @@ program test_libmeshb_block_f90
   integer(8)            :: InpMsh, OutMsh, m(1)
   character(80)         :: InpFile
   character(80)         :: OutFile
+  character(80)         :: SolFile
   integer               :: i
   integer               :: NmbVer,NmbQad,NmbTri,ver,dim,res
   real(real64)          :: sol(1:10)
@@ -29,30 +30,25 @@ program test_libmeshb_block_f90
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   InpFile='../sample_meshes/quad.mesh'
   OutFile='./tri.mesh'
+  SolFile='./tri.sol'
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! Open the quadrilateral mesh file for reading
+  print '(/"Input  Mesh Open    : ",a )',trim(InpFile)
   
   ! Open the mesh file and check the version and dimension
   InpMsh = GmfOpenMeshf77(trim(InpFile),GmfRead,ver,dim)
-  print '(/"Input Mesh File: ",a," Idx=",i0," version: ",i0," dim: ",i0)',trim(InpFile),InpMsh,ver,dim
-  if( InpMsh==0) stop ' InpMsh = 0'
-  if( ver<=1   ) stop ' version <= 1'
-  if( dim/=3   ) stop ' dimension <> 3'
+  print '( "Input  Mesh Idx     : ",i0)',InpMsh
+  print '( "Input  Mesh ver     : ",i0)',ver
+  print '( "Input  Mesh dim     : ",i0)',dim
   
-  ! Allocate VerTab and VerRef
+  ! Allocate VerRef
   NmbVer = Gmfstatkwdf77(InpMsh, GmfVertices, 0, s, t, d, ho)
+  print '( "Input  Mesh NmbVer  : ",i0)', NmbVer
   allocate(VerTab(1:3,1:NmbVer))
   allocate(VerRef(    1:NmbVer))
-  print '("vertices  : ",i0)', NmbVer
-  
-  ! Allocate QadTab and QadRef
-  NmbQad=Gmfstatkwdf77(InpMsh, GmfQuadrilaterals, 0, s, t, d, ho)  
-  allocate(QadTab(1:4,1:NmbQad))
-  allocate(QadRef(    1:NmbQad))  
-  print '("quads     : ",i0)', NmbQad
-  
+    
   ! Read the vertices using a vector of 3 consecutive doubles to store the coordinates
   res=GmfGetVertices(                &
   &   InpMsh                        ,&
@@ -62,40 +58,46 @@ program test_libmeshb_block_f90
   &   VerTab(1,1), VerTab(1,NmbVer) ,&
   &   VerRef(  1), VerRef(  NmbVer)  )
   
+  ! Allocate QadTab
+  NmbQad=Gmfstatkwdf77(InpMsh, GmfQuadrilaterals, 0, s, t, d, ho)
+  print '( "Input  Mesh NmbQad  : ",i0)', NmbQad
+  allocate(QadTab(1:4,1:NmbQad))
+  allocate(QadRef(    1:NmbQad))  
+  
   ! Read the quads using one single vector of 4 consecutive integers
   
-  !res=GmfGetElements(                &
-  !&   InpMsh                        ,&
-  !&   GmfQuadrilaterals             ,&
-  !&   1                             ,&
-  !&   NmbQad                        ,&
-  !&   0, m                          ,&
-  !&   QadTab(1,1), QadTab(1,NmbQad) ,&
-  !&   QadRef(  1), QadRef(  NmbQad)  )
+  res=GmfGetElements(                &
+  &   InpMsh                        ,&
+  &   GmfQuadrilaterals             ,&
+  &   1                             ,&
+  &   NmbQad                        ,&
+  &   0, m                          ,&
+  &   QadTab(1,1), QadTab(1,NmbQad) ,&
+  &   QadRef(  1), QadRef(  NmbQad)  )
   
-  !> test lecture par tableau 1D
-  block 
-    use iso_c_binding, only: c_loc,c_f_pointer
-    integer     , pointer :: nodes(:)
-    
-    call c_f_pointer(cptr=c_loc(QadTab), fptr=nodes, shape=[4*NmbQad]) !> binding QadTab(:,:) and nodes(:)
-    
-    res=GmfGetElements(                &
-    &   InpMsh                        ,&
-    &   GmfQuadrilaterals             ,&
-    &   1                             ,&
-    &   NmbQad                        ,&
-    &   0, m                          ,&
-    &   nodes(   1), nodes(4*NmbQad-3),&
-    &   QadRef(  1), QadRef(NmbQad)    )
-  end block
+  !!> Lecture par tableau 1D sans recopie
+  !block 
+  !  use iso_c_binding, only: c_loc,c_f_pointer
+  !  integer     , pointer :: nodes(:)
+  !  
+  !  call c_f_pointer(cptr=c_loc(QadTab), fptr=nodes, shape=[4*NmbQad]) !> binding QadTab(:,:) and nodes(:)
+  !  
+  !  res=GmfGetElements(                &
+  !  &   InpMsh                        ,&
+  !  &   GmfQuadrilaterals             ,&
+  !  &   1                             ,&
+  !  &   NmbQad                        ,&
+  !  &   0, m                          ,&
+  !  &   nodes(   1), nodes(4*NmbQad-3),&
+  !  &   QadRef(  1), QadRef(NmbQad)    )
+  !end block
   
   ! Close the quadrilateral mesh
   res=GmfCloseMeshf77(InpMsh)
+  print '("Input  Mesh Close   : ",a)',trim(InpFile)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    
   ! Allocate TriTab and TriRef
   NmbTri=2*NmbQad
   allocate(TriTab(1:3,1:NmbTri))
@@ -119,15 +121,17 @@ program test_libmeshb_block_f90
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! Write a triangular mesh
+  print '(/"Output Mesh Open    : ",a )',trim(OutFile)
   
   OutMsh = GmfOpenMeshf77(trim(OutFile), GmfWrite, ver, dim)
-  print '(/"Output Mesh File: ",a," Idx=",i0," version: ",i0," dim: ",i0)',trim(OutFile),OutMsh,ver,dim
-  print '( "vertices  : ",i0)', NmbVer
-  print '( "triangles : ",i0)', NmbTri
+  print '( "Output Mesh Idx     : ",i0)',InpMsh
+  print '( "Output Mesh ver     : ",i0)',ver
+  print '( "Output Mesh dim     : ",i0)',dim
   if(OutMsh==0) STOP ' OutMsh = 0'
   
   ! Set the number of vertices
   res=Gmfsetkwdf77(OutMsh, GmfVertices, NmbVer, 0, t, 0, ho)
+  print '( "Output Mesh NmbVer  : ",i0)', NmbVer
   
   ! Write them down using separate pointers for each scalar entry
   res=GmfSetVertices(               &
@@ -141,48 +145,47 @@ program test_libmeshb_block_f90
   ! Write the triangles using 4 independant set of arguments 
   ! for each scalar entry: node1, node2, node3 and reference
   res=Gmfsetkwdf77(OutMsh, GmfTriangles, NmbTri, 0, t, 0, ho)
-
-  !res = GmfSetElements(               &
-  !&     OutMsh                       ,&
-  !&     GmfTriangles                 ,&
-  !&     1                            ,&
-  !&     NmbTri                       ,&
-  !&     0, m                         ,&
-  !&     TriTab(1,1), TriTab(1,NmbTri),&
-  !&     TriRef(  1), TriRef(  NmbTri) )
+  print '( "Output Mesh NmbTri  : ",i0)', NmbTri
   
-  !> test ecriture par tableau 1D
-  block 
-    use iso_c_binding, only: c_loc,c_f_pointer
-    integer     , pointer :: nodes(:)
-    
-    print '(/"binding TriTab(:,:) and nodes(:)")'
-    
-    call c_f_pointer(cptr=c_loc(TriTab), fptr=nodes, shape=[3*NmbTri]) !> binding TriTab(:,:) and nodes(:)
-    
-    print '(/"Triangle: ",i6)',1
-    print '( "TriTab:",3(i6,1x) )',TriTab(1,1),TriTab(2,1),TriTab(3,1)
-    print '( "nodes: ",3(i6,1x)/)',nodes(1),nodes(2),nodes(3)
-    print '(/"Triangle: ",i6)',NmbTri
-    print '( "TriTab:",3(i6,1x) )',TriTab(1,NmbTri),TriTab(2,NmbTri),TriTab(3,NmbTri)
-    print '( "nodes: ",3(i6,1x)/)',nodes(3*NmbTri-2),nodes(3*NmbTri-1),nodes(3*NmbTri)
-    
-    res=GmfSetElements(                &
-    &   InpMsh                        ,&
-    &   GmfTriangles                  ,&
-    &   1                             ,&
-    &   NmbTri                        ,&
-    &   0, m                          ,&
-    &   nodes(   1), nodes(3*NmbTri-2),&
-    &   TriRef(  1), TriRef(NmbTri)    )
-    
-  end block
+  res = GmfSetElements(               &
+  &     OutMsh                       ,&
+  &     GmfTriangles                 ,&
+  &     1                            ,&
+  &     NmbTri                       ,&
+  &     0, m                         ,&
+  &     TriTab(1,1), TriTab(1,NmbTri),&
+  &     TriRef(  1), TriRef(  NmbTri) )
+  
+  !!> Ecriture par tableau 1D sans recopie
+  !block 
+  !  use iso_c_binding, only: c_loc,c_f_pointer
+  !  integer     , pointer :: nodes(:)
+  !  
+  !  print '(/"binding TriTab(:,:) and nodes(:)")'
+  !  
+  !  call c_f_pointer(cptr=c_loc(TriTab), fptr=nodes, shape=[3*NmbTri]) !> binding TriTab(:,:) and nodes(:)
+  !  
+  !  print '(/"Triangle: ",i6)',1
+  !  print '( "TriTab:",3(i6,1x) )',TriTab(1,1),TriTab(2,1),TriTab(3,1)
+  !  print '( "nodes: ",3(i6,1x)/)',nodes(1),nodes(2),nodes(3)
+  !  print '(/"Triangle: ",i6)',NmbTri
+  !  print '( "TriTab:",3(i6,1x) )',TriTab(1,NmbTri),TriTab(2,NmbTri),TriTab(3,NmbTri)
+  !  print '( "nodes: ",3(i6,1x)/)',nodes(3*NmbTri-2),nodes(3*NmbTri-1),nodes(3*NmbTri)
+  !  
+  !  res=GmfSetElements(                &
+  !  &   InpMsh                        ,&
+  !  &   GmfTriangles                  ,&
+  !  &   1                             ,&
+  !  &   NmbTri                        ,&
+  !  &   0, m                          ,&
+  !  &   nodes(   1), nodes(3*NmbTri-2),&
+  !  &   TriRef(  1), TriRef(NmbTri)    )
+  !  
+  !end block
 
   ! Don't forget to close the file
   res=GmfCloseMeshf77(OutMsh)
-
-  
-  print '("output mesh :",i0," vertices: ",i0," triangles")',NmbVer,NmbTri
+  print '("Output Mesh Close   : ",a)',trim(OutFile)  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -193,8 +196,7 @@ program test_libmeshb_block_f90
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  print '(/"vizir4 -in ",a)',trim(OutFile)
-  print '(/"test_libmeshb_block_f90")'
+  print '(/"Constrol"/"vizir4 -in ",a/)',trim(OutFile)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
 end program test_libmeshb_block_f90
