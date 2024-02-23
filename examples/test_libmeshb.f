@@ -8,9 +8,9 @@ c     write an associated dummy .sol file containing some data
       integer n
       parameter (n=4000)
       integer i,NmbVer,NmbQad,ver,dim,res,RefTab(n),QadTab(5,n),kwd
-      integer t(10),d,ho,s
+      integer t(10),d,ho,s,dummyint(1),dummyref
       integer*8 InpMsh, OutMsh
-      real*8 VerTab(3,n), sol(10)
+      real*8 VerTab(3,n), sol(10), dummyreal(1)
 
 
 c     --------------------------------------------
@@ -18,7 +18,7 @@ c     Open the quadrilateral mesh file for reading
 c     --------------------------------------------
 
 c     Open the mesh file and check the version and dimension
-      InpMsh = gmfopenmeshf77('../sample_meshes/quad.mesh ',
+      InpMsh = gmfopenmeshf77('../sample_meshes/quad.mesh',
      +GmfRead,ver,dim)
       print*, 'input mesh :', InpMsh,'version:',ver,'dim:',dim
       if(InpMsh.eq.0) STOP ' InpMsh = 0'
@@ -32,17 +32,18 @@ c     Check memory bounds
       if(NmbQad.gt.n) STOP 'Too many quads'
       print*, 'input mesh : ',NmbVer,' vertices,',NmbQad,'quads'
 
-c     Read the quads
-      res = gmfgotokwdf77(InpMsh, GmfQuadrilaterals)
-      do i = 1, NmbQad
-          res =gmfgetelement(InpMsh, GmfQuadrilaterals,
-     +    QadTab(1,i), QadTab(5,i))
-      end do
-
 c     Read the vertices
       res = gmfgotokwdf77(InpMsh, GmfVertices)
       do i = 1, NmbVer
-          res = gmfgetvertex(InpMsh, VerTab(1,i), RefTab(i))
+          res = gmfgetlinef77(InpMsh, GmfVertices, dummyint(1),
+     +VerTab(1,i), RefTab(i))
+      end do
+
+c     Read the quads
+      res = gmfgotokwdf77(InpMsh, GmfQuadrilaterals)
+      do i = 1, NmbQad
+          res =gmfgetlinef77(InpMsh, GmfQuadrilaterals,
+     +    QadTab(1,i), dummyreal(1), QadTab(5,i))
       end do
 
 c     Close the quadrilateral mesh
@@ -62,19 +63,20 @@ c     Set the number of vertices
 
 c     Then write them down
       do i = 1, NmbVer
-          res = gmfsetvertex(OutMsh, VerTab(1,i), RefTab(i))
+          res = gmfsetlinef77(OutMsh, GmfVertices, dummyint,
+     +VerTab(1,i), RefTab(i))
       end do
 
 c     Write the triangles
       res = gmfsetkwdf77(OutMsh, GmfTriangles, 2*NmbQad, 0, t, 0, ho)
       do i=1,NmbQad
-          res = gmfsetelement(OutMsh, GmfTriangles,
-     +    QadTab(1,i), QadTab(5,i))
+          res = gmfsetlinef77(OutMsh, GmfTriangles,
+     +    QadTab(1,i), dummyreal, QadTab(5,i))
 c     Modify the quad to build the other triangle's diagonal
           QadTab(2,i) = QadTab(3,i);
           QadTab(3,i) = QadTab(4,i);
-          res = gmfsetelement(OutMsh, GmfTriangles,
-     +    QadTab(1,i),QadTab(5,i))
+          res = gmfsetlinef77(OutMsh, GmfTriangles,
+     +    QadTab(1,i), dummyreal, QadTab(5,i))
       end do
 
 c     Don't forget to close the file
@@ -106,7 +108,8 @@ c     Write the dummy solution fields
          sol(3) = i*3
          sol(4) = i*4
          sol(5) = -i
-         res = gmfsetsolution(OutMsh, GmfSolAtVertices, sol)
+         res = gmfsetlinef77(OutMsh, GmfSolAtVertices,
+     +dummyint, sol, dummyref)
       end do
 
 c     Don't forget to close the file

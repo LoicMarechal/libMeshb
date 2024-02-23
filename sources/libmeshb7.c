@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  feb 21 2024                                          */
+/*   Last modification:  feb 23 2024                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -192,11 +192,11 @@ int my_aio_write(struct aiocb *aiocbp)
 #define RegKwd    2
 #define SolKwd    3
 #define CmtKwd    4
+#define F77Kwd    5
 #define WrdSiz    4
 #define FilStrSiz 64
 #define BufSiz    10000L
 #define MaxArg    20
-
 
 
 /*----------------------------------------------------------------------------*/
@@ -475,7 +475,7 @@ static char NmbEleNod[ GmfMaxKwd + 1 ] =
    0,
    0,
    0,
-   0,
+   1,
    2,
    3,
    4,
@@ -1266,13 +1266,25 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 
 int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
 {
-   int         i, err;
+   int         i, err, typ, *IntTab, *RefPtr, IntVal;
+   int64_t     LngVal;
    float       *FltSolTab, FltVal, *PtrFlt;
-   double      *DblSolTab, *PtrDbl;
+   double      *DblSolTab, *PtrDbl, *DblTab, DblVal;
    va_list     VarArg;
-
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
-   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
+   KwdSct      *kwd;
+
+   if(KwdCod < 0)
+   {
+      KwdCod = -KwdCod;
+      kwd = &msh->KwdTab[ KwdCod ];
+      typ = F77Kwd;
+   }
+   else
+   {
+      kwd = &msh->KwdTab[ KwdCod ];
+      typ = kwd->typ;
+   }
 
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
@@ -1289,7 +1301,7 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
    // Start decoding the arguments
    va_start(VarArg, KwdCod);
 
-   switch(kwd->typ)
+   switch(typ)
    {
       case InfKwd : case RegKwd : case CmtKwd :
       {
@@ -1376,6 +1388,62 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
                   ScaDblWrd(msh, (unsigned char *)&DblSolTab[i]);
          }
       }break;
+
+      case F77Kwd :
+      {
+         IntTab = va_arg(VarArg, int *);
+         DblTab = va_arg(VarArg, double *);
+         RefPtr = va_arg(VarArg, int *);
+
+         for(i=0;i<kwd->SolSiz;i++)
+         {
+            if(kwd->fmt[i] == 'i')
+            {
+               if(msh->ver <= 3)
+               {
+                  if(msh->typ & Asc)
+                     safe_fscanf(msh->hdl, "%d", &IntVal, msh->err);
+                  else
+                     ScaWrd(msh, (unsigned char *)&IntVal);
+               }
+               else
+               {
+                  if(msh->typ & Asc)
+                     safe_fscanf(msh->hdl, INT64_T_FMT, &LngVal, msh->err);
+                  else
+                     ScaDblWrd(msh, (unsigned char *)&LngVal);
+
+                  IntVal = (int)LngVal;
+               }
+
+               if(!NmbEleNod[ KwdCod ] || (i < kwd->SolSiz - 1))
+                  IntTab[i] = IntVal;
+               else
+                  *RefPtr = IntVal;
+            }
+            else if(kwd->fmt[i] == 'r')
+            {
+               if(msh->FltSiz == 32)
+               {
+                  if(msh->typ & Asc)
+                     safe_fscanf(msh->hdl, "%f", &FltVal, msh->err);
+                  else
+                     ScaWrd(msh, (unsigned char *)&FltVal);
+
+                  DblVal = (double)FltVal;
+               }
+               else
+               {
+                  if(msh->typ & Asc)
+                     safe_fscanf(msh->hdl, "%lf", &DblVal, msh->err);
+                  else
+                     ScaDblWrd(msh, (unsigned char *)&DblVal);
+               }
+
+               DblTab[i] = DblVal;
+            }
+         }
+      }break;
    }
 
    va_end(VarArg);
@@ -1390,13 +1458,25 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
 
 int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
 {
-   int         i, pos, *IntBuf, err;
+   int         i, pos, *IntBuf, err, typ, *IntTab, *RefPtr;
    int64_t     *LngBuf;
    float       *FltSolTab, *FltBuf;
-   double      *DblSolTab, *DblBuf;
+   double      *DblSolTab, *DblBuf, *DblTab;
    va_list     VarArg;
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
-   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
+   KwdSct      *kwd;
+
+   if(KwdCod < 0)
+   {
+      KwdCod = -KwdCod;
+      kwd = &msh->KwdTab[ KwdCod ];
+      typ = F77Kwd;
+   }
+   else
+   {
+      kwd = &msh->KwdTab[ KwdCod ];
+      typ = kwd->typ;
+   }
 
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
@@ -1414,102 +1494,192 @@ int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
    // Start decoding the arguments
    va_start(VarArg, KwdCod);
 
-   if(kwd->typ != SolKwd)
+   switch(typ)
    {
-      if(msh->typ & Asc)
+      case InfKwd : case RegKwd : case CmtKwd :
       {
-         for(i=0;i<kwd->SolSiz;i++)
+         if(msh->typ & Asc)
          {
-            if(kwd->fmt[i] == 'r')
+            for(i=0;i<kwd->SolSiz;i++)
             {
-               if(msh->FltSiz == 32)
-                  fprintf(msh->hdl, "%.9g ", va_arg(VarArg, double));
-               else
-                  fprintf(msh->hdl, "%.17g ", va_arg(VarArg, double));
-            }
-            else if(kwd->fmt[i] == 'i')
-            {
-               if(msh->ver <= 3)
-                  fprintf(msh->hdl, "%d ", va_arg(VarArg, int));
-               else
+               if(kwd->fmt[i] == 'r')
                {
-                  // [Bruno] %ld -> INT64_T_FMT
-                  fprintf(msh->hdl, INT64_T_FMT " ", va_arg(VarArg, int64_t));
+                  if(msh->FltSiz == 32)
+                     fprintf(msh->hdl, "%.9g ", va_arg(VarArg, double));
+                  else
+                     fprintf(msh->hdl, "%.17g ", va_arg(VarArg, double));
                }
-            }
-            else if(kwd->fmt[i] == 'c')
-               fprintf(msh->hdl, "%s ", va_arg(VarArg, char *));
-         }
-      }
-      else
-      {
-         pos = 0;
-
-         for(i=0;i<kwd->SolSiz;i++)
-         {
-            if(kwd->fmt[i] == 'r')
-            {
-               if(msh->FltSiz == 32)
+               else if(kwd->fmt[i] == 'i')
                {
-                  FltBuf = (void *)&msh->buf[ pos ];
-                  *FltBuf = (float)va_arg(VarArg, double);
-                  pos += 4;
+                  if(msh->ver <= 3)
+                     fprintf(msh->hdl, "%d ", va_arg(VarArg, int));
+                  else
+                  {
+                     // [Bruno] %ld -> INT64_T_FMT
+                     fprintf(msh->hdl, INT64_T_FMT " ", va_arg(VarArg, int64_t));
+                  }
                }
-               else
-               {
-                  DblBuf = (void *)&msh->buf[ pos ];
-                  *DblBuf = va_arg(VarArg, double);
-                  pos += 8;
-               }
-            }
-            else if(kwd->fmt[i] == 'i')
-            {
-               if(msh->ver <= 3)
-               {
-                  IntBuf = (void *)&msh->buf[ pos ];
-                  *IntBuf = va_arg(VarArg, int);
-                  pos += 4;
-               }
-               else
-               {
-                  LngBuf = (void *)&msh->buf[ pos ];
-                  *LngBuf = va_arg(VarArg, int64_t);
-                  pos += 8;
-               }
-            }
-            else if(kwd->fmt[i] == 'c')
-            {
-               memset(&msh->buf[ pos ], 0, FilStrSiz * WrdSiz);
-               strncpy(&msh->buf[ pos ], va_arg(VarArg, char *), FilStrSiz * WrdSiz);
-               pos += FilStrSiz;
+               else if(kwd->fmt[i] == 'c')
+                  fprintf(msh->hdl, "%s ", va_arg(VarArg, char *));
             }
          }
+         else
+         {
+            pos = 0;
 
-         RecBlk(msh, msh->buf, kwd->NmbWrd);
-      }
-   }
-   else
-   {
-      if(msh->FltSiz == 32)
+            for(i=0;i<kwd->SolSiz;i++)
+            {
+               if(kwd->fmt[i] == 'r')
+               {
+                  if(msh->FltSiz == 32)
+                  {
+                     FltBuf = (void *)&msh->buf[ pos ];
+                     *FltBuf = (float)va_arg(VarArg, double);
+                     pos += 4;
+                  }
+                  else
+                  {
+                     DblBuf = (void *)&msh->buf[ pos ];
+                     *DblBuf = va_arg(VarArg, double);
+                     pos += 8;
+                  }
+               }
+               else if(kwd->fmt[i] == 'i')
+               {
+                  if(msh->ver <= 3)
+                  {
+                     IntBuf = (void *)&msh->buf[ pos ];
+                     *IntBuf = va_arg(VarArg, int);
+                     pos += 4;
+                  }
+                  else
+                  {
+                     LngBuf = (void *)&msh->buf[ pos ];
+                     *LngBuf = va_arg(VarArg, int64_t);
+                     pos += 8;
+                  }
+               }
+               else if(kwd->fmt[i] == 'c')
+               {
+                  memset(&msh->buf[ pos ], 0, FilStrSiz * WrdSiz);
+                  strncpy(&msh->buf[ pos ], va_arg(VarArg, char *), FilStrSiz * WrdSiz);
+                  pos += FilStrSiz;
+               }
+            }
+
+            RecBlk(msh, msh->buf, kwd->NmbWrd);
+         }
+      }break;
+
+      case SolKwd :
       {
-         FltSolTab = va_arg(VarArg, float *);
+         if(msh->FltSiz == 32)
+         {
+            FltSolTab = va_arg(VarArg, float *);
+
+            if(msh->typ & Asc)
+               for(i=0; i<kwd->SolSiz; i++)
+                  fprintf(msh->hdl, "%.9g ", (double)FltSolTab[i]);
+            else
+               RecBlk(msh, (unsigned char *)FltSolTab, kwd->NmbWrd);
+         }
+         else
+         {
+            DblSolTab = va_arg(VarArg, double *);
+
+            if(msh->typ & Asc)
+               for(i=0; i<kwd->SolSiz; i++)
+                  fprintf(msh->hdl, "%.17g ", DblSolTab[i]);
+            else
+               RecBlk(msh, (unsigned char *)DblSolTab, kwd->NmbWrd);
+         }
+      }break;
+
+      case F77Kwd :
+      {
+         IntTab = va_arg(VarArg, int *);
+         DblTab = va_arg(VarArg, double *);
+         RefPtr = va_arg(VarArg, int *);
 
          if(msh->typ & Asc)
-            for(i=0; i<kwd->SolSiz; i++)
-               fprintf(msh->hdl, "%.9g ", (double)FltSolTab[i]);
+         {
+            for(i=0;i<kwd->SolSiz;i++)
+            {
+               if(kwd->fmt[i] == 'r')
+               {
+                  if(msh->FltSiz == 32)
+                     fprintf(msh->hdl, "%.9g ", (float)DblTab[i]);
+                  else
+                     fprintf(msh->hdl, "%.17g ", DblTab[i]);
+               }
+               else if(kwd->fmt[i] == 'i')
+               {
+                  if(msh->ver <= 3)
+                     if(!NmbEleNod[ KwdCod ] || (i < kwd->SolSiz - 1))
+                        fprintf(msh->hdl, "%d ", IntTab[i]);
+                     else
+                        fprintf(msh->hdl, "%d ", *RefPtr);
+                  else
+                  {
+                     if(!NmbEleNod[ KwdCod ] || (i < kwd->SolSiz - 1))
+                        fprintf(msh->hdl, INT64_T_FMT " ", (int64_t)IntTab[i]);
+                     else
+                        fprintf(msh->hdl, INT64_T_FMT " ", (int64_t)*RefPtr);
+                  }
+               }
+            }
+         }
          else
-            RecBlk(msh, (unsigned char *)FltSolTab, kwd->NmbWrd);
-      }
-      else
-      {
-         DblSolTab = va_arg(VarArg, double *);
+         {
+            pos = 0;
 
-         if(msh->typ & Asc)
-            for(i=0; i<kwd->SolSiz; i++)
-               fprintf(msh->hdl, "%.17g ", DblSolTab[i]);
-         else
-            RecBlk(msh, (unsigned char *)DblSolTab, kwd->NmbWrd);
-      }
+            for(i=0;i<kwd->SolSiz;i++)
+            {
+               if(kwd->fmt[i] == 'r')
+               {
+                  if(msh->FltSiz == 32)
+                  {
+                     FltBuf = (void *)&msh->buf[ pos ];
+                     *FltBuf = (float)DblTab[i];
+                     pos += 4;
+                  }
+                  else
+                  {
+                     DblBuf = (void *)&msh->buf[ pos ];
+                     *DblBuf = DblTab[i];
+                     pos += 8;
+                  }
+               }
+               else if(kwd->fmt[i] == 'i')
+               {
+                  if(msh->ver <= 3)
+                  {
+                     IntBuf = (void *)&msh->buf[ pos ];
+
+                     if(!NmbEleNod[ KwdCod ] || (i < kwd->SolSiz - 1))
+                        *IntBuf = IntTab[i];
+                     else
+                        *IntBuf = *RefPtr;
+
+                     pos += 4;
+                  }
+                  else
+                  {
+                     LngBuf = (void *)&msh->buf[ pos ];
+
+                     if(!NmbEleNod[ KwdCod ] || (i < kwd->SolSiz - 1))
+                        *LngBuf = (int64_t)IntTab[i];
+                     else
+                        *LngBuf = (int64_t)*RefPtr;
+
+                     pos += 8;
+                  }
+               }
+            }
+
+            RecBlk(msh, msh->buf, kwd->NmbWrd);
+         }
+      }break;
    }
 
    va_end(VarArg);
@@ -3279,287 +3449,28 @@ int APIF77(gmfsethonodesorderingf77)(  int64_t *MshIdx, int *KwdCod,
    return(GmfSetHONodesOrdering(*MshIdx, *KwdCod, BasTab, OrdTab));
 }
 
-
-// VERTICES
-
-int APIF77(gmfgetvertex)(int64_t *MshIdx, double *crd, int *ref)
+int APIF77(gmfgetlinef77)(int64_t *MshIdx, int *kwd, int *i, double *d, int *r)
 {
-   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
-   
-   if(msh->dim == 3)
-      return(GmfGetLin(*MshIdx, GmfVertices, &crd[0], &crd[1], &crd[2], ref));
-   else if(msh->dim == 2)
-      return(GmfGetLin(*MshIdx, GmfVertices, &crd[0], &crd[1], ref));
-   else
-      return(0);
+   return(GmfGetLin(*MshIdx, -*kwd, i, d, r));
 }
 
-int APIF77(gmfsetvertex)(int64_t *MshIdx, double *crd, int *ref)
+int APIF77(gmfsetlinef77)(int64_t *MshIdx, int *kwd, int *i, double *d, int *r)
 {
-   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
-
-   if(msh->dim == 3)
-      return(GmfSetLin(*MshIdx, GmfVertices, crd[0], crd[1], crd[2], *ref));
-   else if(msh->dim == 2)
-      return(GmfSetLin(*MshIdx, GmfVertices, crd[0], crd[1], *ref));
-   else
-      return(0);
+   return(GmfSetLin(*MshIdx, -*kwd, i, d, r));
 }
 
-int APIF77(gmfgetvertices)(int64_t *MshIdx, int *BegIdx, int *EndIdx,
-                           int *MapTyp, int64_t *map,
-                           double *BegNod, double *EndNod,
-                           int *BegRef, int *EndRef )
+int APIF77(gmfgetblockf77)(int64_t *MshIdx, int *kwd, int *BegIdx, int *EndIdx,
+                           int *MapTyp, int *MatTab, int *BegInt, int *EndInt,
+                           double *BegDbl, double *EndDbl, int *BegRef, int *EndRef)
 {
-   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
-   
-   return(GmfGetBlock(  *MshIdx, GmfVertices, *BegIdx, *EndIdx,
-                        *MapTyp, map, NULL,
-                        GmfDoubleVec, msh->dim, BegNod, EndNod,
-                        GmfInt, BegRef, EndRef ));
+   return(GmfGetBlock(  *MshIdx, -*kwd, *BegIdx, *EndIdx, *MapTyp, MatTab,
+                        NULL, BegInt, EndInt, BegDbl, EndDbl, BegRef, EndRef ));
 }
 
-int APIF77(gmfsetvertices)(int64_t *MshIdx, int *BegIdx, int *EndIdx,
-                           int *MapTyp, int64_t *map,
-                           double *BegNod, double *EndNod,
-                           int *BegRef, int *EndRef )
+int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *kwd, int *BegIdx, int *EndIdx,
+                           int *MapTyp, int *MatTab, int *BegInt, int *EndInt,
+                           double *BegDbl, double *EndDbl, int *BegRef, int *EndRef)
 {
-   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
-   
-   return(GmfSetBlock(  *MshIdx, GmfVertices, *BegIdx, *EndIdx,
-                        *MapTyp, map, NULL,
-                        GmfDoubleVec, msh->dim, BegNod, EndNod,
-                        GmfInt, BegRef, EndRef ));
-}
-
-
-// ELEMENTS
-
-int APIF77(gmfgetelement)(int64_t *MshIdx, int *kwd, int *n, int *r)
-{
-   switch(NmbEleNod[ *kwd ])
-   {
-      case 1 :
-         return(GmfGetLin(*MshIdx, *kwd, &n[0], r));
-      case 2 :
-         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], r));
-      case 3 :
-         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], r));
-      case 4 :
-         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], r));
-      case 5 :
-         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], &n[4], r));
-      case 6 :
-         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], &n[4], &n[5], r));
-      case 7 :
-         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], &n[4], &n[5], &n[6], r));
-      case 8 :
-         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], &n[4], &n[5], &n[6], &n[7], r));
-      case 9 :
-         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], &n[4], &n[5], &n[6], &n[7], &n[8], r));
-      case 10 :
-         return(GmfGetLin(*MshIdx, *kwd, &n[0], &n[1], &n[2], &n[3], &n[4], &n[5], &n[6], &n[7], &n[8], &n[9], r));
-      default :
-         return(0);
-   }
-}
-
-int APIF77(gmfsetelement)(int64_t *MshIdx, int *kwd, int *n, int *r)
-{
-   switch(NmbEleNod[ *kwd ])
-   {
-      case 1 :
-         return(GmfSetLin(*MshIdx, *kwd, n[0], *r));
-      case 2 :
-         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], *r));
-      case 3 :
-         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], *r));
-      case 4 :
-         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], *r));
-      case 5 :
-         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], n[4], *r));
-      case 6 :
-         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], n[4], n[5], *r));
-      case 7 :
-         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], n[4], n[5], n[6], *r));
-      case 8 :
-         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], *r));
-      case 9 :
-         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[8], *r));
-      case 10 :
-         return(GmfSetLin(*MshIdx, *kwd, n[0], n[1], n[2], n[3], n[4], n[5], n[6], n[7], n[8], n[9], *r));
-      default :
-         return(0);
-   }
-}
-
-int APIF77(gmfgetelements)(int64_t *MshIdx, int *kwd, int *BegIdx, int *EndIdx,
-                           int *MapTyp, int64_t *map,
-                           int *BegEle, int *EndEle,
-                           int *BegRef, int *EndRef)
-{
-   int EleSiz = NmbEleNod[ *kwd ];
-
-   if(!EleSiz)
-      return(0);
-
-   return(GmfGetBlock(  *MshIdx, *kwd, *BegIdx, *EndIdx,
-                        *MapTyp, map, NULL,
-                        GmfIntVec, EleSiz, BegEle, EndEle,
-                        GmfInt, BegRef, EndRef ));
-}
-
-int APIF77(gmfsetelements)(int64_t *MshIdx, int *kwd, int *BegIdx, int *EndIdx,
-                           int *MapTyp, int64_t *map,
-                           int *BegEle, int *EndEle,
-                           int *BegRef, int *EndRef)
-{
-   int EleSiz = NmbEleNod[ *kwd ];
-
-   if(!EleSiz)
-      return(0);
-
-
-   return(GmfSetBlock(  *MshIdx, *kwd, *BegIdx, *EndIdx,
-                        *MapTyp, map, NULL,
-                        GmfIntVec, EleSiz, BegEle, EndEle,
-                        GmfInt, BegRef, EndRef ));
-}
-
-
-// SOLUTION FIELDS
-
-int APIF77(gmfgetsolution)(int64_t *MshIdx, int *kwd, double *sol)
-{
-   return(GmfGetLin(*MshIdx, *kwd, sol));
-}
-
-int APIF77(gmfsetsolution)(int64_t *MshIdx, int *kwd, double *sol)
-{
-   return(GmfSetLin(*MshIdx, *kwd, sol));
-}
-
-int APIF77(gmfgetsolutionss)(int64_t *MshIdx, int *KwdCod, int *BegIdx, int *EndIdx,
-                           int *MapTyp, int64_t *map,
-                           double *BegSol, double *EndSol)
-{
-   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
-   KwdSct *kwd = &msh->KwdTab[ *KwdCod ];
-   
-   return(GmfGetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx,
-                        *MapTyp, map, NULL,
-                        GmfDoubleVec, kwd->SolSiz, BegSol, EndSol ));
-}
-
-int APIF77(gmfsetsolutionss)(int64_t *MshIdx, int *KwdCod, int *BegIdx, int *EndIdx,
-                           int *MapTyp, int64_t *map,
-                           double *BegSol, double *EndSol)
-{
-   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
-   KwdSct *kwd = &msh->KwdTab[ *KwdCod ];
-   
-   return(GmfSetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx,
-                        *MapTyp, map, NULL,
-                        GmfDoubleVec, kwd->SolSiz, BegSol, EndSol ));
-}
-
-
-// INTERGER BASED KEYWORDS
-
-int APIF77(gmfgetlinei4)(int64_t *MshIdx, int *KwdCod, int *i)
-{
-   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
-   KwdSct *kwd = &msh->KwdTab[ *KwdCod ];
-
-   if(kwd->SolSiz != kwd->NmbInt)
-      return(0);
-
-   switch(kwd->NmbInt)
-   {
-      case 1 :
-         return(GmfGetLin(*MshIdx, *KwdCod, &i[0]));
-      case 2 :
-         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1]));
-      case 3 :
-         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2]));
-      case 4 :
-         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3]));
-      case 5 :
-         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3], &i[4]));
-      case 6 :
-         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3], &i[4], &i[5]));
-      case 7 :
-         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3], &i[4], &i[5], &i[6]));
-      case 8 :
-         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3], &i[4], &i[5], &i[6], &i[7]));
-      case 9 :
-         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3], &i[4], &i[5], &i[6], &i[7], &i[8]));
-      case 10 :
-         return(GmfGetLin(*MshIdx, *KwdCod, &i[0], &i[1], &i[2], &i[3], &i[4], &i[5], &i[6], &i[7], &i[8], &i[9]));
-      default :
-         return(0);
-   }
-}
-
-int APIF77(gmfsetlinei4)(int64_t *MshIdx, int *KwdCod, int *i)
-{
-   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
-   KwdSct *kwd = &msh->KwdTab[ *KwdCod ];
-
-   if(kwd->SolSiz != kwd->NmbInt)
-      return(0);
-
-   switch(kwd->NmbInt)
-   {
-      case 1 :
-         return(GmfSetLin(*MshIdx, *KwdCod, i[0]));
-      case 2 :
-         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1]));
-      case 3 :
-         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2]));
-      case 4 :
-         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3]));
-      case 5 :
-         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3], i[4]));
-      case 6 :
-         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3], i[4], i[5]));
-      case 7 :
-         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3], i[4], i[5], i[6]));
-      case 8 :
-         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7]));
-      case 9 :
-         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8]));
-      case 10 :
-         return(GmfSetLin(*MshIdx, *KwdCod, i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9]));
-      default :
-         return(0);
-   }
-}
-
-int APIF77(gmfgetblocki4)( int64_t *MshIdx, int *KwdCod,
-                           int *BegIdx, int *EndIdx,
-                           int *BegDat, int *EndDat )
-{
-   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
-   KwdSct *kwd = &msh->KwdTab[ *KwdCod ];
-
-   if(kwd->SolSiz != kwd->NmbInt)
-      return(0);
-
-   return(GmfGetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx, 0, NULL, NULL,
-                        GmfIntVec, kwd->NmbInt, BegDat, EndDat ));
-}
-
-int APIF77(gmfsetblocki4)( int64_t *MshIdx, int *KwdCod,
-                           int *BegIdx, int *EndIdx,
-                           int *BegDat, int *EndDat )
-{
-   GmfMshSct *msh = (GmfMshSct *)*MshIdx;
-   KwdSct *kwd = &msh->KwdTab[ *KwdCod ];
-
-   if(kwd->SolSiz != kwd->NmbInt)
-      return(0);
-
-   return(GmfSetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx, 0, NULL, NULL,
-                        GmfIntVec, kwd->NmbInt, BegDat, EndDat ));
+   return(GmfSetBlock(  *MshIdx, -*kwd, *BegIdx, *EndIdx, *MapTyp, MatTab,
+                        NULL, BegInt, EndInt, BegDbl, EndDbl, BegRef, EndRef ));
 }
