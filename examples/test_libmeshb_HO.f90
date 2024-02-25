@@ -5,6 +5,7 @@
 program test_libmeshb_HO_f90
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use iso_fortran_env
+    use, intrinsic :: iso_c_binding, only: c_null_ptr
     use libmeshb7
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -49,7 +50,7 @@ program test_libmeshb_HO_f90
     
     ! Read the vertices using a vector of 3 consecutive doubles to store the coordinates
     
-    NmbVer = Gmfstatkwd(unit=InpMsh, GmfKey=GmfVertices)
+    NmbVer = GmfstatkwdF90(unit=InpMsh, GmfKey=GmfVertices)
     print '( "Input  Mesh NmbVer: ",i0)', NmbVer
     allocate(VerTab(1:3,1:NmbVer))
     allocate(VerRef(    1:NmbVer))
@@ -58,7 +59,8 @@ program test_libmeshb_HO_f90
     &   InpMsh                        ,&
     &   1                             ,&
     &   NmbVer                        ,&
-    &   0, m                          ,&
+    !   0, m                          ,&
+    &   0, c_null_ptr                 ,&
     &   VerTab(1,1), VerTab(1,NmbVer) ,&
     &   VerRef(  1), VerRef(  NmbVer)  )
     
@@ -67,35 +69,35 @@ program test_libmeshb_HO_f90
     GmfCell=GmfQuadrilateralsQ2                 ! <=
     GmfOrd =GmfQuadrilateralsQ2Ordering         ! <=
     
-    NmbQad=Gmfstatkwd(unit=InpMsh,GmfKey=GmfCell)
+    NmbQad=GmfstatkwdF90(unit=InpMsh,GmfKey=GmfCell)
     print '( "Input  Mesh NmbQad: ",i0)', NmbQad
     allocate(QadTab(1:9,1:NmbQad))
     allocate(QadRef(    1:NmbQad))
     
-    if( .not. Gmfstatkwd(unit=InpMsh,GmfKey=GmfOrd)==0 )then
+    if( .not. GmfstatkwdF90(unit=InpMsh,GmfKey=GmfOrd)==0 )then
       print '("Input  Mesh Reordering HO Nodes")'
       block
-        integer :: orderingSpace(1:2,1:9)
-        integer :: orderingMesh (1:2,1:9)
+        integer :: BasTab(1:2,1:9)
+        integer :: OrdTab(1:2,1:9)
         integer :: ord
         integer :: nNode
         integer :: nUVW
         !>  04 07 03 
         !>  08 09 06
         !>  01 05 02
-        orderingSpace(1:2,01)=[0,0]
-        orderingSpace(1:2,02)=[2,0]
-        orderingSpace(1:2,03)=[2,2]
-        orderingSpace(1:2,04)=[0,2]
-        orderingSpace(1:2,05)=[1,0]
-        orderingSpace(1:2,06)=[2,1]
-        orderingSpace(1:2,07)=[1,2]
-        orderingSpace(1:2,08)=[0,1]
-        orderingSpace(1:2,09)=[1,1]
+        BasTab(1:2,01)=[0,0]
+        BasTab(1:2,02)=[2,0]
+        BasTab(1:2,03)=[2,2]
+        BasTab(1:2,04)=[0,2]
+        BasTab(1:2,05)=[1,0]
+        BasTab(1:2,06)=[2,1]
+        BasTab(1:2,07)=[1,2]
+        BasTab(1:2,08)=[0,1]
+        BasTab(1:2,09)=[1,1]
         
         print '("Input  Mesh Requested Order")'
-        do i=1,size(orderingSpace,2)
-          print '(3x,"uv(",i2.2,")=",2(i2,1x))',i,orderingSpace(1:2,i)
+        do i=1,size(BasTab,2)
+          print '(3x,"uv(",i2.2,")=",2(i2,1x))',i,BasTab(1:2,i)
         enddo
         
         !> Q2 -> ord=2
@@ -103,32 +105,41 @@ program test_libmeshb_HO_f90
         nNode=(ord+1)*(ord+1)  ! <=
         nUVW=2                 ! <=
         
-        !res=GmfGetBlock(                                              &
-        !&   InpMsh                                                   ,&
-        !&   GmfOrd                                                   ,&
-        !&   int(    1,kind=8)                                        ,&
-        !&   int(nNode,kind=8)                                        ,&
-        !&   0, %val(0), %val(0)                                      ,&
-        !&   GmfIntTab, nUVW, orderingMesh(1,1), orderingMesh(1,nNode) )
+        !res=GmfGetBlock(                                  &
+        !&   InpMsh                                       ,&
+        !&   GmfOrd                                       ,&
+        !&   int(    1,kind=8)                            ,&
+        !&   int(nNode,kind=8)                            ,&
+        !&   0, %val(0), %val(0)                          ,&
+        !&   GmfIntTab, nUVW, OrdTab(1,1), OrdTab(1,nNode) )
         
         !> en attendant de pouvoir récupérer orderingMesh ses valeurs sont imposées manuellement
-        orderingMesh(1:2,01)=[0,0]
-        orderingMesh(1:2,02)=[2,0]
-        orderingMesh(1:2,03)=[2,2]
-        orderingMesh(1:2,04)=[0,2]
-        orderingMesh(1:2,05)=[1,0]
-        orderingMesh(1:2,06)=[2,1]
-        orderingMesh(1:2,07)=[1,2]
-        orderingMesh(1:2,08)=[0,1]
-        orderingMesh(1:2,09)=[1,1]
-
+        !OrdTab(1:2,01)=[0,0]
+        !OrdTab(1:2,02)=[2,0]
+        !OrdTab(1:2,03)=[2,2]
+        !OrdTab(1:2,04)=[0,2]
+        !OrdTab(1:2,05)=[1,0]
+        !OrdTab(1:2,06)=[2,1]
+        !OrdTab(1:2,07)=[1,2]
+        !OrdTab(1:2,08)=[0,1]
+        !OrdTab(1:2,09)=[1,1]
+        
+        OrdTab(1:2,01)=[0,0]
+        OrdTab(1:2,02)=[2,0]
+        OrdTab(1:2,03)=[2,2]
+        OrdTab(1:2,04)=[0,2]
+        OrdTab(1:2,05)=[1,0]
+        OrdTab(1:2,06)=[2,1]
+        OrdTab(1:2,07)=[1,2]
+        OrdTab(1:2,08)=[0,1]
+        OrdTab(1:2,09)=[1,1]
+        
         print '("Input  Mesh Gmf HO Order")'
-        do i=1,size(orderingSpace,2)
-          print '(3x,"uv(",i2.2,")=",2(i2,1x))',i,orderingMesh(1:2,i)
+        do i=1,size(OrdTab,2)
+          print '(3x,"uv(",i2.2,")=",2(i2,1x))',i,OrdTab(1:2,i)
         enddo
         
-        !res=GmfSetHONodesOrdering(InpMsh,GmfCell,orderingSpace,orderingMesh)
-        res=GmfSetHONodesOrderingF77(InpMsh,GmfCell,orderingSpace,orderingMesh)
+        res=GmfSetHONodesOrderingF90(unit=InpMsh,GmfKey=GmfCell,BasTab=BasTab,OrdTab=OrdTab)
       end block
     endif
     
@@ -138,7 +149,8 @@ program test_libmeshb_HO_f90
     &   GmfCell                      ,&
     &   1                            ,& 
     &   NmbQad                       ,&
-    &   0, m                         ,&
+    !   0, m                         ,&
+    &   0, c_null_ptr                ,&
     &   QadTab(1,1), QadTab(1,NmbQad),&
     &   QadRef(  1), QadRef(  NmbQad) )
     
@@ -176,8 +188,8 @@ program test_libmeshb_HO_f90
        TriTab(3,iTria) = QadTab(7,i)
        TriTab(4,iTria) = QadTab(5,i)
        TriTab(5,iTria) = QadTab(8,i)
-       TriTab(6,iTria) = QadTab(5,i)
-       TriRef(  iTria) = QadRef(  i)
+       TriTab(6,iTria) = QadTab(4,i)
+       TriRef(  iTria) = QadRef(  i) 
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -199,7 +211,7 @@ program test_libmeshb_HO_f90
     if( OutMsh==0 ) STOP ' OutMsh = 0'
     
     ! Set the number of vertices
-    res=GmfSetKwd(OutMsh, GmfVertices, NmbVer)
+    res=GmfSetKwdF90(unit=OutMsh, GmfKey=GmfVertices, Nmb=NmbVer)
     print '( "Output Mesh NmbVer: ",i0)', NmbVer
     
     ! Write them down using separate pointers for each scalar entry
@@ -207,23 +219,25 @@ program test_libmeshb_HO_f90
     &   OutMsh                       ,&
     &   1                            ,&
     &   NmbVer                       ,&
-    &   0, m                         ,&
+    !   0, m                         ,&
+    &   0, c_null_ptr                ,&
     &   VerTab(1,1), VerTab(1,NmbVer),&
     &   VerRef(  1), VerRef(  NmbVer) )
     
     ! Write the triangles using 4 independant set of arguments 
     ! for each scalar entry: node1, node2, node3 and reference
-    res=GmfSetKwd(OutMsh, GmfTrianglesP2, NmbTri)
+    res=GmfSetKwdF90(unit=OutMsh, GmfKey=GmfTrianglesP2, Nmb=NmbTri)
     print '( "Output Mesh NmbTri: ",i0)', NmbTri
     
-    res = GmfSetElements(               &
-    &     OutMsh                       ,&
-    &     GmfTrianglesP2               ,&
-    &     1                            ,&
-    &     NmbTri                       ,&
-    &     0, m                         ,&
-    &     TriTab(1,1), TriTab(1,NmbTri),&
-    &     TriRef(  1), TriRef(  NmbTri) )
+    res=GmfSetElements(               &
+    &   OutMsh                       ,&
+    &   GmfTrianglesP2               ,&
+    &   1                            ,&
+    &   NmbTri                       ,&
+    &   0, c_null_ptr                ,&
+    !   0, m                         ,&
+    &   TriTab(1,1), TriTab(1,NmbTri),&
+    &   TriRef(  1), TriRef(  NmbTri) )
     
     ! Don't forget to close the file
     res=GmfCloseMeshf77(OutMsh)    

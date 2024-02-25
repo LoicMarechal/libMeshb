@@ -1,11 +1,15 @@
-
 ! libMeshb 7.79 basic example:
 ! read a quad mesh, split it into triangles and write the result back
 ! write an associated dummy .sol file containing some data
 
+!> A FAIRE ajouter time
+!> A FAIRE ajouter iteration
+!> A FAIRE ajouter nom des champs
+
 program  test_libmeshb_f90
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
+  use iso_c_binding, only: C_NULL_CHAR
   use libmeshb7
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -17,7 +21,9 @@ program  test_libmeshb_f90
   character(80)           :: SolFile
   integer(int32)          :: i
   integer(int32)          :: NmbVer,NmbQad,NmbTri,ver,dim,res,kwd
-  integer(int32)          :: NmbField,fields(1:10),ho,s,d
+  integer(int32)          :: NmbField,ho,s,d
+  integer(int32), pointer :: fields(:)
+  character(32) , pointer :: fieldsName(:)=>null()
   real(real64)  , pointer :: sol(:)
   real(real64)  , pointer :: VerTab(:,:)
   integer(int32), pointer :: VerRef(  :)
@@ -39,8 +45,8 @@ program  test_libmeshb_f90
   ! Open the quadrilateral mesh file for reading
   print '(/"Input  Mesh Open    : ",a )',trim(InpFile)
   
-  ! Open the mesh file and check the version and dimension
-  InpMsh = GmfOpenMeshf77(trim(InpFile),GmfRead,ver,dim)
+  call GmfOpenMeshF90(name=trim(InpFile),unit=InpMsh,GmfKey=GmfRead,ver=ver,dim=dim)
+  
   print '( "Input  Mesh Idx     : ",i0)',InpMsh
   print '( "Input  Mesh ver     : ",i0)',ver
   print '( "Input  Mesh dim     : ",i0)',dim
@@ -51,30 +57,30 @@ program  test_libmeshb_f90
   
   ! Read the vertices
   
-  NmbVer = Gmfstatkwd(unit=InpMsh, GmfKey=GmfVertices)
+  NmbVer = GmfstatkwdF90(unit=InpMsh, GmfKey=GmfVertices)
   print '( "Input  Mesh NmbVer  : ",i0)', NmbVer
   allocate(VerTab(1:3,1:NmbVer))
   allocate(VerRef(    1:NmbVer))
   
-  res = Gmfgotokwdf77(InpMsh, GmfVertices)
+  res=GmfGotoKwdF90(unit=InpMsh, GmfKey=GmfVertices)
   do i=1,NmbVer
-    res=GmfGetVertex(InpMsh, VerTab(1:3,i), VerRef(i))
+    res=GmfGetLineF90(unit=InpMsh, GmfKey=GmfVertices, Tab=VerTab(:,i), Ref=VerRef(i))
   end do
   
   ! Read the quads
   
-  NmbQad = Gmfstatkwd(unit=InpMsh, GmfKey=GmfQuadrilaterals)
+  NmbQad = GmfstatkwdF90(unit=InpMsh, GmfKey=GmfQuadrilaterals)
   print '( "Input  Mesh NmbQad  : ",i0)', NmbQad
   allocate(QadTab(1:4,1:NmbQad))
   allocate(QadRef(    1:NmbQad))
   
-  res=Gmfgotokwdf77(InpMsh, GmfQuadrilaterals)
+  res=GmfgotokwdF90(unit=InpMsh, GmfKey=GmfQuadrilaterals)
   do i=1,NmbQad
-    res=GmfGetElement(InpMsh, GmfQuadrilaterals, QadTab(1:4,i), QadRef(i))
+    res=GmfGetLineF90(unit=InpMsh, GmfKey=GmfQuadrilaterals, Tab=QadTab(:,i), Ref=QadRef(i))
   enddo
   
   ! Close the quadrilateral mesh
-  res=GmfCloseMeshf77(InpMsh)
+  res=GmfCloseMeshF90(unit=InpMsh)
   print '("Input  Mesh Close   : ",a)',trim(InpFile)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -83,43 +89,47 @@ program  test_libmeshb_f90
   NmbTri=2*NmbQad
   
   print '(/"Output Mesh Open    : ",a )',trim(OutFile)
-  OutMsh = GmfOpenMeshf77(trim(OutFile), GmfWrite, ver, dim)
+  
+  call GmfOpenMeshF90(name=trim(OutFile),unit=OutMsh,GmfKey=GmfWrite,ver=ver,dim=dim)
+  
   print '( "Output Mesh Idx     : ",i0)',InpMsh
   print '( "Output Mesh ver     : ",i0)',ver
   print '( "Output Mesh dim     : ",i0)',dim
   if( OutMsh==0 ) STOP ' OutMsh = 0'
-
+  
   ! Set the number of vertices
-  res=GmfSetKwd(OutMsh, GmfVertices, NmbVer)
+  res=GmfSetKwdF90(unit=OutMsh, GmfKey=GmfVertices, Nmb=NmbVer)
   print '( "Output Mesh NmbVer  : ",i0)', NmbVer
   
   ! Then write them down
   do i=1,NmbVer
-    res=GmfSetVertex(OutMsh, VerTab(1:3,i), VerRef(i))
+    res=GmfSetLineF90(unit=OutMsh, GmfKey=GmfVertices, Tab=VerTab(:,i), Ref=VerRef(i))
   end do
   
   ! Write the triangles
-  res = GmfSetKwd(OutMsh, GmfTriangles, 2*NmbQad)
+  res=GmfSetKwdF90(unit=OutMsh, GmfKey=GmfTriangles, Nmb=NmbTri)
   print '( "Output Mesh NmbTri  : ",i0)', NmbTri
   
   do i=1,NmbQad
-    res=GmfSetElement(OutMsh, GmfTriangles, QadTab(1,i), QadRef(i))
+    res=GmfSetLineF90(unit=OutMsh, GmfKey=GmfTriangles, Tab=QadTab(1:3,i), Ref=QadRef(i))
     !     Modify the quad to build the other triangle's diagonal
-    QadTab(2,i) = QadTab(3,i);
-    QadTab(3,i) = QadTab(4,i);
-    res=GmfSetElement(OutMsh, GmfTriangles, QadTab(1,i), QadRef(i))
+    QadTab(2,i) = QadTab(3,i)
+    QadTab(3,i) = QadTab(4,i)
+    res=GmfSetLineF90(unit=OutMsh, GmfKey=GmfTriangles, Tab=QadTab(1:3,i), Ref=QadRef(i))
   end do
   
   ! Don't forget to close the file
-  res = GmfCloseMeshf77(OutMsh)
+  res=GmfCloseMeshF90(unit=OutMsh)
   print '("Output Mesh Close   : ",a)',trim(OutFile)  
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! Create a solution file
+  
   print '(/"Output Solu Open    : ",a )',trim(SolFile)
   
-  OutSol = GmfOpenMeshf77(trim(SolFile), GmfWrite, ver, dim)
+  call GmfOpenMeshF90(name=trim(SolFile),unit=OutSol,GmfKey=GmfWrite,ver=ver,dim=dim)
+
   print '( "Output Solu Idx     : ",i0)',OutSol
   print '( "Output Solu ver     : ",i0)',ver
   print '( "Output Solu dim     : ",i0)',dim
@@ -127,25 +137,45 @@ program  test_libmeshb_f90
   
   ! Set the solution kinds
   NmbField=3
-  fields(1:NmbField) = [GmfSca,GmfVec,GmfSca]
+  allocate( fields    (1:NmbField))
+  allocate( fieldsName(1:NmbField))
+  fields(1:NmbField) = [GmfSca,GmfVec,GmfSca]  
+  fieldsName(1:NmbField)=['sca_1','vec_1','sca_2']
+  
+  !nomDesChamps : block
+  !  integer               :: iField,nChar
+  !  character(:), pointer :: fieldName=>null()
+  !  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfReferenceStrings, Nmb=NmbField)
+  !  do iField=1,NmbField
+  !    nChar=len_trim(fieldsName(iField)) ! print '("nChar: ",i0)',nChar
+  !    allocate(character(len=nChar+3) :: fieldName)
+  !    write(fieldName,'(a,1x,i0,a)')trim(fieldsName(iField)),iField,C_NULL_CHAR
+  !    print '("fieldName: ",a)',fieldName
+  !    
+  !    !ress=GmfSetLin(unit=OutSol, GmfKey=GmfReferenceStrings, GmfSolAtVertices, 1, fieldName)
+  !    
+  !    deallocate(fieldName)
+  !  enddo
+  !end block nomDesChamps
+  
   allocate(sol(1:5)) !       1+   dim+     1
   print '( "Output Solu NmbVer  : ",i0)',NmbVer
   print '( "Output Solu nFields : ",i0)',NmbField
   print '( "Output Solu fields  : ", *(i0,1x))',fields(1:NmbField)
   
   ! Set the number of solutions (one per vertex)
-  res = GmfSetKwd(OutSol, GmfSolAtVertices, NmbVer, NmbField, fields(1:NmbField), 0, ho)
+  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, d=NmbField, t=fields(1:NmbField), s=0, ho=ho)
   
   ! Write the dummy solution fields
   do i=1,NmbVer
     sol(  1)=VerTab(1,i)
     sol(2:4)=[VerTab(1,i),VerTab(2,i),0d0]
     sol(  5)=VerTab(2,i)
-    res=GmfSetSolution(OutSol, GmfSolAtVertices, sol)
+    res=GmfSetLineF90(unit=OutMsh, GmfKey=GmfSolAtVertices, dTab=sol(:))
   enddo
   
   ! Don't forget to close the file
-  res = GmfCloseMeshf77(OutSol)
+  res=GmfCloseMeshF90(unit=OutSol)
   print '("Output Solu Close   : ",a)',trim(SolFile)    
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -153,7 +183,7 @@ program  test_libmeshb_f90
   !> Cleanning Memory
   deallocate(VerTab,VerRef)
   deallocate(QadTab,QadRef)
-  deallocate(sol)
+  deallocate(fields,fieldsName,sol)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
