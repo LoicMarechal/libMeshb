@@ -313,9 +313,9 @@ module libmeshb7
   
   interface     GmfSetBlockF90
    !module procedure GmfGetBlockF90_00
-    module procedure GmfSetBlockF90_01 !> nodes    + ref
-    module procedure GmfSetBlockF90_02 !> vertices + ref
-    module procedure GmfSetBlockF90_03 !> solutions     
+    module procedure GmfSetBlockF90_01    !> nodes    + ref
+    module procedure GmfSetBlockF90_02    !> vertices + ref
+    module procedure GmfSetBlockF90_02Bis !> solutions     
   end interface GmfSetBlockF90
   
 contains
@@ -806,7 +806,7 @@ contains
     return
   end function GmfSetBlockF90_02
   
-  function     GmfSetBlockF90_03(unit, GmfKey, ad0, ad1, Tab) result(res)
+  function     GmfSetBlockF90_02Bis(unit, GmfKey, ad0, ad1, Tab) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64), intent(in)    :: unit
     integer(int32), intent(in)    :: GmfKey
@@ -823,9 +823,9 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Nmb=ad1-ad0+1
     
-    print '("GmfSetBlockF90_03 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
-    print '("GmfSetBlockF90_03 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
-    print '("GmfSetBlockF90_03 size(Ref)=  ",i0)',size(Ref)
+    print '("GmfSetBlockF90_02Bis (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfSetBlockF90_02Bis size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    print '("GmfSetBlockF90_02Bis size(Ref)=  ",i0)',size(Ref)
     
     res=GmfSetBlockF77(unit       ,&
     &                  GmfKey     ,&
@@ -841,6 +841,6 @@ contains
     &                  Ref(    1)  )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
-  end function GmfSetBlockF90_03
+  end function GmfSetBlockF90_02Bis
 
 end module libmeshb7

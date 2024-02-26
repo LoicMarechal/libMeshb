@@ -110,7 +110,7 @@ program test_libmeshb_HO_f90
         &   ad0=1                  ,&
         &   ad1=nNode              ,&
         &   Tab=OrdTab(:,1:nNode)   )
-                
+        
         print '("Input  Mesh Order")'
         do i=1,size(OrdTab,2)
           print '(3x,"uv(",i2.2,")=",2(i2,1x))',i,OrdTab(1:2,i)
@@ -146,9 +146,9 @@ program test_libmeshb_HO_f90
     allocate(TriTab(1:6,1:NmbTri))
     allocate(TriRef(    1:NmbTri))
     
-    !>  04 07 03         !>        03   04 07 03
-    !>  08 09 06  =>     !>     09 06 + 08 09   
-    !>  01 05 02         !>  01 05 02   01      
+    !>  04 07 03          03   04 07 03
+    !>  08 09 06 =>    09 06 + 08 09   
+    !>  01 05 02    01 05 02   01      
     
     !>  03 
     !>  06 05
