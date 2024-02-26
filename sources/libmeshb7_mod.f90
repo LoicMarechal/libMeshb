@@ -293,13 +293,13 @@ module libmeshb7
   integer(int32), parameter :: gmfmeshongeometry=227
   
   interface     GmfStatKwdF90
-    module procedure GmfStatKwdF90_0
-    module procedure GmfStatKwdF90_1  
+    module procedure GmfStatKwdF90_0 !> vertices & nodes
+    module procedure GmfStatKwdF90_1 !> solutions       
   end interface GmfStatKwdF90
   
   interface     GmfSetKwdF90
-    module procedure GmfSetKwdF90_0
-    module procedure GmfSetKwdF90_1
+    module procedure GmfSetKwdF90_0 !> vertices & nodes
+    module procedure GmfSetKwdF90_1 !> solutions       
   end interface GmfSetKwdF90
   
   interface     GmfGetLineF90
@@ -315,14 +315,14 @@ module libmeshb7
   end interface GmfSetLineF90
   
   interface     GmfGetBlockF90
-    !module procedure GmfGetBlockF90_00
+   !module procedure GmfGetBlockF90_00
     module procedure GmfGetBlockF90_01 !> nodes    + ref
     module procedure GmfGetBlockF90_02 !> vertices + ref
     module procedure GmfGetBlockF90_03 !> solutions     
   end interface GmfGetBlockF90
   
   interface     GmfSetBlockF90
-    !module procedure GmfGetBlockF90_00
+   !module procedure GmfGetBlockF90_00
     module procedure GmfSetBlockF90_01 !> nodes    + ref
     module procedure GmfSetBlockF90_02 !> vertices + ref
     module procedure GmfSetBlockF90_03 !> solutions     
