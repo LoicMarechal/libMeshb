@@ -19,29 +19,18 @@ module libmeshb7
   implicit none
   
   ! Procedures definition
-  external gmfopenmeshf77
-  external gmfclosemeshf77
-  external GmfStatKwdf77
-  external gmfsetkwdf77
-  external gmfgotokwdf77
-  external gmfsethonodesorderingf77
-  external gmfgetlinef77
-  external gmfsetlinef77
-  external gmfgetblockf77
-  external gmfsetblockf77
+  integer(int64) , external :: gmfopenmeshf77
+  integer(int32) , external :: gmfclosemeshf77
+  integer(int32) , external :: GmfStatKwdf77
+  integer(int32) , external :: gmfsetkwdf77
+  integer(int32) , external :: gmfgotokwdf77
+  integer(int32) , external :: gmfsethonodesorderingf77
+  integer(int32) , external :: gmfgetlinef77
+  integer(int32) , external :: gmfsetlinef77
+  integer(int32) , external :: gmfgetblockf77
+  integer(int32) , external :: gmfsetblockf77
   
-  integer(int64) gmfopenmeshf77
-  integer(int32) gmfclosemeshf77
-  integer(int32) GmfStatKwdf77
-  integer(int32) gmfsetkwdf77
-  integer(int32) gmfgotokwdf77
-  integer(int32) gmfsethonodesorderingf77  
-  integer(int32) gmfgetlinef77
-  integer(int32) gmfsetlinef77
-  integer(int32) gmfgetblockf77
-  integer(int32) gmfsetblockf77
-
-
+  
   ! Parameters definition
   integer(int32), parameter :: gmfmaxtyp=1000
   integer(int32), parameter :: gmfmaxkwd=227
@@ -329,7 +318,7 @@ module libmeshb7
   end interface GmfSetBlockF90
   
 contains
-
+  
   function  GmfOpenMeshF90(name, GmfKey, ver, dim) result(unit)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*)  , intent(in)    :: name
