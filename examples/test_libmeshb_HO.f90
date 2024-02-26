@@ -29,7 +29,7 @@ program test_libmeshb_HO_f90
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     InpFile='../sample_meshes/quad_q2.mesh'
-    OutFile='./tri_p2f.mesh'
+    OutFile='./tri_p2.mesh'
     SolFile='./tri_p2.sol'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -146,23 +146,30 @@ program test_libmeshb_HO_f90
     allocate(TriTab(1:6,1:NmbTri))
     allocate(TriRef(    1:NmbTri))
     
+    !>  04 07 03         !>        03   04 07 03
+    !>  08 09 06  =>     !>     09 06 + 08 09   
+    !>  01 05 02         !>  01 05 02   01      
+    
+    !>  03 
+    !>  06 05
+    !>  01 04 02
     do i=1,NmbQad
       iTria=2*i-1
       TriTab(1,iTria) = QadTab(1,i)
-      TriTab(2,iTria) = QadTab(3,i)
-      TriTab(3,iTria) = QadTab(9,i)
-      TriTab(4,iTria) = QadTab(2,i)
+      TriTab(2,iTria) = QadTab(2,i)
+      TriTab(3,iTria) = QadTab(3,i)
+      TriTab(4,iTria) = QadTab(5,i)
       TriTab(5,iTria) = QadTab(6,i)
-      TriTab(6,iTria) = QadTab(5,i)
+      TriTab(6,iTria) = QadTab(9,i)
       TriRef(  iTria) = QadRef(  i)
       
       iTria=2*i
       TriTab(1,iTria) = QadTab(1,i)
-      TriTab(2,iTria) = QadTab(9,i)
-      TriTab(3,iTria) = QadTab(7,i)
-      TriTab(4,iTria) = QadTab(5,i)
-      TriTab(5,iTria) = QadTab(8,i)
-      TriTab(6,iTria) = QadTab(4,i)
+      TriTab(2,iTria) = QadTab(3,i)
+      TriTab(3,iTria) = QadTab(4,i)
+      TriTab(4,iTria) = QadTab(9,i)
+      TriTab(5,iTria) = QadTab(7,i)
+      TriTab(6,iTria) = QadTab(8,i)
       TriRef(  iTria) = QadRef(  i) 
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
