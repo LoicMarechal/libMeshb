@@ -3459,18 +3459,86 @@ int APIF77(gmfsetlinef77)(int64_t *MshIdx, int *kwd, int *i, double *d, int *r)
    return(GmfSetLin(*MshIdx, -*kwd, i, d, r));
 }
 
-int APIF77(gmfgetblockf77)(int64_t *MshIdx, int *kwd, int *BegIdx, int *EndIdx,
-                           int *MapTyp, int *MatTab, int *BegInt, int *EndInt,
-                           double *BegDbl, double *EndDbl, int *BegRef, int *EndRef)
+int APIF77(gmfgetblockf77)(int64_t *MshIdx, int *KwdCod,
+                           int *BegIdx, int *EndIdx,
+                           int *MapTyp, int *MatTab,
+                           int *BegInt, int *EndInt,
+                           double *BegDbl, double *EndDbl,
+                           int *BegRef, int *EndRef)
 {
-   return(GmfGetBlock(  *MshIdx, -*kwd, *BegIdx, *EndIdx, *MapTyp, MatTab,
-                        NULL, BegInt, EndInt, BegDbl, EndDbl, BegRef, EndRef ));
+   int         i, TypTab[ MaxArg ], SizTab[ MaxArg ];
+   char        *BegTab[ MaxArg ], *EndTab[ MaxArg ];
+   GmfMshSct   *msh = (GmfMshSct *)*MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ *KwdCod ];
+
+   for(i=0;i<kwd->SolSiz;i++)
+   {
+      if(kwd->fmt[i] == 'i')
+      {
+         TypTab[i] = GmfInt;
+         SizTab[i] = 1;
+
+         if( (NmbEleNod[ *KwdCod ]) && (i == kwd->SolSiz-1) )
+         {
+            BegTab[i] = (char *)BegRef;
+            EndTab[i] = (char *)EndRef;
+         }
+         else
+         {
+            BegTab[i] = (char *)&BegInt[i];
+            EndTab[i] = (char *)&EndInt[i];
+         }
+      }else if(kwd->fmt[i] == 'r')
+      {
+         TypTab[i] = GmfDouble;
+         SizTab[i] = 1;
+         BegTab[i] = (char *)&BegDbl[i];
+         EndTab[i] = (char *)&EndDbl[i];
+      }
+   }
+
+   return(GmfGetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx, *MapTyp, MatTab,
+                        NULL, GmfArgTab, TypTab, SizTab, BegTab, EndTab ));
 }
 
-int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *kwd, int *BegIdx, int *EndIdx,
-                           int *MapTyp, int *MatTab, int *BegInt, int *EndInt,
-                           double *BegDbl, double *EndDbl, int *BegRef, int *EndRef)
+int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *KwdCod,
+                           int *BegIdx, int *EndIdx,
+                           int *MapTyp, int *MatTab,
+                           int *BegInt, int *EndInt,
+                           double *BegDbl, double *EndDbl,
+                           int *BegRef, int *EndRef)
 {
-   return(GmfSetBlock(  *MshIdx, -*kwd, *BegIdx, *EndIdx, *MapTyp, MatTab,
-                        NULL, BegInt, EndInt, BegDbl, EndDbl, BegRef, EndRef ));
+   int         i, TypTab[ MaxArg ], SizTab[ MaxArg ];
+   char        *BegTab[ MaxArg ], *EndTab[ MaxArg ];
+   GmfMshSct   *msh = (GmfMshSct *)*MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ *KwdCod ];
+
+   for(i=0;i<kwd->SolSiz;i++)
+   {
+      if(kwd->fmt[i] == 'i')
+      {
+         TypTab[i] = GmfInt;
+         SizTab[i] = 1;
+
+         if( (NmbEleNod[ *KwdCod ]) && (i == kwd->SolSiz-1) )
+         {
+            BegTab[i] = (char *)BegRef;
+            EndTab[i] = (char *)EndRef;
+         }
+         else
+         {
+            BegTab[i] = (char *)&BegInt[i];
+            EndTab[i] = (char *)&EndInt[i];
+         }
+      }else if(kwd->fmt[i] == 'r')
+      {
+         TypTab[i] = GmfDouble;
+         SizTab[i] = 1;
+         BegTab[i] = (char *)&BegDbl[i];
+         EndTab[i] = (char *)&EndDbl[i];
+      }
+   }
+
+   return(GmfSetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx, *MapTyp, MatTab,
+                        NULL, GmfArgTab, TypTab, SizTab, BegTab, EndTab ));
 }
