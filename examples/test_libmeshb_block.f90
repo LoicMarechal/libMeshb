@@ -9,17 +9,20 @@ program test_libmeshb_block_f90
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
-  integer(8)            :: InpMsh, OutMsh, m(1)
-  character(80)         :: InpFile
-  character(80)         :: OutFile
-  character(80)         :: SolFile
-  integer               :: i
-  integer               :: NmbVer,NmbQad,NmbTri,ver,dim,res
-  real(real64), pointer :: VerTab(:,:)
-  integer     , pointer :: VerRef(  :)
-  integer     , pointer :: QadTab(:,:),QadRef(  :)
-  integer     , pointer :: TriTab(:,:),TriRef(  :)
-  integer               :: t(1),d,ho,s
+  integer(int64)          :: InpMsh, OutMsh, OutSol
+  character(80)           :: InpFile
+  character(80)           :: OutFile
+  character(80)           :: SolFile
+  integer                 :: i
+  integer                 :: NmbVer,NmbQad,NmbTri,ver,dim,res
+  real(real64)  , pointer :: VerTab(:,:)
+  integer       , pointer :: VerRef(  :)
+  integer       , pointer :: QadTab(:,:),QadRef(  :)
+  integer       , pointer :: TriTab(:,:),TriRef(  :)
+  integer(int32)          :: NmbField,ho,s,d
+  integer(int32), pointer :: fields(:)
+  character(32) , pointer :: fieldsName(:)=>null()
+  real(real64)  , pointer :: solTab(:,:)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -28,8 +31,8 @@ program test_libmeshb_block_f90
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   InpFile='../sample_meshes/quad.mesh'
-  OutFile='./tri.mesh'
-  SolFile='./tri.sol'
+  OutFile='./tri.meshb'
+  SolFile='./tri.solb'
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -153,7 +156,7 @@ program test_libmeshb_block_f90
   ! for each scalar entry: node1, node2, node3 and reference
   res=GmfSetKwdF90(unit=OutMsh, GmfKey=GmfTriangles, Nmb=NmbTri)
   print '( "Output Mesh NmbTri  : ",i0)', NmbTri
-    
+  
   res=GmfSetBlockF90(        &
   &   unit=OutMsh           ,&
   &   GmfKey=GmfTriangles   ,&
@@ -196,14 +199,77 @@ program test_libmeshb_block_f90
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! Create a solution file
+  
+  print '(/"Output Solu Open    : ",a )',trim(SolFile)
+  
+  OutSol=GmfOpenMeshF90(name=trim(SolFile),GmfKey=GmfWrite,ver=ver,dim=dim)
+
+  print '( "Output Solu Idx     : ",i0)',OutSol
+  print '( "Output Solu ver     : ",i0)',ver
+  print '( "Output Solu dim     : ",i0)',dim
+  if( OutSol==0 ) STOP ' OutSol = 0'
+  
+  ! Set the solution kinds
+  NmbField=3
+  allocate( fields    (1:NmbField))
+  allocate( fieldsName(1:NmbField))
+  fields(1:NmbField) = [GmfSca,GmfVec,GmfSca]  
+  fieldsName(1:NmbField)=['sca_1','vec_1','sca_2']
+  
+  !nomDesChamps : block
+  !  integer               :: iField,nChar
+  !  character(:), pointer :: fieldName=>null()
+  !  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfReferenceStrings, Nmb=NmbField)
+  !  do iField=1,NmbField
+  !    nChar=len_trim(fieldsName(iField)) ! print '("nChar: ",i0)',nChar
+  !    allocate(character(len=nChar+3) :: fieldName)
+  !    write(fieldName,'(a,1x,i0,a)')trim(fieldsName(iField)),iField,C_NULL_CHAR
+  !    print '("fieldName: ",a)',fieldName
+  !    
+  !    !ress=GmfSetLin(unit=OutSol, GmfKey=GmfReferenceStrings, GmfSolAtVertices, 1, fieldName)
+  !    
+  !    deallocate(fieldName)
+  !  enddo
+  !end block nomDesChamps
+  
+  allocate(solTab(1:5,NmbVer)) !       1+   dim+     1
+  print '( "Output Solu NmbVer  : ",i0)',NmbVer
+  print '( "Output Solu nFields : ",i0)',NmbField
+  print '( "Output Solu fields  : ", *(i0,1x))',fields(1:NmbField)
+  
+  ! Set the number of solutions (one per vertex)
+  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, d=NmbField, t=fields(1:NmbField), s=0, ho=ho)
+  
+  ! Compute the dummy solution fields
+  do i=1,NmbVer
+    solTab(  1,i)=VerTab(1,i)
+    solTab(2:4,i)=[VerTab(1,i),VerTab(2,i),0d0]
+    solTab(  5,i)=VerTab(2,i)
+  enddo
+  
+  res=GmfSetBlockF90(          &
+  &   unit=OutMsh             ,&
+  &   GmfKey=GmfSolAtVertices ,&
+  &   ad0=1                   ,&
+  &   ad1=NmbVer              ,&
+  &   Tab=solTab(:,1:NmbVer)   )
+  
+  ! Don't forget to close the file
+  res=GmfCloseMeshF90(unit=OutSol)
+  print '("Output Solu Close   : ",a)',trim(SolFile)    
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Cleanning Memory
   deallocate(VerTab,VerRef)
   deallocate(QadTab,QadRef)
   deallocate(TriTab,TriRef)
+  deallocate(solTab)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  print '(/"Constrol"/"vizir4 -in ",a/)',trim(OutFile)
+  print '(/"Constrol"/"vizir4 -in ",a," -sol ",a,/)',trim(OutFile),trim(SolFile)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
 end program test_libmeshb_block_f90
