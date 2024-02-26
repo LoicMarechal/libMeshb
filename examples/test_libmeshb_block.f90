@@ -1,4 +1,3 @@
-
 ! libMeshb 7.79 example: transform a quadrilateral mesh into a triangular one
 ! using fast block transfer
 
@@ -38,7 +37,7 @@ program test_libmeshb_block_f90
   print '(/"Input  Mesh Open    : ",a )',trim(InpFile)
   
   ! Open the mesh file and check the version and dimension
-  call GmfOpenMeshF90(name=trim(InpFile),unit=InpMsh,GmfKey=GmfRead,ver=ver,dim=dim)
+  InpMsh=GmfOpenMeshF90(name=trim(InpFile),GmfKey=GmfRead,ver=ver,dim=dim)
 
   print '( "Input  Mesh Idx     : ",i0)',InpMsh
   print '( "Input  Mesh ver     : ",i0)',ver
@@ -49,24 +48,8 @@ program test_libmeshb_block_f90
   print '( "Input  Mesh NmbVer  : ",i0)', NmbVer
   allocate(VerTab(1:3,1:NmbVer))
   allocate(VerRef(    1:NmbVer))
-    
-  ! Read the vertices using a vector of 3 consecutive doubles to store the coordinates
-  !res=GmfGetVertices(                &
-  !&   InpMsh                        ,&
-  !&   1                             ,&
-  !&   NmbVer                        ,&
-  !&   0, m                          ,&
-  !&   VerTab(1,1), VerTab(1,NmbVer) ,&
-  !&   VerRef(  1), VerRef(  NmbVer)  )
   
-  !res=GmfGetVertices(                &
-  !&   InpMsh                        ,&
-  !&   1                             ,&
-  !&   NmbVer                        ,&
-  !&   0, c_null_ptr                 ,&
-  !&   VerTab(1,1), VerTab(1,NmbVer) ,&
-  !&   VerRef(  1), VerRef(  NmbVer)  )
-  
+  ! Read the vertices using a vector of 3 consecutive doubles to store the coordinates  
   res=GmfGetBlockF90(         &
   &   unit=InpMsh            ,&
   &   GmfKey=GmfVertices     ,&
@@ -75,6 +58,9 @@ program test_libmeshb_block_f90
   &   Tab=VerTab(:,1:NmbVer) ,&
   &   Ref=VerRef(  1:NmbVer)  )
   
+  do i=1,10
+    print '(3x,"ver",i6," xyz:",3(f12.5,1x)," ref: ",i0)',i,VerTab(1:3,i),VerRef(i)
+  enddo
   
   ! Allocate QadTab
   NmbQad=GmfstatkwdF90(unit=InpMsh, GmfKey=GmfQuadrilaterals)
@@ -82,17 +68,7 @@ program test_libmeshb_block_f90
   allocate(QadTab(1:4,1:NmbQad))
   allocate(QadRef(    1:NmbQad))  
   
-  ! Read the quads using one single vector of 4 consecutive integers
-  
-  !res=GmfGetElements(                &
-  !&   InpMsh                        ,&
-  !&   GmfQuadrilaterals             ,&
-  !&   1                             ,&
-  !&   NmbQad                        ,&
-  !&   0, c_null_ptr                 ,&
-  !&   QadTab(1,1), QadTab(1,NmbQad) ,&
-  !&   QadRef(  1), QadRef(  NmbQad)  )
-  
+  ! Read the quads using one single vector of 4 consecutive integers  
   res=GmfGetBlockF90(          &
   &   unit=InpMsh             ,&
   &   GmfKey=GmfQuadrilaterals,&
@@ -104,8 +80,8 @@ program test_libmeshb_block_f90
   do i=1,10
     print '(3x,"qad",i6," nd:",4(i6,1x)," ref: ",i0)',i,QadTab(1:4,i),QadRef(i)
   enddo
-
-  !!> Lecture par tableau 1D sans recopie
+  
+  !!> Lecture par tableau 1D sans recopie (interface à écrire en indiquand le stride)
   !block 
   !  use iso_c_binding, only: c_loc,c_f_pointer
   !  integer     , pointer :: nodes(:)
@@ -153,7 +129,7 @@ program test_libmeshb_block_f90
   ! Write a triangular mesh
   print '(/"Output Mesh Open    : ",a )',trim(OutFile)
   
-  call GmfOpenMeshF90(name=trim(OutFile),unit=OutMsh,GmfKey=GmfWrite,ver=ver,dim=dim)
+  OutMsh=GmfOpenMeshF90(name=trim(OutFile),GmfKey=GmfWrite,ver=ver,dim=dim)
   
   print '( "Output Mesh Idx     : ",i0)',InpMsh
   print '( "Output Mesh ver     : ",i0)',ver
@@ -164,52 +140,29 @@ program test_libmeshb_block_f90
   res=GmfSetKwdF90(unit=OutMsh, GmfKey=GmfVertices, Nmb=NmbVer)
   print '( "Output Mesh NmbVer  : ",i0)', NmbVer
   
-  ! Write them down using separate pointers for each scalar entry
-  !res=GmfSetVertices(               &
-  !&   OutMsh                       ,&
-  !&   1                            ,&
-  !&   NmbVer                       ,&
-  !&   0, c_null_ptr                ,&
-  !&   VerTab(1,1), VerTab(1,NmbVer),&
-  !&   VerRef(  1), VerRef(  NmbVer) )
+  ! Write them down using separate pointers for each scalar entry  
+  res=GmfSetBlockF90(        &
+  &   unit=OutMsh           ,&
+  &   GmfKey=GmfVertices    ,&
+  &   ad0=1                 ,&
+  &   ad1=NmbVer            ,&
+  &   Tab=VerTab(:,1:NmbVer),&
+  &   Ref=VerRef(  1:NmbVer) )
   
-  !res=GmfGetBlockF90_2(      &
-  !&   unit=OutMsh           ,&
-  !&   GmfKey=GmfVertices    ,&
-  !&   ad0=1                 ,&
-  !&   ad1=NmbVer            ,&
-  !&   dTab0=VerTab(1,1)     ,&
-  !&   dTab1=VerTab(1,NmbVer),&
-  !&   iRef0=VerRef(1)       ,&
-  !&   iRef1=VerRef(NmbVer)   )
-
-  !res=GmfGetBlockF90(         &
-  !&   unit=OutMsh            ,&
-  !&   GmfKey=GmfVertices     ,&
-  !&   ad0=1                  ,&
-  !&   ad1=NmbVer             ,&
-  !&   dTab=VerTab(:,1:NmbVer),&
-  !&   iRef=VerRef(  1:NmbVer) )
-
-  !function     GmfGetBlockF90_02(unit, GmfKey, ad0, ad1, iTab, iRef) result(res)
-
-
   ! Write the triangles using 4 independant set of arguments 
   ! for each scalar entry: node1, node2, node3 and reference
   res=GmfSetKwdF90(unit=OutMsh, GmfKey=GmfTriangles, Nmb=NmbTri)
   print '( "Output Mesh NmbTri  : ",i0)', NmbTri
+    
+  res=GmfSetBlockF90(        &
+  &   unit=OutMsh           ,&
+  &   GmfKey=GmfTriangles   ,&
+  &   ad0=1                 ,&
+  &   ad1=NmbTri            ,&
+  &   Tab=TriTab(:,1:NmbTri),&
+  &   Ref=TriRef(  1:NmbVer) )
   
-  !res=GmfSetElements(               &
-  !&   OutMsh                       ,&
-  !&   GmfTriangles                 ,&
-  !&   1                            ,&
-  !&   NmbTri                       ,&
-  !!   0, m                         ,&
-  !&   0, c_null_ptr                 ,&
-  !&   TriTab(1,1), TriTab(1,NmbTri),&
-  !&   TriRef(  1), TriRef(  NmbTri) )
-  
-  !!> Ecriture par tableau 1D sans recopie
+  !!> Ecriture par tableau 1D sans recopie (interface fortran à écrire)
   !block 
   !  use iso_c_binding, only: c_loc,c_f_pointer
   !  integer     , pointer :: nodes(:)
@@ -254,4 +207,3 @@ program test_libmeshb_block_f90
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
 end program test_libmeshb_block_f90
-

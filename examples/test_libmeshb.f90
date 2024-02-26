@@ -37,15 +37,15 @@ program  test_libmeshb_f90
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   InpFile='../sample_meshes/quad.mesh'
-  OutFile='./tri.meshb'
-  SolFile='./tri.solb'
+  OutFile='./tri.mesh'
+  SolFile='./tri.sol'
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! Open the quadrilateral mesh file for reading
   print '(/"Input  Mesh Open    : ",a )',trim(InpFile)
   
-  call GmfOpenMeshF90(name=trim(InpFile),unit=InpMsh,GmfKey=GmfRead,ver=ver,dim=dim)
+  InpMsh=GmfOpenMeshF90(name=trim(InpFile),GmfKey=GmfRead,ver=ver,dim=dim)
   
   print '( "Input  Mesh Idx     : ",i0)',InpMsh
   print '( "Input  Mesh ver     : ",i0)',ver
@@ -90,7 +90,7 @@ program  test_libmeshb_f90
   
   print '(/"Output Mesh Open    : ",a )',trim(OutFile)
   
-  call GmfOpenMeshF90(name=trim(OutFile),unit=OutMsh,GmfKey=GmfWrite,ver=ver,dim=dim)
+  OutMsh=GmfOpenMeshF90(name=trim(OutFile),GmfKey=GmfWrite,ver=ver,dim=dim)
   
   print '( "Output Mesh Idx     : ",i0)',InpMsh
   print '( "Output Mesh ver     : ",i0)',ver
@@ -128,7 +128,7 @@ program  test_libmeshb_f90
   
   print '(/"Output Solu Open    : ",a )',trim(SolFile)
   
-  call GmfOpenMeshF90(name=trim(SolFile),unit=OutSol,GmfKey=GmfWrite,ver=ver,dim=dim)
+  OutSol=GmfOpenMeshF90(name=trim(SolFile),GmfKey=GmfWrite,ver=ver,dim=dim)
 
   print '( "Output Solu Idx     : ",i0)',OutSol
   print '( "Output Solu ver     : ",i0)',ver

@@ -18,7 +18,7 @@ module libmeshb7
   
   implicit none
   
-  !Procedures definition
+  ! Procedures definition
   external gmfopenmeshf77
   external gmfclosemeshf77
   external GmfStatKwdf77
@@ -314,30 +314,33 @@ module libmeshb7
     module procedure GmfSetLineF90_sol_d
   end interface GmfSetLineF90
   
-
-
   interface     GmfGetBlockF90
-    module procedure GmfGetBlockF90_00
+    !module procedure GmfGetBlockF90_00
     module procedure GmfGetBlockF90_01
     module procedure GmfGetBlockF90_02
   end interface GmfGetBlockF90
   
+  interface     GmfSetBlockF90
+    !module procedure GmfGetBlockF90_00
+    module procedure GmfSetBlockF90_01
+    module procedure GmfSetBlockF90_02
+  end interface GmfSetBlockF90
   
 contains
-  
-  subroutine     GmfOpenMeshF90(name, unit, GmfKey, ver, dim)
+
+  function  GmfOpenMeshF90(name, GmfKey, ver, dim) result(unit)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     character(*)  , intent(in)    :: name
-    integer(int64), intent(out)   :: unit
     integer(int32), intent(in)    :: GmfKey
     integer(int32), intent(inout) :: ver
     integer(int32), intent(inout) :: dim
+    integer(int64)                :: unit
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     unit = GmfOpenMeshf77(trim(name), GmfKey, ver, dim)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
-  end subroutine GmfOpenMeshF90
+  end function GmfOpenMeshF90
   
   function     GmfCloseMeshF90(unit) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -550,22 +553,20 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfSetLineF90_sol_d
-  
-  !> GmfGetBlicF77(idx,kwd, int beginIdx, int endIdx, int int(:,:),  real(8) (:,:) , ref(:) )
-  !> GmfSetBlicF77(idx,kwd, int beginIdx, int endIdx, int int(:,:),  real(8) (:,:) , ref(:) )
-  
+    
   function     GmfGetBlockF90_00(unit, GmfKey, ad0, ad1, iTab, dTab, Ref) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer(int64) :: unit
-    integer(int32) :: GmfKey
-    integer(int32) :: ad0
-    integer(int32) :: ad1
-    integer(int32) :: iTab(:,:)
-    real(real64)   :: dTab(:,:)
-    integer(int32) ::  Ref(  :)
-    integer(int32) :: res
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    integer(int32), intent(inout) :: iTab(:,:)
+    real(real64)  , intent(inout) :: dTab(:,:)
+    integer(int32), intent(inout) :: Ref(  :)
+    integer(int32)                :: res
     !>
-    integer(int32) :: Nmb
+    integer(int32)                :: Nmb
+    integer(int32), pointer       :: map(:)=>null()
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Nmb=ad1-ad0+1
@@ -574,30 +575,32 @@ contains
     &                  GmfKey     ,&
     &                  ad0        ,&
     &                  ad1        ,&
-    &                  0          ,&
-    &                  c_null_ptr ,&
-    &                  iTab(:,  1),&
-    &                  iTab(:,Nmb),&
-    &                  dTab(:,  1),&
-    &                  dTab(:,Nmb),&
+    &                  int32      ,&
+    &                  map        ,&
+    &                  iTab(1,  1),&
+    &                  iTab(1,Nmb),&
+    &                  dTab(1,  1),&
+    &                  dTab(1,Nmb),&
     &                   Ref(    1),&
     &                   Ref(  Nmb) )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfGetBlockF90_00
-
+  
   function     GmfGetBlockF90_01(unit, GmfKey, ad0, ad1, Tab, Ref) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer(int64) :: unit
-    integer(int32) :: GmfKey
-    integer(int32) :: ad0
-    integer(int32) :: ad1
-    integer(int32) :: Tab(:,:)
-    integer(int32) :: Ref(  :)
-    integer(int32) :: res
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    integer(int32), intent(inout) :: Tab(:,:)
+    integer(int32), intent(inout) :: Ref(  :)
+    integer(int32)                :: res
     !>
-    integer(int32) :: Nmb
-    real(real64)   :: dTab(1,1)
+    integer(int32)                :: Nmb
+    real(real64)                  :: dTab(1)
+    integer(int32), pointer       :: map(:)=>null()
+
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     
@@ -611,167 +614,128 @@ contains
     &                  GmfKey     ,&
     &                  ad0        ,&
     &                  ad1        ,&
-    &                  0          ,&
-    &                  c_null_ptr ,&
+    &                  int32      ,&
+    &                  map        ,&
     &                  Tab(1,  1) ,&
     &                  Tab(1,Nmb) ,&
-    &                  dTab(1,1)  ,&
-    &                  dTab(1,1)  ,&
+    &                  dTab(1)    ,&
+    &                  dTab(1)    ,&
     &                  Ref(    1) ,&
     &                  Ref(  Nmb)  )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfGetBlockF90_01
-
+  
   function     GmfGetBlockF90_02(unit, GmfKey, ad0, ad1, Tab, Ref) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer(int64) :: unit
-    integer(int32) :: GmfKey
-    integer(int32) :: ad0
-    integer(int32) :: ad1
-    real(real64)   :: Tab(:,:)
-    integer(int32) :: Ref(  :)
-    integer(int32) :: res
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    real(real64)  , intent(inout) :: Tab(:,:)
+    integer(int32), intent(inout) :: Ref(  :)
+    integer(int32)                :: res
     !>
-    integer(int32) :: iTab(1,1)
+    integer(int32) :: iTab(1)
     integer(int32) :: Nmb
+    integer(int32), pointer       :: map(:)=>null()
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Nmb=ad1-ad0+1
     
-    res=GmfGetBlockF77(unit,GmfKey,&
+    print '("GmfGetBlockF90_02 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfGetBlockF90_02 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    print '("GmfGetBlockF90_02 size(Ref)=  ",i0)',size(Ref)
+    
+    res=GmfGetBlockF77(unit       ,&
+    &                  GmfKey     ,&
     &                  ad0        ,&
     &                  ad1        ,&
-    &                  0          ,&
-    &                  c_null_ptr ,&
-    &                  iTab(1,  1),&
-    &                  iTab(1,  1),&
-    &                   Tab(:,  1),&
-    &                   Tab(:,Nmb),&
-    &                   Ref(    1),&
-    &                   Ref(  Nmb) )
+    &                  int32      ,&
+    &                  map        ,&
+    &                  iTab(1)    ,&
+    &                  iTab(1)    ,&
+    &                  Tab(1,  1) ,&
+    &                  Tab(1,Nmb) ,&
+    &                  Ref(    1) ,&
+    &                  Ref(  Nmb)  )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfGetBlockF90_02
   
-  !function     GmfGetBlockF90_0(unit, GmfKey, ad0, ad1, iTab0, iTab1, dTab0, dTab1, iRef0, iRef1) result(res)
-  !  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !  integer(int64) :: unit
-  !  integer(int32) :: GmfKey
-  !  integer(int32) :: ad0
-  !  integer(int32) :: ad1
-  !  integer(int32) :: iTab0(:,:)
-  !  integer(int32) :: iTab1(:,:)
-  !  real(real64)   :: dTab0(:,:)
-  !  real(real64)   :: dTab1(:,:)
-  !  integer(int32) :: iRef0(  :)
-  !  integer(int32) :: iRef1(  :)
-  !  integer(int32) :: res
-  !  !>
-  !  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !  res=GmfGetBlockF77(unit       ,&
-  !  &                  GmfKey     ,&
-  !  &                  ad0        ,&
-  !  &                  ad1        ,&
-  !  &                  0          ,&
-  !  &                  c_null_ptr ,&
-  !  &                  iTab0      ,&
-  !  &                  iTab1      ,&
-  !  &                  dTab0      ,&
-  !  &                  dTab1      ,&
-  !  &                  iRef0      ,&
-  !  &                  iRef1       )
-  !  
-  !  !int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *kwd, int *BegIdx, int *EndIdx,
-  !  !                       int *MapTyp, int *MatTab, int *BegInt, int *EndInt,
-  !  !                       double *BegDbl, double *EndDbl, int *BegRef, int *EndRef)
-  !  
-  !  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !  return
-  !end function GmfGetBlockF90_0
-  !
-  !function     GmfGetBlockF90_1(unit, GmfKey, ad0, ad1, iTab0, iTab1, iRef0, iRef1) result(res)
-  !  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !  integer(int64) :: unit
-  !  integer(int32) :: GmfKey
-  !  integer(int32) :: ad0
-  !  integer(int32) :: ad1
-  !  integer(int32) :: iTab0(:,:)
-  !  integer(int32) :: iTab1(:,:)
-  !  integer(int32) :: iRef0(  :)
-  !  integer(int32) :: iRef1(  :)
-  !  integer(int32) :: res
-  !  !>
-  !  real(real64)   :: dTab0(1,1)
-  !  real(real64)   :: dTab1(1,1)
-  !  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !  res=GmfGetBlockF77(unit       ,&
-  !  &                  GmfKey     ,&
-  !  &                  ad0        ,&
-  !  &                  ad1        ,&
-  !  &                  0          ,&
-  !  &                  c_null_ptr ,&
-  !  &                  iTab0      ,&
-  !  &                  iTab1      ,&
-  !  &                  dTab0      ,&
-  !  &                  dTab1      ,&
-  !  &                  iRef0      ,&
-  !  &                  iRef1       )
-  !  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !  return
-  !end function GmfGetBlockF90_1
-  !
-  !function     GmfGetBlockF90_2(unit, GmfKey, ad0, ad1, dTab0, dTab1, iRef0, iRef1) result(res)
-  !  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !  integer(int64) :: unit
-  !  integer(int32) :: GmfKey
-  !  integer(int32) :: ad0
-  !  integer(int32) :: ad1
-  !  real(real64)   :: dTab0(:,:)
-  !  real(real64)   :: dTab1(:,:)
-  !  integer(int32) :: iRef0(  :)
-  !  integer(int32) :: iRef1(  :)
-  !  integer(int32) :: res
-  !  !>
-  !  integer(int32) :: iTab0(1,1)
-  !  integer(int32) :: iTab1(1,1)
-  !  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  !  res=GmfGetBlockF77(unit       ,&
-  !  &                  GmfKey     ,&
-  !  &                  ad0        ,&
-  !  &                  ad1        ,&
-  !  &                  0          ,&
-  !  &                  c_null_ptr ,&
-  !  &                  iTab0      ,&
-  !  &                  iTab1      ,&
-  !  &                  dTab0      ,&
-  !  &                  dTab1      ,&
-  !  &                  iRef0      ,&
-  !  &                  iRef1       )
-  !  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  !  return
-  !end function GmfGetBlockF90_2
+  function     GmfSetBlockF90_01(unit, GmfKey, ad0, ad1, Tab, Ref) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    integer(int32), intent(inout) :: Tab(:,:)
+    integer(int32), intent(inout) :: Ref(  :)
+    integer(int32)                :: res
+    !>
+    integer(int32)                :: Nmb
+    real(real64)                  :: dTab(1)
+    integer(int32), pointer       :: map(:)=>null()
+
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    Nmb=ad1-ad0+1
+    
+    print '("GmfSetBlockF90_01 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfSetBlockF90_01 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    print '("GmfSetBlockF90_01 size(Ref)=  ",i0)',size(Ref)
+    
+    res=GmfSetBlockF77(unit       ,&
+    &                  GmfKey     ,&
+    &                  ad0        ,&
+    &                  ad1        ,&
+    &                  int32      ,&
+    &                  map        ,&
+    &                  Tab(1,  1) ,&
+    &                  Tab(1,Nmb) ,&
+    &                  dTab(1)    ,&
+    &                  dTab(1)    ,&
+    &                  Ref(    1) ,&
+    &                  Ref(  Nmb)  )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetBlockF90_01  
+
+  function     GmfSetBlockF90_02(unit, GmfKey, ad0, ad1, Tab, Ref) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    real(real64)  , intent(inout) :: Tab(:,:)
+    integer(int32), intent(inout) :: Ref(  :)
+    integer(int32)                :: res
+    !>
+    integer(int32)                :: iTab(1)
+    integer(int32)                :: Nmb
+    integer(int32), pointer       :: map(:)=>null()
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    Nmb=ad1-ad0+1
+    
+    print '("GmfSetBlockF90_02 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfSetBlockF90_02 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    print '("GmfSetBlockF90_02 size(Ref)=  ",i0)',size(Ref)
+    
+    res=GmfSetBlockF77(unit       ,&
+    &                  GmfKey     ,&
+    &                  ad0        ,&
+    &                  ad1        ,&
+    &                  int32      ,&
+    &                  map        ,&
+    &                  iTab(1)    ,&
+    &                  iTab(1)    ,&
+    &                  Tab(1,  1) ,&
+    &                  Tab(1,Nmb) ,&
+    &                  Ref(    1) ,&
+    &                  Ref(  Nmb)  )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetBlockF90_02
   
-
-
-
-
-
-  
-  
-  !> GmfGetLineF77(idx,kwd, int int(:,:), real(8) (:,:) , ref(:) )
-  !> GmfSetLineF77(idx,kwd, int int(:,:), real(8) (:,:) , ref(:) )
-
-  !> GmfGetLineF90(idx)
-  !> GmfSetLineF90(idx)
-
-  !> GmfGetBlockF77(idx,kwd, int beginIdx, int endIdx, int int(:,:),  real(8) (:,:) , ref(:) )
-  !> GmfSetBlockF77(idx,kwd, int beginIdx, int endIdx, int int(:,:),  real(8) (:,:) , ref(:) )
-
-  !> GmfGetBlockF90
-  !> GmfSetBlockF90
-
 end module libmeshb7
