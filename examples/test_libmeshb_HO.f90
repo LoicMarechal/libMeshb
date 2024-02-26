@@ -5,7 +5,6 @@
 program test_libmeshb_HO_f90
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use iso_fortran_env
-    use, intrinsic :: iso_c_binding, only: c_null_ptr
     use libmeshb7
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -30,7 +29,7 @@ program test_libmeshb_HO_f90
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     InpFile='../sample_meshes/quad_q2.mesh'
-    OutFile='./tri_p2.mesh'
+    OutFile='./tri_p2f.mesh'
     SolFile='./tri_p2.sol'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -39,7 +38,7 @@ program test_libmeshb_HO_f90
     print '(/"Input  Mesh File  : ",a )',trim(InpFile)
     
     ! Open the mesh file and check the version and dimension
-    InpMsh = GmfOpenMeshf77(trim(InpFile),GmfRead,ver,dim)
+    InpMsh=GmfOpenMeshF90(name=trim(InpFile),GmfKey=GmfRead,ver=ver,dim=dim)
     print '( "Input  Mesh Idx   : ",i0)',InpMsh
     print '( "Input  Mesh ver   : ",i0)',ver
     print '( "Input  Mesh dim   : ",i0)',dim
@@ -55,15 +54,17 @@ program test_libmeshb_HO_f90
     allocate(VerTab(1:3,1:NmbVer))
     allocate(VerRef(    1:NmbVer))
     
-    res=GmfGetVertices(                &
-    &   InpMsh                        ,&
-    &   1                             ,&
-    &   NmbVer                        ,&
-    !   0, m                          ,&
-    &   0, c_null_ptr                 ,&
-    &   VerTab(1,1), VerTab(1,NmbVer) ,&
-    &   VerRef(  1), VerRef(  NmbVer)  )
+    res=GmfGetBlockF90(         &
+    &   unit=InpMsh            ,&
+    &   GmfKey=GmfVertices     ,&
+    &   ad0=1                  ,&
+    &   ad1=NmbVer             ,&
+    &   Tab=VerTab(:,1:NmbVer) ,&
+    &   Ref=VerRef(  1:NmbVer)  )
     
+    do i=1,10
+      print '(3x,"ver",i6," xyz:",3(f12.5,1x)," ref: ",i0)',i,VerTab(1:3,i),VerRef(i)
+    enddo
     
     ! Read GmfQuadrilateralsQ2
     GmfCell=GmfQuadrilateralsQ2                 ! <=
@@ -81,7 +82,6 @@ program test_libmeshb_HO_f90
         integer :: OrdTab(1:2,1:9)
         integer :: ord
         integer :: nNode
-        integer :: nUVW
         !>  04 07 03 
         !>  08 09 06
         !>  01 05 02
@@ -103,38 +103,15 @@ program test_libmeshb_HO_f90
         !> Q2 -> ord=2
         ord=2
         nNode=(ord+1)*(ord+1)  ! <=
-        nUVW=2                 ! <=
         
-        !res=GmfGetBlock(                                  &
-        !&   InpMsh                                       ,&
-        !&   GmfOrd                                       ,&
-        !&   int(    1,kind=8)                            ,&
-        !&   int(nNode,kind=8)                            ,&
-        !&   0, %val(0), %val(0)                          ,&
-        !&   GmfIntTab, nUVW, OrdTab(1,1), OrdTab(1,nNode) )
-        
-        !> en attendant de pouvoir récupérer orderingMesh ses valeurs sont imposées manuellement
-        !OrdTab(1:2,01)=[0,0]
-        !OrdTab(1:2,02)=[2,0]
-        !OrdTab(1:2,03)=[2,2]
-        !OrdTab(1:2,04)=[0,2]
-        !OrdTab(1:2,05)=[1,0]
-        !OrdTab(1:2,06)=[2,1]
-        !OrdTab(1:2,07)=[1,2]
-        !OrdTab(1:2,08)=[0,1]
-        !OrdTab(1:2,09)=[1,1]
-        
-        OrdTab(1:2,01)=[0,0]
-        OrdTab(1:2,02)=[2,0]
-        OrdTab(1:2,03)=[2,2]
-        OrdTab(1:2,04)=[0,2]
-        OrdTab(1:2,05)=[1,0]
-        OrdTab(1:2,06)=[2,1]
-        OrdTab(1:2,07)=[1,2]
-        OrdTab(1:2,08)=[0,1]
-        OrdTab(1:2,09)=[1,1]
-        
-        print '("Input  Mesh Gmf HO Order")'
+        res=GmfGetBlockF90(         &
+        &   unit=InpMsh            ,&
+        &   GmfKey=GmfOrd          ,&
+        &   ad0=1                  ,&
+        &   ad1=nNode              ,&
+        &   Tab=OrdTab(:,1:nNode)   )
+                
+        print '("Input  Mesh Order")'
         do i=1,size(OrdTab,2)
           print '(3x,"uv(",i2.2,")=",2(i2,1x))',i,OrdTab(1:2,i)
         enddo
@@ -143,19 +120,16 @@ program test_libmeshb_HO_f90
       end block
     endif
     
-    ! Read the quads using one single vector of 5 consecutive integers
-    res=GmfGetElements(               &
-    &   InpMsh                       ,&
-    &   GmfCell                      ,&
-    &   1                            ,& 
-    &   NmbQad                       ,&
-    !   0, m                         ,&
-    &   0, c_null_ptr                ,&
-    &   QadTab(1,1), QadTab(1,NmbQad),&
-    &   QadRef(  1), QadRef(  NmbQad) )
+    ! Read the quads using one single vector of 5 consecutive integers    
+    res=GmfGetBlockF90(            &
+    &   unit=InpMsh               ,&
+    &   GmfKey=GmfQuadrilateralsQ2,&
+    &   ad0=1                     ,&
+    &   ad1=NmbQad                ,&
+    &   Tab=QadTab(:,1:)          ,&
+    &   Ref=QadRef(  1:)           )
     
     ! Close the quadrilateral mesh
-    res=GmfCloseMeshf77(InpMsh)
     print '("Input  Mesh Close : ",a)',trim(InpFile)
     
     print '("Input  Mesh")'
@@ -173,23 +147,23 @@ program test_libmeshb_HO_f90
     allocate(TriRef(    1:NmbTri))
     
     do i=1,NmbQad
-       iTria=2*i-1
-       TriTab(1,iTria) = QadTab(1,i)
-       TriTab(2,iTria) = QadTab(3,i)
-       TriTab(3,iTria) = QadTab(9,i)
-       TriTab(4,iTria) = QadTab(2,i)
-       TriTab(5,iTria) = QadTab(6,i)
-       TriTab(6,iTria) = QadTab(5,i)
-       TriRef(  iTria) = QadRef(  i)
-       
-       iTria=2*i
-       TriTab(1,iTria) = QadTab(1,i)
-       TriTab(2,iTria) = QadTab(9,i)
-       TriTab(3,iTria) = QadTab(7,i)
-       TriTab(4,iTria) = QadTab(5,i)
-       TriTab(5,iTria) = QadTab(8,i)
-       TriTab(6,iTria) = QadTab(4,i)
-       TriRef(  iTria) = QadRef(  i) 
+      iTria=2*i-1
+      TriTab(1,iTria) = QadTab(1,i)
+      TriTab(2,iTria) = QadTab(3,i)
+      TriTab(3,iTria) = QadTab(9,i)
+      TriTab(4,iTria) = QadTab(2,i)
+      TriTab(5,iTria) = QadTab(6,i)
+      TriTab(6,iTria) = QadTab(5,i)
+      TriRef(  iTria) = QadRef(  i)
+      
+      iTria=2*i
+      TriTab(1,iTria) = QadTab(1,i)
+      TriTab(2,iTria) = QadTab(9,i)
+      TriTab(3,iTria) = QadTab(7,i)
+      TriTab(4,iTria) = QadTab(5,i)
+      TriTab(5,iTria) = QadTab(8,i)
+      TriTab(6,iTria) = QadTab(4,i)
+      TriRef(  iTria) = QadRef(  i) 
     enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -199,12 +173,12 @@ program test_libmeshb_HO_f90
     print '(/"Output Mesh File  : ",a )',trim(OutFile)
     
     print '("Output Mesh")'
-    do i=1,10 !NmbQad
+    do i=1,10
       print '(3x,"tri",i6," nd:",6(i6,1x)," ref: ",i0)',i,TriTab(1:6,i),TriRef(i)
     enddo
     
     ! Open the mesh file and check the version and dimension
-    OutMsh = GmfOpenMeshf77(trim(OutFile), GmfWrite, ver, dim)
+    OutMsh=GmfOpenMeshF90(name=trim(OutFile),GmfKey=GmfWrite,ver=ver,dim=dim)
     print '( "Output Mesh Idx   : ",i0)',InpMsh
     print '( "Output Mesh ver   : ",i0)',ver
     print '( "Output Mesh dim   : ",i0)',dim
@@ -214,33 +188,30 @@ program test_libmeshb_HO_f90
     res=GmfSetKwdF90(unit=OutMsh, GmfKey=GmfVertices, Nmb=NmbVer)
     print '( "Output Mesh NmbVer: ",i0)', NmbVer
     
-    ! Write them down using separate pointers for each scalar entry
-    res=Gmfsetvertices(               &
-    &   OutMsh                       ,&
-    &   1                            ,&
-    &   NmbVer                       ,&
-    !   0, m                         ,&
-    &   0, c_null_ptr                ,&
-    &   VerTab(1,1), VerTab(1,NmbVer),&
-    &   VerRef(  1), VerRef(  NmbVer) )
+    ! Write them down using separate pointers for each scalar entry    
+    res=GmfSetBlockF90(        &
+    &   unit=OutMsh           ,&
+    &   GmfKey=GmfVertices    ,&
+    &   ad0=1                 ,&
+    &   ad1=NmbVer            ,&
+    &   Tab=VerTab(:,1:NmbVer),&
+    &   Ref=VerRef(  1:NmbVer) )
     
     ! Write the triangles using 4 independant set of arguments 
     ! for each scalar entry: node1, node2, node3 and reference
     res=GmfSetKwdF90(unit=OutMsh, GmfKey=GmfTrianglesP2, Nmb=NmbTri)
     print '( "Output Mesh NmbTri: ",i0)', NmbTri
     
-    res=GmfSetElements(               &
-    &   OutMsh                       ,&
-    &   GmfTrianglesP2               ,&
-    &   1                            ,&
-    &   NmbTri                       ,&
-    &   0, c_null_ptr                ,&
-    !   0, m                         ,&
-    &   TriTab(1,1), TriTab(1,NmbTri),&
-    &   TriRef(  1), TriRef(  NmbTri) )
+    res=GmfSetBlockF90(        &
+    &   unit=OutMsh           ,&
+    &   GmfKey=GmfTrianglesP2 ,&
+    &   ad0=1                 ,&
+    &   ad1=NmbTri            ,&
+    &   Tab=TriTab(:,1:NmbTri),&
+    &   Ref=TriRef(  1:NmbVer) )
     
     ! Don't forget to close the file
-    res=GmfCloseMeshf77(OutMsh)    
+    res=GmfCloseMeshF90(unit=OutMsh)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

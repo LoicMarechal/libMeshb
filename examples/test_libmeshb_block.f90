@@ -5,7 +5,6 @@ program test_libmeshb_block_f90
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
   use libmeshb7
-  use, intrinsic :: iso_c_binding, only: c_int,c_long,c_loc,c_ptr,c_null_ptr
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
@@ -41,7 +40,7 @@ program test_libmeshb_block_f90
   
   ! Open the mesh file and check the version and dimension
   InpMsh=GmfOpenMeshF90(name=trim(InpFile),GmfKey=GmfRead,ver=ver,dim=dim)
-
+  
   print '( "Input  Mesh Idx     : ",i0)',InpMsh
   print '( "Input  Mesh ver     : ",i0)',ver
   print '( "Input  Mesh dim     : ",i0)',dim
