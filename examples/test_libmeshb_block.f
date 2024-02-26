@@ -8,9 +8,9 @@ c     using fast block transfer
       parameter (n=4000)
       integer i, ver, dim, res, NmbVer, NmbQad
      +, RefTab(n), TriTab(4,2*n), QadTab(5,n)
-      integer t(1),d,ho,s
-      integer*8 InpMsh, OutMsh, m(1)
-      real*8 VerTab(3,n)
+      integer t(1),d,ho,s, fooint(1)
+      integer*8 InpMsh, OutMsh
+      real*8 VerTab(3,n),foodbl(1)
 
 
 c     --------------------------------------------
@@ -39,15 +39,17 @@ c     Print some information on the open file
 
 c     Read the vertices using a vector of 3 consecutive doubles
 c     to store the coordinates
-      res = gmfgetvertices(InpMsh,
-     +        1, NmbVer, 0, m,
+      res = gmfgetblockf77(InpMsh, GmfVertices,
+     +        1, NmbVer, 0, fooint(1),
+     +        fooint(1),   fooint(1),
      +        VerTab(1,1), VerTab(1,NmbVer),
      +        RefTab(  1), RefTab(  NmbVer))
 
 c     Read the quads using one single vector of 5 consecutive integers
-      res = gmfgetelements(InpMsh, GmfQuadrilaterals,
-     +        1, NmbQad, 0, m,
+      res = gmfgetblockf77(InpMsh, GmfQuadrilaterals,
+     +        1, NmbQad, 0, fooint(1),
      +        QadTab(1,1), QadTab(1,NmbQad),
+     +        foodbl(1),   foodbl(1),
      +        QadTab(5,1), QadTab(5,NmbQad))
 
 c     Close the quadrilateral mesh
@@ -84,17 +86,19 @@ c     Set the number of vertices
       res = gmfsetkwdf77(OutMsh, GmfVertices, NmbVer, 0, t, 0, ho)
 
 c     Write them down using separate pointers for each scalar entry
-      res = gmfsetvertices(OutMsh,
-     +         1, NmbVer, 0, m,
+      res = gmfsetblockf77(OutMsh, GmfVertices,
+     +         1, NmbVer, 0, fooint(1),
+     +         fooint(1),   fooint(1),
      +         VerTab(1,1), VerTab(1,NmbVer),
      +         RefTab(1),   RefTab(NmbVer))
 
 c     Write the triangles using 4 independant set of arguments
 c     for each scalar entry: node1, node2, node3 and reference
       res = gmfsetkwdf77(OutMsh, GmfTriangles, 2*NmbQad, 0, t, 0, ho)
-      res = gmfsetelements(OutMsh, GmfTriangles,
-     +                  1, 2*NmbQad, 0, m,
+      res = gmfsetblockf77(OutMsh, GmfTriangles,
+     +                  1, 2*NmbQad, 0, fooint(1),
      +                  TriTab(1,1), TriTab(1,2*NmbQad),
+     +                  foodbl(1),   foodbl(1),
      +                  TriTab(4,1), TriTab(4,2*NmbQad))
 
 c     Don't forget to close the file
@@ -103,4 +107,4 @@ c     Don't forget to close the file
       print*, 'output mesh :',NmbVer,' vertices,',
      +         2*NmbQad,'triangles'
 
-      end      
+      end
