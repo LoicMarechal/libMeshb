@@ -228,7 +228,7 @@ program test_libmeshb_block02_f90
   print '( "Output Solu fields  : ", *(i0,1x))',fields(1:NmbField)
   
   ! Set the number of solutions (one per vertex)
-  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, d=NmbField, t=fields(1:NmbField), s=0, ho=ho)
+  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, NmbFields=NmbField, fields=fields(1:NmbField))
   
   ! Compute the dummy solution fields
   do i=1,NmbVer

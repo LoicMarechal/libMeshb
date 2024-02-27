@@ -402,26 +402,32 @@ contains
     integer(int32) :: GmfKey
     integer(int32) :: Nmb
     !>
-    integer(int32) :: t(1),d,ho,s
+    integer(int32) :: fields(1),d,ho,s
     integer(int32) :: res
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    res = GmfSetKwdF77(unit, GmfKey, Nmb, 0, t(1), 0, ho)
+    res = GmfSetKwdF77(unit, GmfKey, Nmb, 0, fields(1), 0, ho)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfSetKwdF90_0
   
-  function     GmfSetKwdF90_1(unit, GmfKey, Nmb, d, t, s, ho) result(res)
+  function     GmfSetKwdF90_1(unit, GmfKey, Nmb, NmbFields, fields, ord, nNod) result(res)
    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   integer(int64) :: unit
-   integer(int32) :: GmfKey
-   integer(int32) :: Nmb
-   integer(int32) :: t(:)
-   integer(int32) :: d,ho,s
-   integer(int32) :: res
+   integer(int64)           :: unit
+   integer(int32)           :: GmfKey
+   integer(int32)           :: Nmb
+   integer(int32)           :: NmbFields
+   integer(int32)           :: fields(:)
+   integer(int32), optional :: ord 
+   integer(int32), optional :: nNod
+   integer(int32)           :: res
    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   res = GmfSetKwdF77(unit, GmfKey, Nmb, d, t, s, ho)
+   if( present(ord) .and. present (nNod) )then
+     res = GmfSetKwdF77(unit, GmfKey, Nmb, NmbFields, fields, ord, nNod)
+   else
+    res = GmfSetKwdF77(unit, GmfKey, Nmb, NmbFields, fields, 0, 0)
+  endif
    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
    return
   end function GmfSetKwdF90_1
@@ -981,8 +987,8 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Nmb=ad1-ad0+1
     
-    !print '("GmfSetBlockF90_04 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
-    !print '("GmfSetBlockF90_04 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    print '("GmfSetBlockF90_04 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfSetBlockF90_04 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
     
     res=GmfSetBlockF77(unit       ,&
     &                  GmfKey     ,&
@@ -990,12 +996,12 @@ contains
     &                  ad1        ,&
     &                  int32      ,&
     &                  map        ,&
-    &                  iTab(   1) ,&
-    &                  iTab(   1) ,&
+    &                  iTab(1)    ,&
+    &                  iTab(1)    ,&
     &                  Tab(1,  1) ,&
     &                  Tab(1,Nmb) ,&
-    &                  Ref(    1) ,&
-    &                  Ref(    1)  )
+    &                  Ref(1)     ,&
+    &                  Ref(1)      )
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfSetBlockF90_04

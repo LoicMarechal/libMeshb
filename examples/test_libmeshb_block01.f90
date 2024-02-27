@@ -11,7 +11,7 @@
 program test_libmeshb_block01_f90
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
-  use libmeshb7
+  use libmeshb7      
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
@@ -25,7 +25,7 @@ program test_libmeshb_block01_f90
   integer(int32), pointer :: VerRef(:)
   integer(int32), pointer :: QadTab(:),QadRef(:)
   integer(int32), pointer :: TriTab(:),TriRef(:)
-  integer(int32)          :: iSol,NmbField,ho,s,d
+  integer(int32)          :: iSol,NmbFields,ho,s,d
   integer(int32), pointer :: fields(:)
   character(32) , pointer :: fieldsName(:)=>null()
   real(real64)  , pointer :: solTab(:)
@@ -182,18 +182,18 @@ program test_libmeshb_block01_f90
   
   ! Set the solution kinds
   strd=5
-  NmbField=3
-  allocate( fields    (1:NmbField))
-  allocate( fieldsName(1:NmbField))
-  fields(1:NmbField) = [GmfSca,GmfVec,GmfSca]  
-  fieldsName(1:NmbField)=['sca_1','vec_1','sca_2']
+  NmbFields=3
+  allocate( fields    (1:NmbFields))
+  allocate( fieldsName(1:NmbFields))
+  fields(1:NmbFields) = [GmfSca,GmfVec,GmfSca]  
+  fieldsName(1:NmbFields)=['sca_1','vec_1','sca_2']
   
 
   !nomDesChamps : block
   !  integer               :: iField,nChar
   !  character(:), pointer :: fieldName=>null()
-  !  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfReferenceStrings, Nmb=NmbField)
-  !  do iField=1,NmbField
+  !  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfReferenceStrings, Nmb=NmbFields)
+  !  do iField=1,NmbFields
   !    nChar=len_trim(fieldsName(iField)) ! print '("nChar: ",i0)',nChar
   !    allocate(character(len=nChar+3) :: fieldName)
   !    write(fieldName,'(a,1x,i0,a)')trim(fieldsName(iField)),iField,C_NULL_CHAR
@@ -207,11 +207,11 @@ program test_libmeshb_block01_f90
   
   allocate(solTab(1:strd*NmbVer))
   print '( "Output Solu strd x NmbVer: ",i0,"x",i0)', strd, NmbVer
-  print '( "Output Solu nFields      : ",i0)',NmbField
-  print '( "Output Solu fields       : ", *(i0,1x))',fields(1:NmbField)
+  print '( "Output Solu nFields      : ",i0)',NmbFields
+  print '( "Output Solu fields       : ", *(i0,1x))',fields(1:NmbFields)
   
   ! Set the number of solutions (one per vertex)
-  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, d=NmbField, t=fields(1:NmbField), s=0, ho=ho)
+  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, NmbFields=NmbFields, fields=fields(1:NmbFields))
   
   ! Compute the dummy solution fields
   do i=1,NmbVer

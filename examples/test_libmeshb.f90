@@ -21,7 +21,7 @@ program  test_libmeshb_f90
   character(80)           :: SolFile
   integer(int32)          :: i
   integer(int32)          :: NmbVer,NmbQad,NmbTri,ver,dim,res,kwd
-  integer(int32)          :: NmbField,ho,s,d
+  integer(int32)          :: NmbFields,ho,s,d
   integer(int32), pointer :: fields(:)
   character(32) , pointer :: fieldsName(:)=>null()
   real(real64)  , pointer :: sol(:)
@@ -136,17 +136,17 @@ program  test_libmeshb_f90
   if( OutSol==0 ) STOP ' OutSol = 0'
   
   ! Set the solution kinds
-  NmbField=3
-  allocate( fields    (1:NmbField))
-  allocate( fieldsName(1:NmbField))
-  fields(1:NmbField) = [GmfSca,GmfVec,GmfSca]  
-  fieldsName(1:NmbField)=['sca_1','vec_1','sca_2']
+  NmbFields=3
+  allocate( fields    (1:NmbFields))
+  allocate( fieldsName(1:NmbFields))
+  fields(1:NmbFields) = [GmfSca,GmfVec,GmfSca]  
+  fieldsName(1:NmbFields)=['sca_1','vec_1','sca_2']
   
   !nomDesChamps : block
   !  integer               :: iField,nChar
   !  character(:), pointer :: fieldName=>null()
-  !  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfReferenceStrings, Nmb=NmbField)
-  !  do iField=1,NmbField
+  !  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfReferenceStrings, Nmb=NmbFields)
+  !  do iField=1,NmbFields
   !    nChar=len_trim(fieldsName(iField)) ! print '("nChar: ",i0)',nChar
   !    allocate(character(len=nChar+3) :: fieldName)
   !    write(fieldName,'(a,1x,i0,a)')trim(fieldsName(iField)),iField,C_NULL_CHAR
@@ -160,11 +160,11 @@ program  test_libmeshb_f90
   
   allocate(sol(1:5)) !       1+   dim+     1
   print '( "Output Solu NmbVer  : ",i0)',NmbVer
-  print '( "Output Solu nFields : ",i0)',NmbField
-  print '( "Output Solu fields  : ", *(i0,1x))',fields(1:NmbField)
+  print '( "Output Solu nFields : ",i0)',NmbFields
+  print '( "Output Solu fields  : ", *(i0,1x))',fields(1:NmbFields)
   
   ! Set the number of solutions (one per vertex)
-  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, d=NmbField, t=fields(1:NmbField), s=0, ho=ho)
+  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, NmbFields=NmbFields, fields=fields(1:NmbFields))
   
   ! Write the dummy solution fields
   do i=1,NmbVer
