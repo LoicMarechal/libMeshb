@@ -4,8 +4,8 @@
 - Read and allocate the required ElementGID, then build the list of elements that do not belong to the local domain and return it to the caller.
 
 ### Distributed parallel write
-- Open a mesh file in writing mode but only create the skeleton of the mesh structure to enable further concurrent write access.
-- Open an existing mesh file in writing mode and enable concurrent block write thanks to the existing structure.
+- Open a mesh file in write mode but only create the skeleton of the mesh structure to enable further concurrent write access.
+- Open an existing mesh file in write mode and enable concurrent block writes, thanks to the existing file structure.
 
 ## STANDARD PRIORITY
 
@@ -13,31 +13,23 @@
 - Setup a keyword to store Pk elements.
 - Give along a routine to convert to and from well-known high-order numberings.
 
-### Handle arbitrary degree polygons and polyhedra
-- Add a helper that cuts a polyhedron through a plane and generates the intersection's triangulated mesh in an STL-like format.
-
 ### Solution fields comments
 - Add a procedure that would search for a string among comments.
 - Input:  keyword name, physical property, free comment, wildcards.
 - Output: list of solutions keywords and particular field number.
 
-### Convert HO examples to Fortran
-- test_libmeshb_HO.c
-- test_libmeshb_p2_sol.c
-
-### Add F77 API to GmfSetHONodesOrdering
-An easy one.
-
 ### Add IHOSol* + DHOSol* for each element kinds,
-for example
+For example:
+
 "IHOSolAtVertices",                           "i", "ii" // ii = degree + index in DSol
+
 "DHOSolAtVertices",                           "i", "hr" // High Order solution
 
 ### Topological operations
--Add a helper to build the list of inner or surface triangles from tetrahedra
--Add a helper to build the list of unique edges from tetrahedra
--Add a helper to get the face neighborhood between tets and triangles
--Add a helper to get an edge's shell of triangles or tets
+- Add a helper to build the list of inner or surface triangles from tetrahedra
+- Add a helper to build the list of unique edges from tetrahedra
+- Add a helper to get the face neighborhood between tets and triangles
+- Add a helper to get an edge's shell of triangles or tets
 
 ### Documentation
 
@@ -63,3 +55,7 @@ for example
 - Added a set of keywords for each kind of element that stores the number of vertices and their barycentric coordinates.
 - Added a section about the AIO mode (Asynchronous Input Output).
 - Added a helper that evaluates the quality of a mesh numbering in terms of efficient cache reuse and inner concurrency.
+- Added F77 API to GmfSetHONodesOrdering
+- Completely rewrote the whole Fortran API because GFortran dropped support for C variable argumeents procedure.
+- H.O. tests converted to Fortran by Christophe Peyret 
+- Added a helper that cuts a polyhedron through a plane and generates the intersection's triangulated mesh in an STL-like format.

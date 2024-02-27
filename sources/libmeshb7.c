@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.62                               */
+/*                               LIBMESHB V7.80                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jan 07 2022                                          */
+/*   Last modification:  feb 27 2024                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -21,28 +21,11 @@
 // Silent Visual Studio warnings on string functions
 #define _CRT_SECURE_NO_WARNINGS
 
-#ifdef F77API
-
 // Add a final underscore to Fortran procedure names
 #ifdef F77_NO_UNDER_SCORE
-#define NAMF77(c,f)  f
-#define APIF77(x)    x
+#define APIF77(x) x
 #else
-#define NAMF77(c,f)  f ## _
-#define APIF77(x)    x ## _
-#endif
-
-// Pass parameters as pointers in Fortran
-#define VALF77(v)    *v
-#define TYPF77(t)    t*
-
-#else
-
-// Pass parameters as values in C
-#define NAMF77(c,f)  c
-#define VALF77(v)    v
-#define TYPF77(t)    t
-
+#define APIF77(x) x ## _
 #endif
 
 
@@ -144,7 +127,7 @@ int    my_aio_write (      struct aiocb *aiocbp){return(aio_write (aiocbp));}
 struct aiocb
 {
    FILE   *aio_fildes;         // File descriptor
-   off_t  aio_offset;          // File offset
+   size_t  aio_offset;          // File offset
    void   *aio_buf;            // Location of buffer
    size_t aio_nbytes;          // Length of transfer
    int    aio_lio_opcode;      // Operation to be performed
@@ -158,7 +141,7 @@ int my_aio_error(const struct aiocb *aiocbp)
 // Set the file position and read a block of data
 int my_aio_read(struct aiocb *aiocbp)
 {
-   if( (MYFSEEK(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   if( (MYFSEEK(aiocbp->aio_fildes, (size_t)aiocbp->aio_offset, SEEK_SET) == 0)
    &&  (fread(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
@@ -180,7 +163,7 @@ size_t my_aio_return(struct aiocb *aiocbp)
 // Set the file position and write a block of data
 int my_aio_write(struct aiocb *aiocbp)
 {
-   if( (MYFSEEK(aiocbp->aio_fildes, (off_t)aiocbp->aio_offset, SEEK_SET) == 0)
+   if( (MYFSEEK(aiocbp->aio_fildes, (size_t)aiocbp->aio_offset, SEEK_SET) == 0)
    &&  (fwrite(aiocbp->aio_buf, 1, aiocbp->aio_nbytes, aiocbp->aio_fildes)
        == aiocbp->aio_nbytes) )
    {
@@ -209,11 +192,11 @@ int my_aio_write(struct aiocb *aiocbp)
 #define RegKwd    2
 #define SolKwd    3
 #define CmtKwd    4
+#define F77Kwd    5
 #define WrdSiz    4
 #define FilStrSiz 64
 #define BufSiz    10000L
 #define MaxArg    20
-
 
 
 /*----------------------------------------------------------------------------*/
@@ -223,7 +206,7 @@ int my_aio_write(struct aiocb *aiocbp)
 typedef struct
 {
    int      typ, deg, NmbNod, SolSiz, NmbWrd, NmbTyp, TypTab[ GmfMaxTyp ];
-   int      *OrdTab;
+   int      *OrdTab, NmbInt, NmbDbl;
    int64_t  NmbLin;
    size_t   pos;
    char     fmt[ GmfMaxTyp*9 ];
@@ -231,7 +214,7 @@ typedef struct
 
 typedef struct
 {
-   int      dim, ver, mod, typ, cod, FilDes, FltSiz;
+   int      dim, ver, mod, typ, cod, FilDes, FltSiz, SolTypSiz[5];
    int64_t  NexKwdPos, siz;
    size_t   pos;
    jmp_buf  err;
@@ -470,11 +453,32 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"PyramidsGID",                              "i", "iii"},
    {"PrismsGID",                                "i", "iii"},
    {"HexahedraGID",                             "i", "iii"},
+   {"SolAtBoundaryPolygons",                    "i", "sr"},
+   {"SolAtPolyhedra",                           "i", "sr"},
+   {"VertexOnGeometryNode",                     "i", "iiiiii"},
+   {"VertexOnGeometryEdge",                     "i", "iiiiirdrii"},
+   {"EdgeOnGeometryEdge",                       "i", "iiiiiii"},
+   {"VertexOnGeometryFace",                     "i", "iiiiirrdrii"},
+   {"EdgeOnGeometryFace",                       "i", "iiiiiii"},
+   {"TriangleOnGeometryFace",                   "i", "iiiiiii"},
+   {"QuadrialteralOnGeometryFace",              "i", "iiiiiii"},
+   {"MeshOnGeometry",                           "i", "iiiiiidrdrii"}
 };
 
 #ifdef TRANSMESH
 int GmfMaxRefTab[ GmfMaxKwd + 1 ];
 #endif
+
+static char F77RefFlg[ GmfMaxKwd + 1 ] =
+{
+   0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,1,0,0,1,0,0,0,
+   0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0
+};
 
 
 /*----------------------------------------------------------------------------*/
@@ -495,9 +499,6 @@ static void    SwpWrd   (char *, int);
 static int     SetFilPos(GmfMshSct *, int64_t);
 static int64_t GetFilPos(GmfMshSct *msh);
 static int64_t GetFilSiz(GmfMshSct *);
-#ifdef F77API
-static void    CalF77Prc(int64_t, int64_t, void *, int, void **);
-#endif
 
 
 /*----------------------------------------------------------------------------*/
@@ -697,6 +698,12 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       if(!ScaKwdTab(msh))
          return(0);
 
+      // Preset solution entities sizes
+      msh->SolTypSiz[ GmfSca    ] = 1;
+      msh->SolTypSiz[ GmfVec    ] = msh->dim;
+      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim - 1);
+      msh->SolTypSiz[ GmfMat    ] = msh->dim * msh->dim;
+
       return(MshIdx);
    }
    else if(msh->mod == GmfWrite)
@@ -770,6 +777,12 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
          GmfSetKwd(MshIdx, GmfDimension, 0);
          RecWrd(msh, (unsigned char *)&msh->dim);
       }
+
+      // Preset solution entities sizes
+      msh->SolTypSiz[ GmfSca    ] = 1;
+      msh->SolTypSiz[ GmfVec    ] = msh->dim;
+      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim - 1);
+      msh->SolTypSiz[ GmfMat    ] = msh->dim * msh->dim;
 
       return(MshIdx);
    }
@@ -896,7 +909,7 @@ int GmfGotoKwd(int64_t MshIdx, int KwdCod)
 
 int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 {
-   int         i, *TypTab;
+   int         i, typ, *TypTab;
    int64_t     CurPos;
    va_list     VarArg;
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
@@ -969,7 +982,10 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
          fprintf(msh->hdl, "%d ", kwd->NmbTyp);
 
          for(i=0;i<kwd->NmbTyp;i++)
-            fprintf(msh->hdl, "%d ", kwd->TypTab[i]);
+         {
+            typ = kwd->TypTab[i] > GmfMat ? GmfSca : kwd->TypTab[i];
+            fprintf(msh->hdl, "%d ", typ);
+         }
 
          fprintf(msh->hdl, "\n");
       }
@@ -1000,7 +1016,10 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
          RecWrd(msh, (unsigned char *)&kwd->NmbTyp);
 
          for(i=0;i<kwd->NmbTyp;i++)
-            RecWrd(msh, (unsigned char *)&kwd->TypTab[i]);
+         {
+            typ = kwd->TypTab[i] > GmfMat ? GmfSca : kwd->TypTab[i];
+            RecWrd(msh, (unsigned char *)&typ);
+         }
 
          if(!strcmp("hr", GmfKwdFmt[ KwdCod ][2]))
          {
@@ -1024,16 +1043,31 @@ int GmfSetKwd(int64_t MshIdx, int KwdCod, int64_t NmbLin, ...)
 /* Read a full line from the current kwd                                      */
 /*----------------------------------------------------------------------------*/
 
-int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
+int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
 {
-   int         i, err;
+   int         i, err, typ, *IntTab, *RefPtr, IntVal;
+   int64_t     LngVal;
    float       *FltSolTab, FltVal, *PtrFlt;
-   double      *DblSolTab, *PtrDbl;
+   double      *DblSolTab, *PtrDbl, *DblTab, DblVal;
    va_list     VarArg;
-   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd;
 
-   if( (VALF77(KwdCod) < 1) || (VALF77(KwdCod) > GmfMaxKwd) )
+   // Special trick: if the kwd is negative the call come from Fortran
+   if(KwdCod < 0)
+   {
+      // Set Fortran mode ON
+      KwdCod = -KwdCod;
+      kwd = &msh->KwdTab[ KwdCod ];
+      typ = F77Kwd;
+   }
+   else
+   {
+      kwd = &msh->KwdTab[ KwdCod ];
+      typ = kwd->typ;
+   }
+
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
 
    // Save the current stack environment for longjmp
@@ -1048,7 +1082,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
    // Start decoding the arguments
    va_start(VarArg, KwdCod);
 
-   switch(kwd->typ)
+   switch(typ)
    {
       case InfKwd : case RegKwd : case CmtKwd :
       {
@@ -1067,8 +1101,8 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
                   }                     
                   else
                   {
-                     safe_fscanf(msh->hdl, "%lf",
-                              va_arg(VarArg, double *), msh->err);
+                     PtrDbl = va_arg(VarArg, double *);
+                     safe_fscanf(msh->hdl, "%lf",PtrDbl, msh->err);
                   }
                }
                else if(kwd->fmt[i] == 'i')
@@ -1087,8 +1121,7 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
                }
                else if(kwd->fmt[i] == 'c')
                {
-                  safe_fgets( va_arg(VarArg, char *),
-                              WrdSiz * FilStrSiz, msh->hdl, msh->err);
+                  safe_fscanf(msh->hdl, "%s", va_arg(VarArg, char *), msh->err);
                }
             }
          }
@@ -1136,6 +1169,62 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
                   ScaDblWrd(msh, (unsigned char *)&DblSolTab[i]);
          }
       }break;
+
+      case F77Kwd :
+      {
+         IntTab = va_arg(VarArg, int *);
+         DblTab = va_arg(VarArg, double *);
+         RefPtr = va_arg(VarArg, int *);
+
+         for(i=0;i<kwd->SolSiz;i++)
+         {
+            if(kwd->fmt[i] == 'i')
+            {
+               if(msh->ver <= 3)
+               {
+                  if(msh->typ & Asc)
+                     safe_fscanf(msh->hdl, "%d", &IntVal, msh->err);
+                  else
+                     ScaWrd(msh, (unsigned char *)&IntVal);
+               }
+               else
+               {
+                  if(msh->typ & Asc)
+                     safe_fscanf(msh->hdl, INT64_T_FMT, &LngVal, msh->err);
+                  else
+                     ScaDblWrd(msh, (unsigned char *)&LngVal);
+
+                  IntVal = (int)LngVal;
+               }
+
+               if(!F77RefFlg[ KwdCod ] || (i < kwd->SolSiz - 1))
+                  IntTab[i] = IntVal;
+               else
+                  *RefPtr = IntVal;
+            }
+            else if(kwd->fmt[i] == 'r')
+            {
+               if(msh->FltSiz == 32)
+               {
+                  if(msh->typ & Asc)
+                     safe_fscanf(msh->hdl, "%f", &FltVal, msh->err);
+                  else
+                     ScaWrd(msh, (unsigned char *)&FltVal);
+
+                  DblVal = (double)FltVal;
+               }
+               else
+               {
+                  if(msh->typ & Asc)
+                     safe_fscanf(msh->hdl, "%lf", &DblVal, msh->err);
+                  else
+                     ScaDblWrd(msh, (unsigned char *)&DblVal);
+               }
+
+               DblTab[i] = DblVal;
+            }
+         }
+      }break;
    }
 
    va_end(VarArg);
@@ -1148,17 +1237,31 @@ int NAMF77(GmfGetLin, gmfgetlin)(TYPF77(int64_t)MshIdx, TYPF77(int)KwdCod, ...)
 /* Write a full line from the current kwd                                     */
 /*----------------------------------------------------------------------------*/
 
-int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...)
+int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
 {
-   int         i, pos, *IntBuf, err;
+   int         i, pos, *IntBuf, err, typ, *IntTab, *RefPtr;
    int64_t     *LngBuf;
    float       *FltSolTab, *FltBuf;
-   double      *DblSolTab, *DblBuf;
+   double      *DblSolTab, *DblBuf, *DblTab;
    va_list     VarArg;
-   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd;
 
-   if( ( VALF77(KwdCod) < 1) || ( VALF77(KwdCod) > GmfMaxKwd) )
+   // Special trick: if the kwd is negative the call come from Fortran
+   if(KwdCod < 0)
+   {
+      // Set Fortran mode ON
+      KwdCod = -KwdCod;
+      kwd = &msh->KwdTab[ KwdCod ];
+      typ = F77Kwd;
+   }
+   else
+   {
+      kwd = &msh->KwdTab[ KwdCod ];
+      typ = kwd->typ;
+   }
+
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
  
    // Save the current stack environment for longjmp
@@ -1184,111 +1287,192 @@ int NAMF77(GmfSetLin, gmfsetlin)(TYPF77(int64_t) MshIdx, TYPF77(int) KwdCod, ...
    // Start decoding the arguments
    va_start(VarArg, KwdCod);
 
-   if(kwd->typ != SolKwd)
+   switch(typ)
    {
-      if(msh->typ & Asc)
+      case InfKwd : case RegKwd : case CmtKwd :
       {
-         for(i=0;i<kwd->SolSiz;i++)
+         if(msh->typ & Asc)
          {
-            if(kwd->fmt[i] == 'r')
+            for(i=0;i<kwd->SolSiz;i++)
             {
-               if(msh->FltSiz == 32)
-#ifdef F77API
-                  fprintf(msh->hdl, "%.9g ", *(va_arg(VarArg, float *)));
-#else
-                  fprintf(msh->hdl, "%.9g ", va_arg(VarArg, double));
-#endif
-               else
-                  fprintf(msh->hdl, "%.17g ", VALF77(va_arg(VarArg, TYPF77(double))));
-            }
-            else if(kwd->fmt[i] == 'i')
-            {
-               if(msh->ver <= 3)
-                  fprintf(msh->hdl, "%d ", VALF77(va_arg(VarArg, TYPF77(int))));
-               else
+               if(kwd->fmt[i] == 'r')
                {
-                  // [Bruno] %ld -> INT64_T_FMT
-                  fprintf( msh->hdl, INT64_T_FMT " ",
-                           VALF77(va_arg(VarArg, TYPF77(int64_t))));
+                  if(msh->FltSiz == 32)
+                     fprintf(msh->hdl, "%.9g ", va_arg(VarArg, double));
+                  else
+                     fprintf(msh->hdl, "%.17g ", va_arg(VarArg, double));
                }
-            }
-            else if(kwd->fmt[i] == 'c')
-               fprintf(msh->hdl, "%s ", va_arg(VarArg, char *));
-         }
-      }
-      else
-      {
-         pos = 0;
-
-         for(i=0;i<kwd->SolSiz;i++)
-         {
-            if(kwd->fmt[i] == 'r')
-            {
-               if(msh->FltSiz == 32)
+               else if(kwd->fmt[i] == 'i')
                {
-                  FltBuf = (void *)&msh->buf[ pos ];
-#ifdef F77API
-                  *FltBuf = (float)*(va_arg(VarArg, float *));
-#else
-                  *FltBuf = (float)va_arg(VarArg, double);
-#endif
-                  pos += 4;
+                  if(msh->ver <= 3)
+                     fprintf(msh->hdl, "%d ", va_arg(VarArg, int));
+                  else
+                  {
+                     // [Bruno] %ld -> INT64_T_FMT
+                     fprintf(msh->hdl, INT64_T_FMT " ", va_arg(VarArg, int64_t));
+                  }
                }
-               else
-               {
-                  DblBuf = (void *)&msh->buf[ pos ];
-                  *DblBuf = VALF77(va_arg(VarArg, TYPF77(double)));
-                  pos += 8;
-               }
-            }
-            else if(kwd->fmt[i] == 'i')
-            {
-               if(msh->ver <= 3)
-               {
-                  IntBuf = (void *)&msh->buf[ pos ];
-                  *IntBuf = VALF77(va_arg(VarArg, TYPF77(int)));
-                  pos += 4;
-               }
-               else
-               {
-                  LngBuf = (void *)&msh->buf[ pos ];
-                  *LngBuf = VALF77(va_arg(VarArg, TYPF77(int64_t)));
-                  pos += 8;
-               }
-            }
-            else if(kwd->fmt[i] == 'c')
-            {
-               memset(&msh->buf[ pos ], 0, FilStrSiz * WrdSiz);
-               strncpy(&msh->buf[ pos ], va_arg(VarArg, char *), FilStrSiz * WrdSiz);
-               pos += FilStrSiz;
+               else if(kwd->fmt[i] == 'c')
+                  fprintf(msh->hdl, "%s ", va_arg(VarArg, char *));
             }
          }
+         else
+         {
+            pos = 0;
 
-         RecBlk(msh, msh->buf, kwd->NmbWrd);
-      }
-   }
-   else
-   {
-      if(msh->FltSiz == 32)
+            for(i=0;i<kwd->SolSiz;i++)
+            {
+               if(kwd->fmt[i] == 'r')
+               {
+                  if(msh->FltSiz == 32)
+                  {
+                     FltBuf = (void *)&msh->buf[ pos ];
+                     *FltBuf = (float)va_arg(VarArg, double);
+                     pos += 4;
+                  }
+                  else
+                  {
+                     DblBuf = (void *)&msh->buf[ pos ];
+                     *DblBuf = va_arg(VarArg, double);
+                     pos += 8;
+                  }
+               }
+               else if(kwd->fmt[i] == 'i')
+               {
+                  if(msh->ver <= 3)
+                  {
+                     IntBuf = (void *)&msh->buf[ pos ];
+                     *IntBuf = va_arg(VarArg, int);
+                     pos += 4;
+                  }
+                  else
+                  {
+                     LngBuf = (void *)&msh->buf[ pos ];
+                     *LngBuf = va_arg(VarArg, int64_t);
+                     pos += 8;
+                  }
+               }
+               else if(kwd->fmt[i] == 'c')
+               {
+                  memset(&msh->buf[ pos ], 0, FilStrSiz * WrdSiz);
+                  strncpy(&msh->buf[ pos ], va_arg(VarArg, char *), FilStrSiz * WrdSiz);
+                  pos += FilStrSiz;
+               }
+            }
+
+            RecBlk(msh, msh->buf, kwd->NmbWrd);
+         }
+      }break;
+
+      case SolKwd :
       {
-         FltSolTab = va_arg(VarArg, float *);
+         if(msh->FltSiz == 32)
+         {
+            FltSolTab = va_arg(VarArg, float *);
+
+            if(msh->typ & Asc)
+               for(i=0; i<kwd->SolSiz; i++)
+                  fprintf(msh->hdl, "%.9g ", (double)FltSolTab[i]);
+            else
+               RecBlk(msh, (unsigned char *)FltSolTab, kwd->NmbWrd);
+         }
+         else
+         {
+            DblSolTab = va_arg(VarArg, double *);
+
+            if(msh->typ & Asc)
+               for(i=0; i<kwd->SolSiz; i++)
+                  fprintf(msh->hdl, "%.17g ", DblSolTab[i]);
+            else
+               RecBlk(msh, (unsigned char *)DblSolTab, kwd->NmbWrd);
+         }
+      }break;
+
+      case F77Kwd :
+      {
+         IntTab = va_arg(VarArg, int *);
+         DblTab = va_arg(VarArg, double *);
+         RefPtr = va_arg(VarArg, int *);
 
          if(msh->typ & Asc)
-            for(i=0; i<kwd->SolSiz; i++)
-               fprintf(msh->hdl, "%.9g ", (double)FltSolTab[i]);
+         {
+            for(i=0;i<kwd->SolSiz;i++)
+            {
+               if(kwd->fmt[i] == 'r')
+               {
+                  if(msh->FltSiz == 32)
+                     fprintf(msh->hdl, "%.9g ", (float)DblTab[i]);
+                  else
+                     fprintf(msh->hdl, "%.17g ", DblTab[i]);
+               }
+               else if(kwd->fmt[i] == 'i')
+               {
+                  if(msh->ver <= 3)
+                     if(!F77RefFlg[ KwdCod ] || (i < kwd->SolSiz - 1))
+                        fprintf(msh->hdl, "%d ", IntTab[i]);
+                     else
+                        fprintf(msh->hdl, "%d ", *RefPtr);
+                  else
+                  {
+                     if(!F77RefFlg[ KwdCod ] || (i < kwd->SolSiz - 1))
+                        fprintf(msh->hdl, INT64_T_FMT " ", (int64_t)IntTab[i]);
+                     else
+                        fprintf(msh->hdl, INT64_T_FMT " ", (int64_t)*RefPtr);
+                  }
+               }
+            }
+         }
          else
-            RecBlk(msh, (unsigned char *)FltSolTab, kwd->NmbWrd);
-      }
-      else
-      {
-         DblSolTab = va_arg(VarArg, double *);
+         {
+            pos = 0;
 
-         if(msh->typ & Asc)
-            for(i=0; i<kwd->SolSiz; i++)
-               fprintf(msh->hdl, "%.17g ", DblSolTab[i]);
-         else
-            RecBlk(msh, (unsigned char *)DblSolTab, kwd->NmbWrd);
-      }
+            for(i=0;i<kwd->SolSiz;i++)
+            {
+               if(kwd->fmt[i] == 'r')
+               {
+                  if(msh->FltSiz == 32)
+                  {
+                     FltBuf = (void *)&msh->buf[ pos ];
+                     *FltBuf = (float)DblTab[i];
+                     pos += 4;
+                  }
+                  else
+                  {
+                     DblBuf = (void *)&msh->buf[ pos ];
+                     *DblBuf = DblTab[i];
+                     pos += 8;
+                  }
+               }
+               else if(kwd->fmt[i] == 'i')
+               {
+                  if(msh->ver <= 3)
+                  {
+                     IntBuf = (void *)&msh->buf[ pos ];
+
+                     if(!F77RefFlg[ KwdCod ] || (i < kwd->SolSiz - 1))
+                        *IntBuf = IntTab[i];
+                     else
+                        *IntBuf = *RefPtr;
+
+                     pos += 4;
+                  }
+                  else
+                  {
+                     LngBuf = (void *)&msh->buf[ pos ];
+
+                     if(!F77RefFlg[ KwdCod ] || (i < kwd->SolSiz - 1))
+                        *LngBuf = (int64_t)IntTab[i];
+                     else
+                        *LngBuf = (int64_t)*RefPtr;
+
+                     pos += 8;
+                  }
+               }
+            }
+
+            RecBlk(msh, msh->buf, kwd->NmbWrd);
+         }
+      }break;
    }
 
    va_end(VarArg);
@@ -1403,7 +1587,10 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
          memset(s, 0, FilStrSiz * WrdSiz);
 
          if(InpMsh->typ & Asc)
-            safe_fgets(s, WrdSiz * FilStrSiz, InpMsh->hdl, InpMsh->err);
+         {
+            //safe_fgets(s, WrdSiz * FilStrSiz, InpMsh->hdl, InpMsh->err);
+            safe_fscanf(InpMsh->hdl, "%s", s, InpMsh->err);
+         }
          else
 #ifdef WITH_GMF_AIO
             read(InpMsh->FilDes, s, WrdSiz * FilStrSiz);
@@ -1437,39 +1624,29 @@ int GmfCpyLin(int64_t InpIdx, int64_t OutIdx, int KwdCod)
 /* Bufferized asynchronous reading of all keyword's lines                     */
 /*----------------------------------------------------------------------------*/
 
-int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
-                                       TYPF77(int)     KwdCod,
-                                       TYPF77(int64_t) BegIdx,
-                                       TYPF77(int64_t) EndIdx,
-                                       TYPF77(int)     MapTyp,
-                                       void           *MapTab,
-                                       void           *prc, ... )
+int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
+                  int MapTyp, void *MapTab, void *prc, ... )
 {
    char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ], *FilPos, *EndUsrDat;
    char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL, *BegUsrDat;
-   char        *StrTab[5] = { "", "%f", "%lf", "%d", INT64_T_FMT };
+   char        *StrTab[4] = { "%f", "%lf", "%d", INT64_T_FMT };
    char        **BegTab, **EndTab;
    int         i, j, k, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int         UsrTyp[ GmfMaxTyp ], TypSiz[5] = {0,4,8,4,8};
+   int         UsrTyp[ GmfMaxTyp ], TypSiz[4] = {4,8,4,8};
    int         *IntMapTab = NULL, err, TotSiz = 0, IniFlg = 1, mod = GmfArgLst;
    int         *TypTab, *SizTab, typ, VecCnt, ArgCnt = 0;
    float       *FilPtrR32, *UsrPtrR32;
    double      *FilPtrR64, *UsrPtrR64;
    int64_t     BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx = 0;
    int64_t     *LngMapTab = NULL, OldIdx = 0, UsrNmbLin, VecLen;
-   size_t      FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
+   size_t      FilBegIdx = BegIdx, FilEndIdx = EndIdx;
    void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
-   size_t      UsrLen[ GmfMaxTyp ], ret, LinSiz, b, NmbBlk;
+   size_t      UsrLen[ GmfMaxTyp ], ret, LinSiz, b, l, NmbBlk;
    va_list     VarArg;
-   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
    struct      aiocb aio;
-#ifdef F77API
-   int         NmbArg = 0;
-   void        *ArgTab[ MaxArg ];
-#else
    char        *UsrArg = NULL;
-#endif
 
    // Save the current stack environment for longjmp
    if( (err = setjmp(msh->err)) != 0)
@@ -1487,7 +1664,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    }
 
    // Check mesh and keyword
-   if( (VALF77(KwdCod) < 1) || (VALF77(KwdCod) > GmfMaxKwd) || !kwd->NmbLin )
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) || !kwd->NmbLin )
       return(0);
 
    // Make sure it's not a simple information keyword
@@ -1502,9 +1679,9 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    UsrNmbLin = FilEndIdx - FilBegIdx + 1;
 
    // Get the renumbering map if any
-   if(VALF77(MapTyp) == GmfInt)
+   if(MapTyp == GmfInt)
       IntMapTab = (int *)MapTab;
-   else if(VALF77(MapTyp) == GmfLong)
+   else if(MapTyp == GmfLong)
       LngMapTab = (int64_t *)MapTab;
 
    // Start decoding the arguments
@@ -1512,28 +1689,17 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    LinSiz = 0;
 
    // Get the user's preprocessing procedure and argument adresses, if any
-#ifdef F77API
-   if(prc)
-   {
-      UsrPrc = (void (*)(int64_t, int64_t, void *))prc;
-      NmbArg = *(va_arg(VarArg, int *));
-
-      for(i=0;i<NmbArg;i++)
-         ArgTab[i] = va_arg(VarArg, void *);
-   }
-#else
    if(prc)
    {
       UsrPrc = (void (*)(int64_t, int64_t, void *))prc;
       UsrArg = va_arg(VarArg, void *);
    }
-#endif
 
    if( (kwd->typ != RegKwd) && (kwd->typ != SolKwd) )
-      return(0);
+      longjmp(msh->err, -36);
 
    // Read the first data type to select between list and table mode
-   typ = VALF77(va_arg(VarArg, TYPF77(int)));
+   typ = va_arg(VarArg, int);
 
    // If the table mode is selected, read the four additional tables
    // containing the arguments: type, vector size, begin and end pointers
@@ -1557,14 +1723,21 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
          if(IniFlg)
             IniFlg = 0;
          else
-            typ = VALF77(va_arg(VarArg, TYPF77(int)));
+            typ = va_arg(VarArg, int);
 
-         // In case the type is a vector. get its size and change the type
-         // for the corresponding scalar type
          if(typ >= GmfFloatVec && typ <= GmfLongVec)
          {
+            // In case the type is a vector, get its size and change
+            // the type for the corresponding scalar type
             typ -= 4;
-            VecCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            VecCnt = va_arg(VarArg, int);
+         }
+         else if(typ >= GmfSca && typ <= GmfMat)
+         {
+            // In case it is a mathematical solution, expand it
+            // to the right size with the mesh file's own real kind
+            VecCnt = msh->SolTypSiz[ typ ];
+            typ = (msh->ver == 1) ? GmfFloat : GmfDouble;
          }
          else
             VecCnt = 1;
@@ -1583,6 +1756,13 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             typ -= 4;
             VecCnt = SizTab[ ArgCnt ];
          }
+         else if(typ >= GmfSca && typ <= GmfMat)
+         {
+            // In case it is a mathematical solution, expand it
+            //  to the right size with the mesh file's own real kind
+            VecCnt = msh->SolTypSiz[ typ ];
+            typ = (msh->ver == 1) ? GmfFloat : GmfDouble;
+         }
          else
             VecCnt = 1;
 
@@ -1592,7 +1772,10 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
       }
 
       if(UsrNmbLin > 1)
-         VecLen = (size_t)(EndUsrDat - BegUsrDat) / (UsrNmbLin - 1);
+      {
+         VecLen = (size_t)(EndUsrDat - BegUsrDat);
+         VecLen /= UsrNmbLin - 1;
+      }
       else
          VecLen = 0;
 
@@ -1600,7 +1783,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
       for(i=0;i<VecCnt;i++)
       {
          UsrTyp[ TotSiz ]  = typ;
-         UsrBas[ TotSiz ]  = BegUsrDat + i * TypSiz[ typ ];
+         UsrBas[ TotSiz ]  = BegUsrDat + i * TypSiz[ typ - GmfFloat ];
          UsrDat[ TotSiz ]  = UsrBas[ TotSiz ];
          UsrLen[ TotSiz ]  = VecLen;
          TotSiz++;
@@ -1622,7 +1805,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             FilTyp[i] = GmfLong;
 
       // Compute the file stride
-      LinSiz += TypSiz[ FilTyp[i] ];
+      LinSiz += TypSiz[ FilTyp[i] - GmfFloat ];
    }
 
    va_end(VarArg);
@@ -1635,7 +1818,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
    {
       OldIdx = 1;
 
-      for(i=1;i<=FilEndIdx;i++)
+      for(l=1;l<=FilEndIdx;l++)
       {
          for(j=0;j<kwd->SolSiz;j++)
          {
@@ -1655,29 +1838,25 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
             else
                UsrDat[j] = UsrBas[k] + (OldIdx - 1) * UsrLen[k];
 
-            safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] ], UsrDat[j], msh->err);
+            safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], UsrDat[j], msh->err);
          }
 
-         if(i >= FilBegIdx)
+         if(l >= FilBegIdx)
             OldIdx++;
 
          // Call the user's preprocessing procedure
          if(UsrPrc)
-#ifdef F77API
-            CalF77Prc(1, kwd->NmbLin, UsrPrc, NmbArg, ArgTab);
-#else
             UsrPrc(1, kwd->NmbLin, UsrArg);
-#endif
       }
    }
    else
    {
       // Allocate both front and back buffers
       if(!(BckBuf = malloc(BufSiz * LinSiz)))
-         return(0);
+         longjmp(msh->err, -37);
 
       if(!(FrtBuf = malloc(BufSiz * LinSiz)))
-         return(0);
+         longjmp(msh->err, -38);
 
       // Setup the ansynchonous parameters
       memset(&aio, 0, sizeof(struct aiocb));
@@ -1688,7 +1867,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
 #else
       aio.aio_fildes = msh->hdl;
 #endif
-      aio.aio_offset = (off_t)(GetFilPos(msh) + (FilBegIdx-1) * LinSiz);
+      aio.aio_offset = (size_t)(GetFilPos(msh) + (FilBegIdx-1) * LinSiz);
 
       NmbBlk = UsrNmbLin / BufSiz;
 
@@ -1706,16 +1885,16 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
 
             if (err != 0) {
               printf (" Error at aio_error() : %s\n", strerror (err));
-              exit(1);
+              longjmp(msh->err, -39);
             }
 
             if (ret != aio.aio_nbytes) {
               printf(" Error at aio_return()\n");
-              exit(1);
+              longjmp(msh->err, -40);
             }
 
             // Increment the reading position
-            aio.aio_offset += (off_t)aio.aio_nbytes;
+            aio.aio_offset += (size_t)aio.aio_nbytes;
 
             // and swap the buffers
             if(aio.aio_buf == BckBuf)
@@ -1754,7 +1933,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
                printf("aio_offset = " INT64_T_FMT "\n",(int64_t)aio.aio_offset);
                printf("aio_nbytes = " INT64_T_FMT "\n",(int64_t)aio.aio_nbytes);
                printf("errno      = %d\n",errno);
-               exit(1);
+               longjmp(msh->err, -41);
             }
          }
 
@@ -1779,7 +1958,7 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
                for(j=0;j<kwd->SolSiz;j++)
                {
                   if(msh->cod != 1)
-                     SwpWrd(FilPos, TypSiz[ FilTyp[j] ]);
+                     SwpWrd(FilPos, TypSiz[ FilTyp[j] - GmfFloat ]);
 
                   // Reorder HO nodes on the fly
                   if(kwd->OrdTab && (j != kwd->SolSiz-1))
@@ -1855,17 +2034,13 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
                      }
                   }
 
-                  FilPos += TypSiz[ FilTyp[j] ];
+                  FilPos += TypSiz[ FilTyp[j] - GmfFloat ];
                }
             }
 
             // Call the user's preprocessing procedure
             if(UsrPrc)
-#ifdef F77API
-               CalF77Prc(BlkBegIdx, BlkEndIdx, UsrPrc, NmbArg, ArgTab);
-#else
                UsrPrc(BlkBegIdx, BlkEndIdx, UsrArg);
-#endif
          }
       }
 
@@ -1881,39 +2056,29 @@ int NAMF77(GmfGetBlock, gmfgetblock)(  TYPF77(int64_t) MshIdx,
 /* Bufferized writing of all keyword's lines                                  */
 /*----------------------------------------------------------------------------*/
 
-int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
-                                       TYPF77(int)     KwdCod,
-                                       TYPF77(int64_t) BegIdx,
-                                       TYPF77(int64_t) EndIdx,
-                                       TYPF77(int)     MapTyp,
-                                       void           *MapTab,
-                                       void           *prc, ... )
+int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
+                  int MapTyp, void *MapTab, void *prc, ... )
 {
    char        *UsrDat[ GmfMaxTyp ], *UsrBas[ GmfMaxTyp ];
-   char        *StrTab[5] = { "", "%.9g", "%.17g", "%d", "%lld" }, *FilPos;
+   char        *StrTab[4] = {"%.9g", "%.17g", "%d", "%lld" }, *FilPos;
    char        *FilBuf = NULL, *FrtBuf = NULL, *BckBuf = NULL;
    char        **BegTab, **EndTab, *BegUsrDat, *EndUsrDat;
    int         i, j, *FilPtrI32, *UsrPtrI32, FilTyp[ GmfMaxTyp ];
-   int         UsrTyp[ GmfMaxTyp ], TypSiz[5] = {0,4,8,4,8};
+   int         UsrTyp[ GmfMaxTyp ], TypSiz[4] = {4,8,4,8};
    int         err, *IntMapTab = NULL, typ, mod = GmfArgLst;
    int         *TypTab, *SizTab, IniFlg = 1, TotSiz = 0, VecCnt, ArgCnt = 0;
    float       *FilPtrR32, *UsrPtrR32;
    double      *FilPtrR64, *UsrPtrR64;
    int64_t     UsrNmbLin, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
    int64_t     *FilPtrI64, *UsrPtrI64, *LngMapTab = NULL, OldIdx = 0;
-   size_t      FilBegIdx = VALF77(BegIdx), FilEndIdx = VALF77(EndIdx);
+   size_t      FilBegIdx = BegIdx, FilEndIdx = EndIdx;
    void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
    size_t      UsrLen[ GmfMaxTyp ], ret, LinSiz, VecLen, s, b, NmbBlk;
    va_list     VarArg;
-   GmfMshSct   *msh = (GmfMshSct *) VALF77(MshIdx);
-   KwdSct      *kwd = &msh->KwdTab[ VALF77(KwdCod) ];
+   GmfMshSct   *msh = (GmfMshSct *)MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ KwdCod ];
    struct      aiocb aio;
-#ifdef F77API
-   int         NmbArg = 0;
-   void        *ArgTab[ MaxArg ];
-#else
    char        *UsrArg = NULL;
-#endif
 
    // Save the current stack environment for longjmp
    if( (err = setjmp(msh->err)) != 0)
@@ -1928,7 +2093,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    }
 
    // Check mesh and keyword
-   if( (VALF77(KwdCod) < 1) || (VALF77(KwdCod) > GmfMaxKwd) || !kwd->NmbLin )
+   if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) || !kwd->NmbLin )
       return(0);
 
    // Make sure it's not a simple information keyword
@@ -1948,9 +2113,9 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    UsrNmbLin = FilEndIdx - FilBegIdx + 1;
 
    // Get the renumbering map if any
-   if(VALF77(MapTyp) == GmfInt)
+   if(MapTyp == GmfInt)
       IntMapTab = (int *)MapTab;
-   else if(VALF77(MapTyp) == GmfLong)
+   else if(MapTyp == GmfLong)
       LngMapTab = (int64_t *)MapTab;
 
    // Start decoding the arguments
@@ -1958,28 +2123,17 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    LinSiz = 0;
 
    // Get the user's postprocessing procedure and argument adresses, if any
-#ifdef F77API
-   if(prc)
-   {
-      UsrPrc = (void (*)(int64_t, int64_t, void *))prc;
-      NmbArg = *(va_arg(VarArg, int *));
-
-      for(i=0;i<NmbArg;i++)
-         ArgTab[i] = va_arg(VarArg, void *);
-   }
-#else
    if(prc)
    {
       UsrPrc = (void (*)(int64_t, int64_t, void *))prc;
       UsrArg = va_arg(VarArg, void *);
    }
-#endif
 
    if( (kwd->typ != RegKwd) && (kwd->typ != SolKwd) )
-      return(0);
+      longjmp(msh->err, -42);
 
    // Read the first data type to select between list and table mode
-   typ = VALF77(va_arg(VarArg, TYPF77(int)));
+   typ = va_arg(VarArg, int);
 
    // If the table mode is selected, read the four additional tables
    // containing the arguments: type, vector size, begin and end pointers
@@ -2003,14 +2157,21 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
          if(IniFlg)
             IniFlg = 0;
          else
-            typ = VALF77(va_arg(VarArg, TYPF77(int)));
+            typ = va_arg(VarArg, int);
 
          // In case the type is a vector. get its size and change the type
          // for the corresponding scalar type
          if(typ >= GmfFloatVec && typ <= GmfLongVec)
          {
             typ -= 4;
-            VecCnt = VALF77(va_arg(VarArg, TYPF77(int)));
+            VecCnt = va_arg(VarArg, int);
+         }
+         else if(typ >= GmfSca && typ <= GmfMat)
+         {
+            // In case it is a mathematical solution, expand it
+            //  to the right size with the mesh file's own real kind
+            VecCnt = msh->SolTypSiz[ typ ];
+            typ = (msh->ver == 1) ? GmfFloat : GmfDouble;
          }
          else
             VecCnt = 1;
@@ -2029,6 +2190,13 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             typ -= 4;
             VecCnt = SizTab[ ArgCnt ];
          }
+         else if(typ >= GmfSca && typ <= GmfMat)
+         {
+            // In case it is a mathematical solution, expand it
+            // to the right size with the mesh file's own real kind
+            VecCnt = msh->SolTypSiz[ typ ];
+            typ = (msh->ver == 1) ? GmfFloat : GmfDouble;
+         }
          else
             VecCnt = 1;
 
@@ -2038,7 +2206,10 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
       }
 
       if(UsrNmbLin > 1)
-         VecLen = (size_t)(EndUsrDat - BegUsrDat) / (UsrNmbLin - 1);
+      {
+         VecLen = EndUsrDat - BegUsrDat;
+         VecLen /= UsrNmbLin - 1;
+      }
       else
          VecLen = 0;
 
@@ -2046,7 +2217,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
       for(i=0;i<VecCnt;i++)
       {
          UsrTyp[ TotSiz ]  = typ;
-         UsrBas[ TotSiz ]  = BegUsrDat + i * TypSiz[ typ ];
+         UsrBas[ TotSiz ]  = BegUsrDat + i * TypSiz[ typ - GmfFloat ];
          UsrDat[ TotSiz ]  = UsrBas[ TotSiz ];
          UsrLen[ TotSiz ]  = VecLen;
          TotSiz++;
@@ -2068,7 +2239,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             FilTyp[i] = GmfLong;
 
       // Compute the file stride
-      LinSiz += TypSiz[ FilTyp[i] ];
+      LinSiz += TypSiz[ FilTyp[i] - GmfFloat ];
    }
 
    va_end(VarArg);
@@ -2077,11 +2248,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    if(msh->typ & Asc)
    {
       if(UsrPrc)
-#ifdef F77API
-         CalF77Prc(1, kwd->NmbLin, UsrPrc, NmbArg, ArgTab);
-#else
          UsrPrc(1, kwd->NmbLin, UsrArg);
-#endif
 
       for(s=FilBegIdx; s<=FilEndIdx; s++)
          for(j=0;j<kwd->SolSiz;j++)
@@ -2089,22 +2256,22 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
             if(UsrTyp[j] == GmfFloat)
             {
                UsrPtrR32 = (float *)UsrDat[j];
-               fprintf(msh->hdl, StrTab[ UsrTyp[j] ], (double)*UsrPtrR32);
+               fprintf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], (double)*UsrPtrR32);
             }
             else if(UsrTyp[j] == GmfDouble)
             {
                UsrPtrR64 = (double *)UsrDat[j];
-               fprintf(msh->hdl, StrTab[ UsrTyp[j] ], *UsrPtrR64);
+               fprintf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], *UsrPtrR64);
             }
             else if(UsrTyp[j] == GmfInt)
             {
                UsrPtrI32 = (int *)UsrDat[j];
-               fprintf(msh->hdl, StrTab[ UsrTyp[j] ], *UsrPtrI32);
+               fprintf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], *UsrPtrI32);
             }
             else if(UsrTyp[j] == GmfLong)
             {
                UsrPtrI64 = (int64_t *)UsrDat[j];
-               fprintf(msh->hdl, StrTab[ UsrTyp[j] ], *UsrPtrI64);
+               fprintf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], *UsrPtrI64);
             }
 
             if(j < kwd->SolSiz -1)
@@ -2125,10 +2292,10 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
    {
       // Allocate the front and back buffers
       if(!(BckBuf = malloc(BufSiz * LinSiz)))
-         return(0);
+         longjmp(msh->err, -43);
 
       if(!(FrtBuf = malloc(BufSiz * LinSiz)))
-         return(0);
+         longjmp(msh->err, -44);
 
       // Setup the asynchronous parameters
       memset(&aio, 0, sizeof(struct aiocb));
@@ -2138,7 +2305,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
 #else
       aio.aio_fildes = msh->hdl;
 #endif
-      aio.aio_offset = (off_t)GetFilPos(msh);
+      aio.aio_offset = (size_t)GetFilPos(msh);
 
       NmbBlk = UsrNmbLin / BufSiz;
 
@@ -2162,7 +2329,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
                printf("aio_offset = " INT64_T_FMT "\n",(int64_t)aio.aio_offset);
                printf("aio_nbytes = " INT64_T_FMT "\n",(int64_t)aio.aio_nbytes);
                printf("errno      = %d\n",errno);
-               exit(1);
+               longjmp(msh->err, -45);
             }
          }
 
@@ -2181,11 +2348,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
 
             // Call user's preprocessing first
             if(UsrPrc)
-#ifdef F77API
-               CalF77Prc(BlkBegIdx, BlkEndIdx, UsrPrc, NmbArg, ArgTab);
-#else
                UsrPrc(BlkBegIdx, BlkEndIdx, UsrArg);
-#endif
 
             // Then copy it's data to the file buffer
             for(i=0;i<BlkNmbLin;i++)
@@ -2262,7 +2425,7 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
                      }
                   }
 
-                  FilPos += TypSiz[ FilTyp[j] ];
+                  FilPos += TypSiz[ FilTyp[j] - GmfFloat ];
                }
             }
          }
@@ -2277,16 +2440,16 @@ int NAMF77(GmfSetBlock, gmfsetblock)(  TYPF77(int64_t) MshIdx,
 
             if (err != 0) {
               printf (" Error at aio_error() : %s\n", strerror (err));
-              exit(1);
+              longjmp(msh->err, -46);
             }
 
             if (ret != aio.aio_nbytes) {
               printf(" Error at aio_return()\n");
-              exit(1);
+              longjmp(msh->err, -47);
             }
 
             // Move the write position
-            aio.aio_offset += (off_t)aio.aio_nbytes;
+            aio.aio_offset += (size_t)aio.aio_nbytes;
          }
 
          // Swap the buffers
@@ -2321,8 +2484,6 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
    KwdSct      *kwd;
    
-   // printf("\n\tGmfSetHONodesOrdering 0\n");
-
    if( (KwdCod < 1) || (KwdCod > GmfMaxKwd) )
       return(0);
 
@@ -2413,9 +2574,6 @@ int GmfSetHONodesOrdering(int64_t MshIdx, int KwdCod, int *BasTab, int *OrdTab)
 }
 
 #endif
-
-
-#ifndef F77API
 
 
 /*----------------------------------------------------------------------------*/
@@ -2532,8 +2690,6 @@ void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
    GmfSetKwd(MshIdx, GmfFloatingPointPrecision, 1);
    GmfSetLin(MshIdx, GmfFloatingPointPrecision, FltSiz);
 }
-
-#endif
 
 
 /*----------------------------------------------------------------------------*/
@@ -2760,6 +2916,13 @@ static void ExpFmt(GmfMshSct *msh, int KwdCod)
       kwd->SolSiz *= kwd->NmbNod;
       kwd->NmbWrd *= kwd->NmbNod;
    }
+
+   // Count the final number of intergers and reals needed by the Fortran API
+   for(i=0;i<kwd->SolSiz;i++)
+      if(kwd->fmt[i] == 'i')
+         kwd->NmbInt++;
+      else if(kwd->fmt[i] == 'r')
+         kwd->NmbDbl++;
 }
 
 
@@ -2944,11 +3107,11 @@ static int SetFilPos(GmfMshSct *msh, int64_t pos)
 {
 #ifdef WITH_GMF_AIO
    if(msh->typ & Bin)
-      return((lseek(msh->FilDes, (off_t)pos, 0) != -1));
+      return((lseek(msh->FilDes, (size_t)pos, 0) != -1));
    else
-      return((MYFSEEK(msh->hdl, (off_t)pos, SEEK_SET) == 0));
+      return((MYFSEEK(msh->hdl, (size_t)pos, SEEK_SET) == 0));
 #else
-   return((MYFSEEK(msh->hdl, (off_t)pos, SEEK_SET) == 0));
+   return((MYFSEEK(msh->hdl, (size_t)pos, SEEK_SET) == 0));
 #endif
 }
 
@@ -2983,7 +3146,7 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 #ifdef WITH_GMF_AIO
       CurPos = lseek(msh->FilDes, 0, 1);
       EndPos = lseek(msh->FilDes, 0, 2);
-      lseek(msh->FilDes, (off_t)CurPos, 0);
+      lseek(msh->FilDes, (size_t)CurPos, 0);
 #else
       CurPos = MYFTELL(msh->hdl);
 
@@ -2992,7 +3155,7 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 
       EndPos = MYFTELL(msh->hdl);
 
-      if(MYFSEEK(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
+      if(MYFSEEK(msh->hdl, (size_t)CurPos, SEEK_SET) != 0)
          longjmp(msh->err, -33);
 #endif
    }
@@ -3005,7 +3168,7 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 
       EndPos = MYFTELL(msh->hdl);
 
-      if(MYFSEEK(msh->hdl, (off_t)CurPos, SEEK_SET) != 0)
+      if(MYFSEEK(msh->hdl, (size_t)CurPos, SEEK_SET) != 0)
          longjmp(msh->err, -35);
    }
 
@@ -3017,10 +3180,8 @@ static int64_t GetFilSiz(GmfMshSct *msh)
 /* Fortran 77 API                                                             */
 /*----------------------------------------------------------------------------*/
 
-#ifdef F77API
-
-int64_t APIF77(gmfopenmesh)(  char *FilNam, int *mod,
-                              int *ver, int *dim, int StrSiz )
+int64_t APIF77(gmfopenmeshf77)(  char *FilNam, int *mod,
+                                 int *ver, int *dim, long int StrSiz )
 {
    int   i = 0;
    char  TmpNam[ GmfStrSiz ];
@@ -3038,23 +3199,23 @@ int64_t APIF77(gmfopenmesh)(  char *FilNam, int *mod,
    TmpNam[ StrSiz ] = 0;
 
    if(*mod == GmfRead)
-      return(GmfOpenMesh(TmpNam, *mod, ver, dim));
+      return(GmfOpenMesh(TmpNam, GmfRead, ver, dim));
    else
-      return(GmfOpenMesh(TmpNam, *mod, *ver, *dim));
+      return(GmfOpenMesh(TmpNam, GmfWrite, *ver, *dim));
 }
 
-int APIF77(gmfclosemesh)(int64_t *idx)
+int APIF77(gmfclosemeshf77)(int64_t *idx)
 {
    return(GmfCloseMesh(*idx));
 }
 
-int APIF77(gmfgotokwd)(int64_t *MshIdx, int *KwdIdx)
+int APIF77(gmfgotokwdf77)(int64_t *MshIdx, int *KwdIdx)
 {
    return(GmfGotoKwd(*MshIdx, *KwdIdx));
 }
 
-int APIF77(gmfstatkwd)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp,
-                        int *SolSiz, int *TypTab,  int *deg, int *NmbNod)
+int APIF77(gmfstatkwdf77)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp,
+                           int *SolSiz, int *TypTab, int *deg, int *NmbNod )
 {
    if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "hr"))
       return(GmfStatKwd(*MshIdx, *KwdIdx, NmbTyp, SolSiz, TypTab, deg, NmbNod));
@@ -3064,8 +3225,8 @@ int APIF77(gmfstatkwd)( int64_t *MshIdx, int *KwdIdx, int *NmbTyp,
       return(GmfStatKwd(*MshIdx, *KwdIdx));
 }
 
-int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
-                        int *NmbTyp, int *TypTab, int *deg, int *NmbNod)
+int APIF77(gmfsetkwdf77)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
+                           int *NmbTyp, int *TypTab, int *deg, int *NmbNod )
 {
    if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "hr"))
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab, *deg, *NmbNod));
@@ -3075,245 +3236,108 @@ int APIF77(gmfsetkwd)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin));
 }
 
-
-int APIF77(gmfsethonodesordering)(int64_t *MshIdx, int *KwdCod, int *BasTab, int *OrdTab)
+int APIF77(gmfsethonodesorderingf77)(  int64_t *MshIdx, int *KwdCod,
+                                       int *BasTab, int *OrdTab )
 {
    return(GmfSetHONodesOrdering(*MshIdx, *KwdCod, BasTab, OrdTab));
 }
-/*
-int APIF77(gmfreadbyteflow)(int64_t *MshIdx, char *BytFlo, int *NmbByt)
+
+int APIF77(gmfgetlinef77)(int64_t *MshIdx, int *kwd, int *i, double *d, int *r)
 {
-   int TmpNmb;
-   char *TmpFlo;
-
-   TmpFlo = GmfReadByteFlow(*MshIdx, &TmpNmb);
-
-   if(!TmpFlo || NmbByt <= 0 || !BytFlo || TmpNmb > *NmbByt)
-      return(0);
-
-   *NmbByt = TmpNmb;
-   memcpy(BytFlo, TmpFlo, *NmbByt);
-   free(TmpFlo);
-
-   return(TmpNmb);
+   // Special trick: use a negative value kwd to set Fortran mode on
+   return(GmfGetLin(*MshIdx, -*kwd, i, d, r));
 }
 
-int APIF77(gmfwritebyteflow)(int64_t *MshIdx, char *BytFlo, int *NmbByt)
+int APIF77(gmfsetlinef77)(int64_t *MshIdx, int *kwd, int *i, double *d, int *r)
 {
-   return(GmfWriteByteFlow(*MshIdx, BytFlo, *NmbByt));
+   // Special trick: use a negative value kwd to set Fortran mode on
+   return(GmfSetLin(*MshIdx, -*kwd, i, d, r));
 }
 
-int APIF77(gmfgetfloatprecision)(int64_t *MshIdx)
+int APIF77(gmfgetblockf77)(int64_t *MshIdx, int *KwdCod,
+                           int *BegIdx, int *EndIdx,
+                           int *MapTyp, int *MatTab,
+                           int *BegInt, int *EndInt,
+                           double *BegDbl, double *EndDbl,
+                           int *BegRef, int *EndRef)
 {
-   return(GmfGetFloatPrecision(*MshIdx));
-}
+   int         i, TypTab[ MaxArg ], SizTab[ MaxArg ];
+   char        *BegTab[ MaxArg ], *EndTab[ MaxArg ];
+   GmfMshSct   *msh = (GmfMshSct *)*MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ *KwdCod ];
 
-int APIF77(gmfsetfloatprecision)(int64_t *MshIdx, int *FltSiz)
-{
-   GmfSetFloatPrecision(*MshIdx, *FltSiz);
-   return(0);
-}
-*/
-
-/*----------------------------------------------------------------------------*/
-/* Duplication macros                                                         */
-/*----------------------------------------------------------------------------*/
-
-#define DUP(s,n) DUP ## n (s)
-#define DUP1(s) s
-#define DUP2(s) DUP1(s),s
-#define DUP3(s) DUP2(s),s
-#define DUP4(s) DUP3(s),s
-#define DUP5(s) DUP4(s),s
-#define DUP6(s) DUP5(s),s
-#define DUP7(s) DUP6(s),s
-#define DUP8(s) DUP7(s),s
-#define DUP9(s) DUP8(s),s
-#define DUP10(s) DUP9(s),s
-#define DUP11(s) DUP10(s),s
-#define DUP12(s) DUP11(s),s
-#define DUP13(s) DUP12(s),s
-#define DUP14(s) DUP13(s),s
-#define DUP15(s) DUP14(s),s
-#define DUP16(s) DUP15(s),s
-#define DUP17(s) DUP16(s),s
-#define DUP18(s) DUP17(s),s
-#define DUP19(s) DUP18(s),s
-#define DUP20(s) DUP19(s),s
-
-
-#define ARG(a,n) ARG ## n (a)
-#define ARG1(a) a[0]
-#define ARG2(a) ARG1(a),a[1]
-#define ARG3(a) ARG2(a),a[2]
-#define ARG4(a) ARG3(a),a[3]
-#define ARG5(a) ARG4(a),a[4]
-#define ARG6(a) ARG5(a),a[5]
-#define ARG7(a) ARG6(a),a[6]
-#define ARG8(a) ARG7(a),a[7]
-#define ARG9(a) ARG8(a),a[8]
-#define ARG10(a) ARG9(a),a[9]
-#define ARG11(a) ARG10(a),a[10]
-#define ARG12(a) ARG11(a),a[11]
-#define ARG13(a) ARG12(a),a[12]
-#define ARG14(a) ARG13(a),a[13]
-#define ARG15(a) ARG14(a),a[14]
-#define ARG16(a) ARG15(a),a[15]
-#define ARG17(a) ARG16(a),a[16]
-#define ARG18(a) ARG17(a),a[17]
-#define ARG19(a) ARG18(a),a[18]
-#define ARG20(a) ARG19(a),a[19]
-
-
-/*----------------------------------------------------------------------------*/
-/* Call a fortran thread with 1 to 20 arguments                               */
-/*----------------------------------------------------------------------------*/
-
-static void CalF77Prc(  int64_t BegIdx, int64_t EndIdx,
-                        void *prc, int NmbArg, void **ArgTab )
-{
-   switch(NmbArg)
+   // Fortran call to getblock uses the GmfArgTab mode where pointers are passed
+   // through tables: types[], vec sizes[], begin pointers[] and end pointers[]
+   for(i=0;i<kwd->SolSiz;i++)
    {
-      case 1 :
+      if(kwd->fmt[i] == 'i')
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 1)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 1)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 1));
-      }break;
+         TypTab[i] = GmfInt;
+         SizTab[i] = 1;
 
-      case 2 :
+         if( (F77RefFlg[ *KwdCod ]) && (i == kwd->SolSiz-1) )
+         {
+            BegTab[i] = (char *)BegRef;
+            EndTab[i] = (char *)EndRef;
+         }
+         else
+         {
+            BegTab[i] = (char *)&BegInt[i];
+            EndTab[i] = (char *)&EndInt[i];
+         }
+      }else if(kwd->fmt[i] == 'r')
       {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 2)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 2)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 2));
-      }break;
-
-      case 3 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 3)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 3)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 3));
-      }break;
-
-      case 4 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 4)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 4)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 4));
-      }break;
-
-      case 5 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 5)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 5)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 5));
-      }break;
-
-      case 6 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 6)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 6)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 6));
-      }break;
-
-      case 7 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 7)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 7)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 7));
-      }break;
-
-      case 8 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 8)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 8)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 8));
-      }break;
-
-      case 9 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 9)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 9)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 9));
-      }break;
-
-      case 10 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 10)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 10)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 10));
-      }break;
-
-      case 11 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 11)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 11)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 11));
-      }break;
-
-      case 12 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 12)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 12)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 12));
-      }break;
-
-      case 13 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 13)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 13)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 13));
-      }break;
-
-      case 14 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 14)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 14)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 14));
-      }break;
-
-      case 15 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 15)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 15)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 15));
-      }break;
-
-      case 16 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 16)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 16)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 16));
-      }break;
-
-      case 17 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 17)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 17)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 17));
-      }break;
-
-      case 18 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 18)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 18)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 18));
-      }break;
-
-      case 19 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 19)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 19)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 19));
-      }break;
-
-      case 20 :
-      {
-         void (*prc1)(int64_t *, int64_t *, DUP(void *, 20)) =
-            (void (*)(int64_t *, int64_t *, DUP(void *, 20)))prc;
-         prc1(&BegIdx, &EndIdx, ARG(ArgTab, 20));
-      }break;
+         TypTab[i] = GmfDouble;
+         SizTab[i] = 1;
+         BegTab[i] = (char *)&BegDbl[i];
+         EndTab[i] = (char *)&EndDbl[i];
+      }
    }
+
+   return(GmfGetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx, *MapTyp, MatTab,
+                        NULL, GmfArgTab, TypTab, SizTab, BegTab, EndTab ));
 }
 
-#endif
+int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *KwdCod,
+                           int *BegIdx, int *EndIdx,
+                           int *MapTyp, int *MatTab,
+                           int *BegInt, int *EndInt,
+                           double *BegDbl, double *EndDbl,
+                           int *BegRef, int *EndRef)
+{
+   int         i, TypTab[ MaxArg ], SizTab[ MaxArg ];
+   char        *BegTab[ MaxArg ], *EndTab[ MaxArg ];
+   GmfMshSct   *msh = (GmfMshSct *)*MshIdx;
+   KwdSct      *kwd = &msh->KwdTab[ *KwdCod ];
+
+   // Fortran call to setblock uses the GmfArgTab mode where pointers are passed
+   // through tables: types[], vec sizes[], begin pointers[] and end pointers[]
+   for(i=0;i<kwd->SolSiz;i++)
+   {
+      if(kwd->fmt[i] == 'i')
+      {
+         TypTab[i] = GmfInt;
+         SizTab[i] = 1;
+
+         if( (F77RefFlg[ *KwdCod ]) && (i == kwd->SolSiz-1) )
+         {
+            BegTab[i] = (char *)BegRef;
+            EndTab[i] = (char *)EndRef;
+         }
+         else
+         {
+            BegTab[i] = (char *)&BegInt[i];
+            EndTab[i] = (char *)&EndInt[i];
+         }
+      }else if(kwd->fmt[i] == 'r')
+      {
+         TypTab[i] = GmfDouble;
+         SizTab[i] = 1;
+         BegTab[i] = (char *)&BegDbl[i];
+         EndTab[i] = (char *)&EndDbl[i];
+      }
+   }
+
+   return(GmfSetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx, *MapTyp, MatTab,
+                        NULL, GmfArgTab, TypTab, SizTab, BegTab, EndTab ));
+}

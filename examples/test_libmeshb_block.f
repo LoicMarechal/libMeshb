@@ -1,34 +1,33 @@
 
-c     libMeshb 7.5 example: transform a quadrilateral mesh into a triangular one
-c     using fast block transfer and pipelined post processing
+c     libMeshb 7.79 example: transform a quadrilateral mesh into a triangular one
+c     using fast block transfer
 
       include 'libmeshb7.ins'
 
-      external qad2tri
-
       integer n
       parameter (n=4000)
-      integer i, ver, dim, res
+      integer i, ver, dim, res, NmbVer, NmbQad
      +, RefTab(n), TriTab(4,2*n), QadTab(5,n)
-      integer*8 InpMsh, OutMsh, NmbVer, NmbQad
-      real*8 VerTab(3,n)
+      integer t(1),d,ho,s, fooint(1)
+      integer*8 InpMsh, OutMsh
+      real*8 VerTab(3,n),foodbl(1)
 
 
 c     --------------------------------------------
 c     Open the quadrilateral mesh file for reading
 c     --------------------------------------------
 
-      InpMsh = gmfopenmesh('../sample_meshes/quad.meshb'
+      InpMsh = gmfopenmeshf77('../sample_meshes/quad.meshb'
      +,GmfRead,ver,dim)
 
       if(InpMsh.eq.0) STOP ' InpMsh = 0'
       if(dim.ne.3) STOP ' dimension <> 3'
 
 c     Check memory bounds
-      NmbVer = gmfstatkwd(InpMsh, GmfVertices)
+      NmbVer = gmfstatkwdf77(InpMsh, GmfVertices, 0, s, t, d, ho)
       if(NmbVer.gt.n) STOP 'Too many vertices'
 
-      NmbQad = gmfstatkwd(InpMsh, GmfQuadrilaterals)
+      NmbQad = gmfstatkwdf77(InpMsh, GmfQuadrilaterals, 0, s, t, d, ho)
       if(NmbQad.gt.n) STOP 'Too many quads'
 
 c     Print some information on the open file
@@ -40,66 +39,28 @@ c     Print some information on the open file
 
 c     Read the vertices using a vector of 3 consecutive doubles
 c     to store the coordinates
-      res = gmfgetblock(InpMsh,GmfVertices,
-     +        1_8, NmbVer, 0, %val(0), %val(0),
-     +        GmfDoubleVec, 3, VerTab(1,1), VerTab(1,NmbVer),
-     +        GmfInt,          RefTab(  1), RefTab(  NmbVer))
+      res = gmfgetblockf77(InpMsh, GmfVertices,
+     +        1, NmbVer, 0, fooint(1),
+     +        fooint(1),   fooint(1),
+     +        VerTab(1,1), VerTab(1,NmbVer),
+     +        RefTab(  1), RefTab(  NmbVer))
 
 c     Read the quads using one single vector of 5 consecutive integers
-      res = gmfgetblock(InpMsh,GmfQuadrilaterals,
-     +         1_8, NmbQad, 0, %val(0), %val(0),
-     +         GmfIntVec, 5, QadTab(1,1), QadTab(1,NmbQad))
+      res = gmfgetblockf77(InpMsh, GmfQuadrilaterals,
+     +        1, NmbQad, 0, fooint(1),
+     +        QadTab(1,1), QadTab(1,NmbQad),
+     +        foodbl(1),   foodbl(1),
+     +        QadTab(5,1), QadTab(5,NmbQad))
 
 c     Close the quadrilateral mesh
-      res = gmfclosemesh(InpMsh)
+      res = gmfclosemeshf77(InpMsh)
 
 
-c     -----------------------
-c     Write a triangular mesh
-c     -----------------------
+c     -------------------------------------------
+c     Convert the quad mesh into a triangular one
+c     -------------------------------------------
 
-      OutMsh = gmfopenmesh('tri.meshb', GmfWrite, ver, dim)
-      if(OutMsh.eq.0) STOP ' OutMsh = 0'
-
-c     Set the number of vertices
-      res = gmfsetkwd(OutMsh, GmfVertices, NmbVer, 0, 0)
-
-c     Write them down using separate pointers for each scalar entry
-      res = gmfsetblock(OutMsh,GmfVertices,
-     +         1_8, NmbVer, 0, %val(0), %val(0),
-     +         GmfDouble, VerTab(1,1), VerTab(1,NmbVer),
-     +         GmfDouble, VerTab(2,1), VerTab(2,NmbVer),
-     +         GmfDouble, VerTab(3,1), VerTab(3,NmbVer),
-     +         GmfInt,    RefTab(1),   RefTab(NmbVer))
-
-c     Write the triangles using 4 independant set of arguments
-c     for each scalar entry: node1, node2, node3 and reference
-      res = gmfsetkwd(OutMsh, GmfTriangles, 2*NmbQad, 0, 0)
-      res = gmfsetblock(OutMsh, GmfTriangles,
-     +                  1_8, 2*NmbQad, 0, %val(0),
-     +                  qad2tri, 2, QadTab, TriTab,
-     +                  GmfInt, TriTab(1,1), TriTab(1,2*NmbQad),
-     +                  GmfInt, TriTab(2,1), TriTab(2,2*NmbQad),
-     +                  GmfInt, TriTab(3,1), TriTab(3,2*NmbQad),
-     +                  GmfInt, TriTab(4,1), TriTab(4,2*NmbQad))
-
-c     Don't forget to close the file
-      res = gmfclosemesh(OutMsh)
-
-      print*, 'output mesh :',NmbVer,' vertices,',
-     +         2*NmbQad,'triangles'
-
-      end      
-
-
-c     A subroutine that reads quads ans splits them into triangles
-c     it is executed concurently with the block writing
-      subroutine qad2tri(BegIdx,EndIdx,QadTab,TriTab)
-
-      integer*8 i,BegIdx,EndIdx
-      integer TriTab(4,*),QadTab(5,*)
-
-      do i = BegIdx,EndIdx
+      do i = 1,2*NmbQad
          if(mod(i,2) .EQ. 1) then
             TriTab(1,i) = QadTab(1,(i+1)/2)
             TriTab(2,i) = QadTab(2,(i+1)/2)
@@ -113,5 +74,37 @@ c     it is executed concurently with the block writing
          endif
       end do
 
-      return
+
+c     -----------------------
+c     Write a triangular mesh
+c     -----------------------
+
+      OutMsh = gmfopenmeshf77('tri.meshb', GmfWrite, ver, dim)
+      if(OutMsh.eq.0) STOP ' OutMsh = 0'
+
+c     Set the number of vertices
+      res = gmfsetkwdf77(OutMsh, GmfVertices, NmbVer, 0, t, 0, ho)
+
+c     Write them down using separate pointers for each scalar entry
+      res = gmfsetblockf77(OutMsh, GmfVertices,
+     +         1, NmbVer, 0, fooint(1),
+     +         fooint(1),   fooint(1),
+     +         VerTab(1,1), VerTab(1,NmbVer),
+     +         RefTab(1),   RefTab(NmbVer))
+
+c     Write the triangles using 4 independant set of arguments
+c     for each scalar entry: node1, node2, node3 and reference
+      res = gmfsetkwdf77(OutMsh, GmfTriangles, 2*NmbQad, 0, t, 0, ho)
+      res = gmfsetblockf77(OutMsh, GmfTriangles,
+     +                  1, 2*NmbQad, 0, fooint(1),
+     +                  TriTab(1,1), TriTab(1,2*NmbQad),
+     +                  foodbl(1),   foodbl(1),
+     +                  TriTab(4,1), TriTab(4,2*NmbQad))
+
+c     Don't forget to close the file
+      res = gmfclosemeshf77(OutMsh)
+
+      print*, 'output mesh :',NmbVer,' vertices,',
+     +         2*NmbQad,'triangles'
+
       end

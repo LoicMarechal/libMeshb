@@ -1,8 +1,6 @@
-## Release 7.62
+## Release 7.80
 
-1. Corrected two bugs:
-  - GmfOpenMesh: could crash with a stack overflow a present some security issues
-  - test\_libmeshb\_pipeline.f: the Fortran version of the user's procedure call was crashing
-
-2. New helpers functions system to easily add specific features related to the libMeshb:
-  - See the helper's [readme](utilities/libmeshb7_helpers.md) for more information about the new functions to handle polyhedral meshes.
+1. Complete rewrite of the Fortran API:
+  - No more variable arguments procedures are used in Fortran as such feature is no more supported by gfortran.
+  - Line-based read and write go through three tables: one that stores all INTEGER4 values, one for REAL8 and an INTEGER4 scalar to store the reference.
+  - Block based access use the same data structures but each table is duplicated: one to store pointers to the first entities and the other one to store pointers to the last entities. This way, the procedure is able to compute the byte stride and store the mesh file data directly to or from the user's data structures.

@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## libMeshb version 7.62
+## libMeshb version 7.80
 A library to handle the *.meshb file format.
 
 ## Overview
@@ -33,14 +33,16 @@ Can call user's own pre and post processing routines in a separate thread while 
 ## Usage
 The **libMeshb** library is written in *ANSI C*.  
 It is made of a single C file and a header file to be compiled and linked alongside the calling program.  
-It may be used in C, C++, F77 and F90 programs (Fortran 77 and 90 APIs are provided).  
+It may be used in C and C++ programs (a partial Fortran77 API is provided).  
 Tested on *Linux*, *macOS*, and *Windows 7->10*.
 
 Reading a mesh file is fairly easy:
 
+("triangles.meshb" should be in version 1 with single precision floating points numbers)
+
 ```C++
 int64_t LibIdx;
-int ver, dim, NmbVer, NmbTri, (*Nodes)[4], *Domains;
+int i, ver, dim, NmbVer, NmbTri, (*Nodes)[4], *Domains;
 float (*Coords)[3];
 
 // Open the mesh file for reading
@@ -67,7 +69,7 @@ GmfGotoKwd( LibIdx, GmfTriangles );
 
 // Read each line of triangle data into your own data structures
 for(i=0;i<NmbTri;i++)
-  GmfGetLin( LibIdx, GmfTriangles, &Nodes[i][0], &Nodes[i][1], &tNodest[i][2], &Nodes[i][3] );
+  GmfGetLin( LibIdx, GmfTriangles, &Nodes[i][0], &Nodes[i][1], &Nodes[i][2], &Nodes[i][3] );
 
 // Close the mesh file !
 GmfCloseMesh( LibIdx );

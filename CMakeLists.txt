@@ -6,21 +6,18 @@
 
 cmake_minimum_required (VERSION 3.7.2)
 set (libMeshb_VERSION_MAJOR 7)
-set (libMeshb_VERSION_MINOR 54)
+set (libMeshb_VERSION_MINOR 80)
 project(libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
 
 option(WITH_GMF_AIO     "Use Unix low-level and asynchronous I/O for higher speed"       OFF)
 option(WITH_GMF_CPACK   "Enable cpack target to generate a zip file containing binaries" OFF)
-option(WITH_GMF_FORTRAN "Build the Fortran API"                                          ON )
+option(WITH_GMF_CTEST   "Enable ctest ti run basic validation tests"                     OFF)
 
 include (CheckLanguage)
 check_language (Fortran)
-if(CMAKE_Fortran_COMPILER AND WITH_GMF_FORTRAN)
+if(CMAKE_Fortran_COMPILER)
   enable_language(Fortran)
   set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/modules)
-  if (CMAKE_Fortran_COMPILER_ID STREQUAL GNU)
-     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -std=legacy")
-  endif ()
 endif()
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -71,6 +68,12 @@ install (DIRECTORY sample_meshes DESTINATION share/libMeshb)
 # SET PACKAGE AND DEPLOYMENT VARIABLES
 ######################################
 
+if(WITH_GMF_CTEST)
+   enable_testing()
+   include_directories(${PROJECT_SOURCE_DIR}/testing)
+   add_subdirectory(testing)
+endif()
+
 if (WITH_GMF_CPACK)
    include (InstallRequiredSystemLibraries)
    set (CPACK_GENERATOR TXZ)
@@ -112,6 +115,6 @@ install(FILES
 
 message("-- Build mode            : " ${CMAKE_BUILD_TYPE})
 message("-- cpack target enabled  : " ${WITH_GMF_CPACK})
+message("-- ctest target enabled  : " ${WITH_GMF_CTEST})
 message("-- Asynchronous IO       : " ${WITH_GMF_AIO})
-message("-- Fortran API           : " ${WITH_GMF_FORTRAN})
 message("-- Install directory     : " ${CMAKE_INSTALL_PREFIX})

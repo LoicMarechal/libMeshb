@@ -1,603 +1,846 @@
-
-
 !----------------------------------------------------------
 !
-!                       LIBMESH V 7.56
+!                       LIBMESH V 7.79
 ! 
 !----------------------------------------------------------
 !
-!   Description:        handles .meshb file format I/O
-!   Author:             Loic MARECHAL
-!   Creation date:      dec 08 2015
-!   Last modification:  nov 27 2020
+!   Description:         handles .meshb file format I/O
+!   Author:              Loic MARECHAL
+!   Creation date:       dec 08 2015
+!   Last modification:   feb 12 2024
 !
 !----------------------------------------------------------
 
 module libmeshb7
   
-  use, intrinsic :: iso_c_binding, only: c_int,c_long,c_loc,c_ptr
+  use iso_fortran_env
+  use, intrinsic :: iso_c_binding, only: c_int,c_long,c_loc,c_ptr,c_null_ptr
   
   implicit none
   
- !Procedures definition
-  external gmfopenmesh
-  external gmfclosemesh
-  external gmfstatkwd
-  external gmfsetkwd
-  external gmfgotokwd
-  external gmfgetlin
-  external gmfsetlin
-  external gmfgetblock
-  external gmfsetblock
-  external gmfsethonodesordering
- !external gmfreadbyteflow
- !external gmfwritebyteflow
- !external gmfgetfloatprecision
- !external gmfsetfloatprecision
-
-  integer(8) :: gmfopenmesh
-  integer(4) :: gmfclosemesh
-  integer(4) :: gmfstatkwd
-  integer(4) :: gmfsetkwd
-  integer(4) :: gmfgotokwd
-  integer(4) :: gmfgetlin
-  integer(4) :: gmfsetlin
-  integer(4) :: gmfgetblock
-  integer(4) :: gmfsetblock
-  integer(4) :: gmfsethonodesordering
- !integer(4) :: gmfreadbyteflow
- !integer(4) :: gmfwritebyteflow
- !integer(4) :: gmfgetfloatprecision
- !integer(4) :: gmfsetfloatprecision
-
-
- !Parameters definition
-  integer(4) :: gmfmaxtyp
-  integer(4) :: gmfmaxkwd
-  integer(4) :: gmfread
-  integer(4) :: gmfwrite
-  integer(4) :: gmfsca
-  integer(4) :: gmfvec
-  integer(4) :: gmfsymmat
-  integer(4) :: gmfmat
-  integer(4) :: gmffloat
-  integer(4) :: gmfdouble
-  integer(4) :: gmfint
-  integer(4) :: gmflong
-  integer(4) :: gmfinttab
-  integer(4) :: gmflongtab
-  integer(4) :: gmffloatvec
-  integer(4) :: gmfdoublevec
-  integer(4) :: gmfintvec
-  integer(4) :: gmflongvec
-  integer(4) :: gmfargtab
-  integer(4) :: gmfarglst
-
-  parameter (gmfmaxtyp=1000)
-  parameter (gmfmaxkwd=103)
-  parameter (gmfread=1)
-  parameter (gmfwrite=2)
-  parameter (gmfsca=1)
-  parameter (gmfvec=2)
-  parameter (gmfsymmat=3)
-  parameter (gmfmat=4)
-  parameter (gmffloat=1)
-  parameter (gmfdouble=2)
-  parameter (gmfint=3)
-  parameter (gmflong=4)
-  parameter (gmfinttab=7)
-  parameter (gmflongtab=8)
-  parameter (gmffloatvec=5)
-  parameter (gmfdoublevec=6)
-  parameter (gmfintvec=7)
-  parameter (gmflongvec=8)
-  parameter (gmfargtab=100)
-  parameter (gmfarglst=101)
-
-
- !Keywords list
-  integer(4) :: gmfmeshversionformatted
-  integer(4) :: gmfdimension
-  integer(4) :: gmfvertices
-  integer(4) :: gmfedges
-  integer(4) :: gmftriangles
-  integer(4) :: gmfquadrilaterals
-  integer(4) :: gmftetrahedra
-  integer(4) :: gmfprisms
-  integer(4) :: gmfhexahedra
-  integer(4) :: gmfiterationsall
-  integer(4) :: gmftimesall
-  integer(4) :: gmfcorners
-  integer(4) :: gmfridges
-  integer(4) :: gmfrequiredvertices
-  integer(4) :: gmfrequirededges
-  integer(4) :: gmfrequiredtriangles
-  integer(4) :: gmfrequiredquadrilaterals
-  integer(4) :: gmftangentatedgevertices
-  integer(4) :: gmfnormalatvertices
-  integer(4) :: gmfnormalattrianglevertices
-  integer(4) :: gmfnormalatquadrilateralvertices
-  integer(4) :: gmfangleofcornerbound
-  integer(4) :: gmftrianglesp2
-  integer(4) :: gmfedgesp2
-  integer(4) :: gmfsolatpyramids
-  integer(4) :: gmfquadrilateralsq2
-  integer(4) :: gmfisolatpyramids
-  integer(4) :: gmfsubdomainfromgeom
-  integer(4) :: gmftetrahedrap2
-  integer(4) :: gmffault_neartri
-  integer(4) :: gmffault_inter
-  integer(4) :: gmfhexahedraq2
-  integer(4) :: gmfextraverticesatedges
-  integer(4) :: gmfextraverticesattriangles
-  integer(4) :: gmfextraverticesatquadrilaterals
-  integer(4) :: gmfextraverticesattetrahedra
-  integer(4) :: gmfextraverticesatprisms
-  integer(4) :: gmfextraverticesathexahedra
-  integer(4) :: gmfverticesongeometricvertices
-  integer(4) :: gmfverticesongeometricedges
-  integer(4) :: gmfverticesongeometrictriangles
-  integer(4) :: gmfverticesongeometricquadrilaterals
-  integer(4) :: gmfedgesongeometricedges
-  integer(4) :: gmffault_freeedge
-  integer(4) :: gmfpolyhedra
-  integer(4) :: gmfpolygons
-  integer(4) :: gmffault_overlap
-  integer(4) :: gmfpyramids
-  integer(4) :: gmfboundingbox
-  integer(4) :: gmfbody
-  integer(4) :: gmfprivatetable
-  integer(4) :: gmffault_badshape
-  integer(4) :: gmfend
-  integer(4) :: gmftrianglesongeometrictriangles
-  integer(4) :: gmftrianglesongeometricquadrilaterals
-  integer(4) :: gmfquadrilateralsongeometrictriangles
-  integer(4) :: gmfquadrilateralsongeometricquadrilaterals
-  integer(4) :: gmftangents
-  integer(4) :: gmfnormals
-  integer(4) :: gmftangentatvertices
-  integer(4) :: gmfsolatvertices
-  integer(4) :: gmfsolatedges
-  integer(4) :: gmfsolattriangles
-  integer(4) :: gmfsolatquadrilaterals
-  integer(4) :: gmfsolattetrahedra
-  integer(4) :: gmfsolatprisms
-  integer(4) :: gmfsolathexahedra
-  integer(4) :: gmfdsolatvertices
-  integer(4) :: gmfisolatvertices
-  integer(4) :: gmfisolatedges
-  integer(4) :: gmfisolattriangles
-  integer(4) :: gmfisolatquadrilaterals
-  integer(4) :: gmfisolattetrahedra
-  integer(4) :: gmfisolatprisms
-  integer(4) :: gmfisolathexahedra
-  integer(4) :: gmfiterations
-  integer(4) :: gmftime
-  integer(4) :: gmffault_smalltri
-  integer(4) :: gmfcoarsehexahedra
-  integer(4) :: gmfcomments
-  integer(4) :: gmfperiodicvertices
-  integer(4) :: gmfperiodicedges
-  integer(4) :: gmfperiodictriangles
-  integer(4) :: gmfperiodicquadrilaterals
-  integer(4) :: gmfprismsp2
-  integer(4) :: gmfpyramidsp2
-  integer(4) :: gmfquadrilateralsq3
-  integer(4) :: gmfquadrilateralsq4
-  integer(4) :: gmftrianglesp3
-  integer(4) :: gmftrianglesp4
-  integer(4) :: gmfedgesp3
-  integer(4) :: gmfedgesp4
-  integer(4) :: gmfirefgroups
-  integer(4) :: gmfdrefgroups
-  integer(4) :: gmftetrahedrap3
-  integer(4) :: gmftetrahedrap4
-  integer(4) :: gmfhexahedraq3
-  integer(4) :: gmfhexahedraq4
-  integer(4) :: gmfpyramidsp3
-  integer(4) :: gmfpyramidsp4
-  integer(4) :: gmfprismsp3
-  integer(4) :: gmfprismsp4
-  integer(4) :: gmfhosolatedgesp1
-  integer(4) :: gmfhosolatedgesp2
-  integer(4) :: gmfhosolatedgesp3
-  integer(4) :: gmfhosolattrianglesp1
-  integer(4) :: gmfhosolattrianglesp2
-  integer(4) :: gmfhosolattrianglesp3
-  integer(4) :: gmfhosolatquadrilateralsq1
-  integer(4) :: gmfhosolatquadrilateralsq2
-  integer(4) :: gmfhosolatquadrilateralsq3
-  integer(4) :: gmfhosolattetrahedrap1
-  integer(4) :: gmfhosolattetrahedrap2
-  integer(4) :: gmfhosolattetrahedrap3
-  integer(4) :: gmfhosolatpyramidsp1
-  integer(4) :: gmfhosolatpyramidsp2
-  integer(4) :: gmfhosolatpyramidsp3
-  integer(4) :: gmfhosolatprismsp1
-  integer(4) :: gmfhosolatprismsp2
-  integer(4) :: gmfhosolatprismsp3
-  integer(4) :: gmfhosolathexahedraq1
-  integer(4) :: gmfhosolathexahedraq2
-  integer(4) :: gmfhosolathexahedraq3
-  integer(4) :: gmfbezierbasis
-  integer(4) :: gmfbyteflow
-  integer(4) :: gmfedgesp2ordering
-  integer(4) :: gmfedgesp3ordering
-  integer(4) :: gmftrianglesp2ordering
-  integer(4) :: gmftrianglesp3ordering
-  integer(4) :: gmfquadrilateralsq2ordering
-  integer(4) :: gmfquadrilateralsq3ordering
-  integer(4) :: gmftetrahedrap2ordering
-  integer(4) :: gmftetrahedrap3ordering
-  integer(4) :: gmfpyramidsp2ordering
-  integer(4) :: gmfpyramidsp3ordering
-  integer(4) :: gmfprismsp2ordering
-  integer(4) :: gmfprismsp3ordering
-  integer(4) :: gmfhexahedraq2ordering
-  integer(4) :: gmfhexahedraq3ordering
-  integer(4) :: gmfedgesp1ordering
-  integer(4) :: gmfedgesp4ordering
-  integer(4) :: gmftrianglesp1ordering
-  integer(4) :: gmftrianglesp4ordering
-  integer(4) :: gmfquadrilateralsq1ordering
-  integer(4) :: gmfquadrilateralsq4ordering
-  integer(4) :: gmftetrahedrap1ordering
-  integer(4) :: gmftetrahedrap4ordering
-  integer(4) :: gmfpyramidsp1ordering
-  integer(4) :: gmfpyramidsp4ordering
-  integer(4) :: gmfprismsp1ordering
-  integer(4) :: gmfprismsp4ordering
-  integer(4) :: gmfhexahedraq1ordering
-  integer(4) :: gmfhexahedraq4ordering
-  integer(4) :: gmffloatingpointprecision
-  integer(4) :: gmfhosolatedgesp4
-  integer(4) :: gmfhosolattrianglesp4
-  integer(4) :: gmfhosolatquadrilateralsq4
-  integer(4) :: gmfhosolattetrahedrap4
-  integer(4) :: gmfhosolatpyramidsp4
-  integer(4) :: gmfhosolatprismsp4
-  integer(4) :: gmfhosolathexahedraq4
-  integer(4) :: gmfhosolatedgesp1nodespositions
-  integer(4) :: gmfhosolatedgesp2nodespositions
-  integer(4) :: gmfhosolatedgesp3nodespositions
-  integer(4) :: gmfhosolatedgesp4nodespositions
-  integer(4) :: gmfhosolattrianglesp1nodespositions
-  integer(4) :: gmfhosolattrianglesp2nodespositions
-  integer(4) :: gmfhosolattrianglesp3nodespositions
-  integer(4) :: gmfhosolattrianglesp4nodespositions
-  integer(4) :: gmfhosolatquadrilateralsq1nodespositions
-  integer(4) :: gmfhosolatquadrilateralsq2nodespositions
-  integer(4) :: gmfhosolatquadrilateralsq3nodespositions
-  integer(4) :: gmfhosolatquadrilateralsq4nodespositions
-  integer(4) :: gmfhosolattetrahedrap1nodespositions
-  integer(4) :: gmfhosolattetrahedrap2nodespositions
-  integer(4) :: gmfhosolattetrahedrap3nodespositions
-  integer(4) :: gmfhosolattetrahedrap4nodespositions
-  integer(4) :: gmfhosolatpyramidsp1nodespositions
-  integer(4) :: gmfhosolatpyramidsp2nodespositions
-  integer(4) :: gmfhosolatpyramidsp3nodespositions
-  integer(4) :: gmfhosolatpyramidsp4nodespositions
-  integer(4) :: gmfhosolatprismsp1nodespositions
-  integer(4) :: gmfhosolatprismsp2nodespositions
-  integer(4) :: gmfhosolatprismsp3nodespositions
-  integer(4) :: gmfhosolatprismsp4nodespositions
-  integer(4) :: gmfhosolathexahedraq1nodespositions
-  integer(4) :: gmfhosolathexahedraq2nodespositions
-  integer(4) :: gmfhosolathexahedraq3nodespositions
-  integer(4) :: gmfhosolathexahedraq4nodespositions
-  integer(4) :: gmfedgesreferenceelement     
-  integer(4) :: gmftrianglereferenceelement  
-  integer(4) :: gmfquadrilateralreferenceelement 
-  integer(4) :: gmftetrahedronreferenceelement   
-  integer(4) :: gmfpyramidreferenceelement   
-  integer(4) :: gmfprismreferenceelement     
-  integer(4) :: gmfhexahedronreferenceelement    
-  integer(4) :: gmfboundarylayers
-  integer(4) :: gmfreferencestrings
-  integer(4) :: gmfprisms9
-  integer(4) :: gmfhexahedra12
-
-  parameter (gmfmeshversionformatted=1)
-  parameter (gmfdimension=3)
-  parameter (gmfvertices=4)
-  parameter (gmfedges=5)
-  parameter (gmftriangles=6)
-  parameter (gmfquadrilaterals=7)
-  parameter (gmftetrahedra=8)
-  parameter (gmfprisms=9)
-  parameter (gmfhexahedra=10)
-  parameter (gmfiterationsall=11)
-  parameter (gmftimesall=12)
-  parameter (gmfcorners=13)
-  parameter (gmfridges=14)
-  parameter (gmfrequiredvertices=15)
-  parameter (gmfrequirededges=16)
-  parameter (gmfrequiredtriangles=17)
-  parameter (gmfrequiredquadrilaterals=18)
-  parameter (gmftangentatedgevertices=19)
-  parameter (gmfnormalatvertices=20)
-  parameter (gmfnormalattrianglevertices=21)
-  parameter (gmfnormalatquadrilateralvertices=22)
-  parameter (gmfangleofcornerbound=23)
-  parameter (gmftrianglesp2=24)
-  parameter (gmfedgesp2=25)
-  parameter (gmfsolatpyramids=26)
-  parameter (gmfquadrilateralsq2=27)
-  parameter (gmfisolatpyramids=28)
-  parameter (gmfsubdomainfromgeom=29)
-  parameter (gmftetrahedrap2=30)
-  parameter (gmffault_neartri=31)
-  parameter (gmffault_inter=32)
-  parameter (gmfhexahedraq2=33)
-  parameter (gmfextraverticesatedges=34)
-  parameter (gmfextraverticesattriangles=35)
-  parameter (gmfextraverticesatquadrilaterals=36)
-  parameter (gmfextraverticesattetrahedra=37)
-  parameter (gmfextraverticesatprisms=38)
-  parameter (gmfextraverticesathexahedra=39)
-  parameter (gmfverticesongeometricvertices=40)
-  parameter (gmfverticesongeometricedges=41)
-  parameter (gmfverticesongeometrictriangles=42)
-  parameter (gmfverticesongeometricquadrilaterals=43)
-  parameter (gmfedgesongeometricedges=44)
-  parameter (gmffault_freeedge=45)
-  parameter (gmfpolyhedra=46)
-  parameter (gmfpolygons=47)
-  parameter (gmffault_overlap=48)
-  parameter (gmfpyramids=49)
-  parameter (gmfboundingbox=50)
-  parameter (gmfbody=51)
-  parameter (gmfprivatetable=52)
-  parameter (gmffault_badshape=53)
-  parameter (gmfend=54)
-  parameter (gmftrianglesongeometrictriangles=55)
-  parameter (gmftrianglesongeometricquadrilaterals=56)
-  parameter (gmfquadrilateralsongeometrictriangles=57)
-  parameter (gmfquadrilateralsongeometricquadrilaterals=58)
-  parameter (gmftangents=59)
-  parameter (gmfnormals=60)
-  parameter (gmftangentatvertices=61)
-  parameter (gmfsolatvertices=62)
-  parameter (gmfsolatedges=63)
-  parameter (gmfsolattriangles=64)
-  parameter (gmfsolatquadrilaterals=65)
-  parameter (gmfsolattetrahedra=66)
-  parameter (gmfsolatprisms=67)
-  parameter (gmfsolathexahedra=68)
-  parameter (gmfdsolatvertices=69)
-  parameter (gmfisolatvertices=70)
-  parameter (gmfisolatedges=71)
-  parameter (gmfisolattriangles=72)
-  parameter (gmfisolatquadrilaterals=73)
-  parameter (gmfisolattetrahedra=74)
-  parameter (gmfisolatprisms=75)
-  parameter (gmfisolathexahedra=76)
-  parameter (gmfiterations=77)
-  parameter (gmftime=78)
-  parameter (gmffault_smalltri=79)
-  parameter (gmfcoarsehexahedra=80)
-  parameter (gmfcomments=81)
-  parameter (gmfperiodicvertices=82)
-  parameter (gmfperiodicedges=83)
-  parameter (gmfperiodictriangles=84)
-  parameter (gmfperiodicquadrilaterals=85)
-  parameter (gmfprismsp2=86)
-  parameter (gmfpyramidsp2=87)
-  parameter (gmfquadrilateralsq3=88)
-  parameter (gmfquadrilateralsq4=89)
-  parameter (gmftrianglesp3=90)
-  parameter (gmftrianglesp4=91)
-  parameter (gmfedgesp3=92)
-  parameter (gmfedgesp4=93)
-  parameter (gmfirefgroups=94)
-  parameter (gmfdrefgroups=95)
-  parameter (gmftetrahedrap3=96)
-  parameter (gmftetrahedrap4=97)
-  parameter (gmfhexahedraq3=98)
-  parameter (gmfhexahedraq4=99)
-  parameter (gmfpyramidsp3=100)
-  parameter (gmfpyramidsp4=101)
-  parameter (gmfprismsp3=102)
-  parameter (gmfprismsp4=103)
-  parameter (gmfhosolatedgesp1=104)
-  parameter (gmfhosolatedgesp2=105)
-  parameter (gmfhosolatedgesp3=106)
-  parameter (gmfhosolattrianglesp1=107)
-  parameter (gmfhosolattrianglesp2=108)
-  parameter (gmfhosolattrianglesp3=109)
-  parameter (gmfhosolatquadrilateralsq1=110)
-  parameter (gmfhosolatquadrilateralsq2=111)
-  parameter (gmfhosolatquadrilateralsq3=112)
-  parameter (gmfhosolattetrahedrap1=113)
-  parameter (gmfhosolattetrahedrap2=114)
-  parameter (gmfhosolattetrahedrap3=115)
-  parameter (gmfhosolatpyramidsp1=116)
-  parameter (gmfhosolatpyramidsp2=117)
-  parameter (gmfhosolatpyramidsp3=118)
-  parameter (gmfhosolatprismsp1=119)
-  parameter (gmfhosolatprismsp2=120)
-  parameter (gmfhosolatprismsp3=121)
-  parameter (gmfhosolathexahedraq1=122)
-  parameter (gmfhosolathexahedraq2=123)
-  parameter (gmfhosolathexahedraq3=124)
-  parameter (gmfbezierbasis=125)
-  parameter (gmfbyteflow=126)
-  parameter (gmfedgesp2ordering=127)
-  parameter (gmfedgesp3ordering=128)
-  parameter (gmftrianglesp2ordering=129)
-  parameter (gmftrianglesp3ordering=130)
-  parameter (gmfquadrilateralsq2ordering=131)
-  parameter (gmfquadrilateralsq3ordering=132)
-  parameter (gmftetrahedrap2ordering=133)
-  parameter (gmftetrahedrap3ordering=134)
-  parameter (gmfpyramidsp2ordering=135)
-  parameter (gmfpyramidsp3ordering=136)
-  parameter (gmfprismsp2ordering=137)
-  parameter (gmfprismsp3ordering=138)
-  parameter (gmfhexahedraq2ordering=139)
-  parameter (gmfhexahedraq3ordering=140)
-  parameter (gmfedgesp1ordering=141)
-  parameter (gmfedgesp4ordering=142)
-  parameter (gmftrianglesp1ordering=143)
-  parameter (gmftrianglesp4ordering=144)
-  parameter (gmfquadrilateralsq1ordering=145)
-  parameter (gmfquadrilateralsq4ordering=146)
-  parameter (gmftetrahedrap1ordering=147)
-  parameter (gmftetrahedrap4ordering=148)
-  parameter (gmfpyramidsp1ordering=149)
-  parameter (gmfpyramidsp4ordering=150)
-  parameter (gmfprismsp1ordering=151)
-  parameter (gmfprismsp4ordering=152)
-  parameter (gmfhexahedraq1ordering=153)
-  parameter (gmfhexahedraq4ordering=154)
-  parameter (gmffloatingpointprecision=155)
-  parameter (gmfhosolatedgesp4=156)
-  parameter (gmfhosolattrianglesp4=157)
-  parameter (gmfhosolatquadrilateralsq4=158)
-  parameter (gmfhosolattetrahedrap4=159)
-  parameter (gmfhosolatpyramidsp4=160)
-  parameter (gmfhosolatprismsp4=161)
-  parameter (gmfhosolathexahedraq4=162)
-  parameter (gmfhosolatedgesp1nodespositions=163)
-  parameter (gmfhosolatedgesp2nodespositions=164)
-  parameter (gmfhosolatedgesp3nodespositions=165)
-  parameter (gmfhosolatedgesp4nodespositions=166)
-  parameter (gmfhosolattrianglesp1nodespositions=167)
-  parameter (gmfhosolattrianglesp2nodespositions=168)
-  parameter (gmfhosolattrianglesp3nodespositions=169)
-  parameter (gmfhosolattrianglesp4nodespositions=170)
-  parameter (gmfhosolatquadrilateralsq1nodespositions=171)
-  parameter (gmfhosolatquadrilateralsq2nodespositions=172)
-  parameter (gmfhosolatquadrilateralsq3nodespositions=173)
-  parameter (gmfhosolatquadrilateralsq4nodespositions=174)
-  parameter (gmfhosolattetrahedrap1nodespositions=175)
-  parameter (gmfhosolattetrahedrap2nodespositions=176)
-  parameter (gmfhosolattetrahedrap3nodespositions=177)
-  parameter (gmfhosolattetrahedrap4nodespositions=178)
-  parameter (gmfhosolatpyramidsp1nodespositions=179)
-  parameter (gmfhosolatpyramidsp2nodespositions=180)
-  parameter (gmfhosolatpyramidsp3nodespositions=181)
-  parameter (gmfhosolatpyramidsp4nodespositions=182)
-  parameter (gmfhosolatprismsp1nodespositions=183)
-  parameter (gmfhosolatprismsp2nodespositions=184)
-  parameter (gmfhosolatprismsp3nodespositions=185)
-  parameter (gmfhosolatprismsp4nodespositions=186)
-  parameter (gmfhosolathexahedraq1nodespositions=187)
-  parameter (gmfhosolathexahedraq2nodespositions=188)
-  parameter (gmfhosolathexahedraq3nodespositions=189)
-  parameter (gmfhosolathexahedraq4nodespositions=190)
-  parameter (gmfedgesreferenceelement=191)
-  parameter (gmftrianglereferenceelement=192)
-  parameter (gmfquadrilateralreferenceelement=193)
-  parameter (gmftetrahedronreferenceelement=194)
-  parameter (gmfpyramidreferenceelement=195)
-  parameter (gmfprismreferenceelement=196)
-  parameter (gmfhexahedronreferenceelement=197)
-  parameter (gmfboundarylayers=198)
-  parameter (gmfreferencestrings=199)
-  parameter (gmfprisms9=200)
-  parameter (gmfhexahedra12=201)
-
-!   !> interface GmfSetHONodesOrdering_c  
-!   interface
-!     function GmfSetHONodesOrdering_c(InpMsh, GmfKey, BasOrd, FilOrd) result(iErr) bind(c, name="GmfSetHONodesOrdering")
-!       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!       import c_long,c_int,c_ptr
-!       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-!       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!       integer(c_long)     , intent(in)        :: InpMsh
-!       integer(c_int)      , intent(in)        :: GmfKey
-!      !integer(c_int)      , intent(in)        :: BasOrd(:,:)
-!      !integer(c_int)      , intent(in)        :: FilOrd(:,:)
-!       type(c_ptr)         , intent(in)        :: BasOrd
-!       type(c_ptr)         , intent(in)        :: FilOrd
-!       integer(c_int)                          :: iErr
-!       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-!     end function GmfSetHONodesOrdering_c    
-!     
-!     function GmfCloseMesh_c(InpMsh) result(iErr) bind(c, name="GmfCloseMesh")
-!       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!       import c_long,c_int,c_ptr
-!       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-!       !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!       integer(c_long)     , intent(in)        :: InpMsh
-!       integer(c_int)                          :: iErr
-!       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-!     end function GmfCloseMesh_c
-!     
-!   end interface
-!   
-!   
-!   public :: GmfSetHONodesOrdering_f90
-!   public :: GmfOpenMesh_f90
-!   public :: GmfCloseMesh_f90
+  ! Procedures definition
+  integer(int64) , external :: gmfopenmeshf77
+  integer(int32) , external :: gmfclosemeshf77
+  integer(int32) , external :: GmfStatKwdf77
+  integer(int32) , external :: gmfsetkwdf77
+  integer(int32) , external :: gmfgotokwdf77
+  integer(int32) , external :: gmfsethonodesorderingf77
+  integer(int32) , external :: gmfgetlinef77
+  integer(int32) , external :: gmfsetlinef77
+  integer(int32) , external :: gmfgetblockf77
+  integer(int32) , external :: gmfsetblockf77
   
   
-  !> les lignes suivantes sont en conflit avec la variable integer(4) :: gmfsethonodesordering
-  !interface GmfSetHONodesOrdering
-  !  module procedure GmfSetHONodesOrdering_f90
-  !  module procedure GmfSetHONodesOrdering_c
-  !end interface
+  ! Parameters definition
+  integer(int32), parameter :: gmfmaxtyp=1000
+  integer(int32), parameter :: gmfmaxkwd=227
+  integer(int32), parameter :: gmfread=1
+  integer(int32), parameter :: gmfwrite=2
+  integer(int32), parameter :: gmfsca=1
+  integer(int32), parameter :: gmfvec=2
+  integer(int32), parameter :: gmfsymmat=3
+  integer(int32), parameter :: gmfmat=4
+  integer(int32), parameter :: gmffloat=8
+  integer(int32), parameter :: gmfdouble=9
+  integer(int32), parameter :: gmfint=10
+  integer(int32), parameter :: gmflong=11
+  integer(int32), parameter :: gmfinttab=14
+  integer(int32), parameter :: gmflongtab=15
+  integer(int32), parameter :: gmffloatvec=12
+  integer(int32), parameter :: gmfdoublevec=13
+  integer(int32), parameter :: gmfintvec=14
+  integer(int32), parameter :: gmflongvec=15
+  integer(int32), parameter :: gmfargtab=100
+  integer(int32), parameter :: gmfarglst=101
+  
+  ! Keywords list  
+  integer(int32), parameter :: gmfdimension=3
+  integer(int32), parameter :: gmfmeshversionformatted=1
+  integer(int32), parameter :: gmfvertices=4
+  integer(int32), parameter :: gmfedges=5
+  integer(int32), parameter :: gmftriangles=6
+  integer(int32), parameter :: gmfquadrilaterals=7
+  integer(int32), parameter :: gmftetrahedra=8
+  integer(int32), parameter :: gmfprisms=9
+  integer(int32), parameter :: gmfhexahedra=10
+  integer(int32), parameter :: gmfiterationsall=11
+  integer(int32), parameter :: gmftimesall=12
+  integer(int32), parameter :: gmfcorners=13
+  integer(int32), parameter :: gmfridges=14
+  integer(int32), parameter :: gmfrequiredvertices=15
+  integer(int32), parameter :: gmfrequirededges=16
+  integer(int32), parameter :: gmfrequiredtriangles=17
+  integer(int32), parameter :: gmfrequiredquadrilaterals=18
+  integer(int32), parameter :: gmftangentatedgevertices=19
+  integer(int32), parameter :: gmfnormalatvertices=20
+  integer(int32), parameter :: gmfnormalattrianglevertices=21
+  integer(int32), parameter :: gmfnormalatquadrilateralvertices=22
+  integer(int32), parameter :: gmfangleofcornerbound=23
+  integer(int32), parameter :: gmftrianglesp2=24
+  integer(int32), parameter :: gmfedgesp2=25
+  integer(int32), parameter :: gmfsolatpyramids=26
+  integer(int32), parameter :: gmfquadrilateralsq2=27
+  integer(int32), parameter :: gmfisolatpyramids=28
+  integer(int32), parameter :: gmfsubdomainfromgeom=29
+  integer(int32), parameter :: gmftetrahedrap2=30
+  integer(int32), parameter :: gmffault_neartri=31
+  integer(int32), parameter :: gmffault_inter=32
+  integer(int32), parameter :: gmfhexahedraq2=33
+  integer(int32), parameter :: gmfextraverticesatedges=34
+  integer(int32), parameter :: gmfextraverticesattriangles=35
+  integer(int32), parameter :: gmfextraverticesatquadrilaterals=36
+  integer(int32), parameter :: gmfextraverticesattetrahedra=37
+  integer(int32), parameter :: gmfextraverticesatprisms=38
+  integer(int32), parameter :: gmfextraverticesathexahedra=39
+  integer(int32), parameter :: gmfverticesongeometricvertices=40
+  integer(int32), parameter :: gmfverticesongeometricedges=41
+  integer(int32), parameter :: gmfverticesongeometrictriangles=42
+  integer(int32), parameter :: gmfverticesongeometricquadrilaterals=43
+  integer(int32), parameter :: gmfedgesongeometricedges=44
+  integer(int32), parameter :: gmffault_freeedge=45
+  integer(int32), parameter :: gmfpolyhedra=46
+  integer(int32), parameter :: gmfpolygons=47
+  integer(int32), parameter :: gmffault_overlap=48
+  integer(int32), parameter :: gmfpyramids=49
+  integer(int32), parameter :: gmfboundingbox=50
+  integer(int32), parameter :: gmfbody=51
+  integer(int32), parameter :: gmfprivatetable=52
+  integer(int32), parameter :: gmffault_badshape=53
+  integer(int32), parameter :: gmfend=54
+  integer(int32), parameter :: gmftrianglesongeometrictriangles=55
+  integer(int32), parameter :: gmftrianglesongeometricquadrilaterals=56
+  integer(int32), parameter :: gmfquadrilateralsongeometrictriangles=57
+  integer(int32), parameter :: gmfquadrilateralsongeometricquadrilaterals=58
+  integer(int32), parameter :: gmftangents=59
+  integer(int32), parameter :: gmfnormals=60
+  integer(int32), parameter :: gmftangentatvertices=61
+  integer(int32), parameter :: gmfsolatvertices=62
+  integer(int32), parameter :: gmfsolatedges=63
+  integer(int32), parameter :: gmfsolattriangles=64
+  integer(int32), parameter :: gmfsolatquadrilaterals=65
+  integer(int32), parameter :: gmfsolattetrahedra=66
+  integer(int32), parameter :: gmfsolatprisms=67
+  integer(int32), parameter :: gmfsolathexahedra=68
+  integer(int32), parameter :: gmfdsolatvertices=69
+  integer(int32), parameter :: gmfisolatvertices=70
+  integer(int32), parameter :: gmfisolatedges=71
+  integer(int32), parameter :: gmfisolattriangles=72
+  integer(int32), parameter :: gmfisolatquadrilaterals=73
+  integer(int32), parameter :: gmfisolattetrahedra=74
+  integer(int32), parameter :: gmfisolatprisms=75
+  integer(int32), parameter :: gmfisolathexahedra=76
+  integer(int32), parameter :: gmfiterations=77
+  integer(int32), parameter :: gmftime=78
+  integer(int32), parameter :: gmffault_smalltri=79
+  integer(int32), parameter :: gmfcoarsehexahedra=80
+  integer(int32), parameter :: gmfcomments=81
+  integer(int32), parameter :: gmfperiodicvertices=82
+  integer(int32), parameter :: gmfperiodicedges=83
+  integer(int32), parameter :: gmfperiodictriangles=84
+  integer(int32), parameter :: gmfperiodicquadrilaterals=85
+  integer(int32), parameter :: gmfprismsp2=86
+  integer(int32), parameter :: gmfpyramidsp2=87
+  integer(int32), parameter :: gmfquadrilateralsq3=88
+  integer(int32), parameter :: gmfquadrilateralsq4=89
+  integer(int32), parameter :: gmftrianglesp3=90
+  integer(int32), parameter :: gmftrianglesp4=91
+  integer(int32), parameter :: gmfedgesp3=92
+  integer(int32), parameter :: gmfedgesp4=93
+  integer(int32), parameter :: gmfirefgroups=94
+  integer(int32), parameter :: gmfdrefgroups=95
+  integer(int32), parameter :: gmftetrahedrap3=96
+  integer(int32), parameter :: gmftetrahedrap4=97
+  integer(int32), parameter :: gmfhexahedraq3=98
+  integer(int32), parameter :: gmfhexahedraq4=99
+  integer(int32), parameter :: gmfpyramidsp3=100
+  integer(int32), parameter :: gmfpyramidsp4=101
+  integer(int32), parameter :: gmfprismsp3=102
+  integer(int32), parameter :: gmfprismsp4=103
+  integer(int32), parameter :: gmfhosolatedgesp1=104
+  integer(int32), parameter :: gmfhosolatedgesp2=105
+  integer(int32), parameter :: gmfhosolatedgesp3=106
+  integer(int32), parameter :: gmfhosolattrianglesp1=107
+  integer(int32), parameter :: gmfhosolattrianglesp2=108
+  integer(int32), parameter :: gmfhosolattrianglesp3=109
+  integer(int32), parameter :: gmfhosolatquadrilateralsq1=110
+  integer(int32), parameter :: gmfhosolatquadrilateralsq2=111
+  integer(int32), parameter :: gmfhosolatquadrilateralsq3=112
+  integer(int32), parameter :: gmfhosolattetrahedrap1=113
+  integer(int32), parameter :: gmfhosolattetrahedrap2=114
+  integer(int32), parameter :: gmfhosolattetrahedrap3=115
+  integer(int32), parameter :: gmfhosolatpyramidsp1=116
+  integer(int32), parameter :: gmfhosolatpyramidsp2=117
+  integer(int32), parameter :: gmfhosolatpyramidsp3=118
+  integer(int32), parameter :: gmfhosolatprismsp1=119
+  integer(int32), parameter :: gmfhosolatprismsp2=120
+  integer(int32), parameter :: gmfhosolatprismsp3=121
+  integer(int32), parameter :: gmfhosolathexahedraq1=122
+  integer(int32), parameter :: gmfhosolathexahedraq2=123
+  integer(int32), parameter :: gmfhosolathexahedraq3=124
+  integer(int32), parameter :: gmfbezierbasis=125
+  integer(int32), parameter :: gmfbyteflow=126
+  integer(int32), parameter :: gmfedgesp2ordering=127
+  integer(int32), parameter :: gmfedgesp3ordering=128
+  integer(int32), parameter :: gmftrianglesp2ordering=129
+  integer(int32), parameter :: gmftrianglesp3ordering=130
+  integer(int32), parameter :: gmfquadrilateralsq2ordering=131
+  integer(int32), parameter :: gmfquadrilateralsq3ordering=132
+  integer(int32), parameter :: gmftetrahedrap2ordering=133
+  integer(int32), parameter :: gmftetrahedrap3ordering=134
+  integer(int32), parameter :: gmfpyramidsp2ordering=135
+  integer(int32), parameter :: gmfpyramidsp3ordering=136
+  integer(int32), parameter :: gmfprismsp2ordering=137
+  integer(int32), parameter :: gmfprismsp3ordering=138
+  integer(int32), parameter :: gmfhexahedraq2ordering=139
+  integer(int32), parameter :: gmfhexahedraq3ordering=140
+  integer(int32), parameter :: gmfedgesp1ordering=141
+  integer(int32), parameter :: gmfedgesp4ordering=142
+  integer(int32), parameter :: gmftrianglesp1ordering=143
+  integer(int32), parameter :: gmftrianglesp4ordering=144
+  integer(int32), parameter :: gmfquadrilateralsq1ordering=145
+  integer(int32), parameter :: gmfquadrilateralsq4ordering=146
+  integer(int32), parameter :: gmftetrahedrap1ordering=147
+  integer(int32), parameter :: gmftetrahedrap4ordering=148
+  integer(int32), parameter :: gmfpyramidsp1ordering=149
+  integer(int32), parameter :: gmfpyramidsp4ordering=150
+  integer(int32), parameter :: gmfprismsp1ordering=151
+  integer(int32), parameter :: gmfprismsp4ordering=152
+  integer(int32), parameter :: gmfhexahedraq1ordering=153
+  integer(int32), parameter :: gmfhexahedraq4ordering=154
+  integer(int32), parameter :: gmffloatingpointprecision=155
+  integer(int32), parameter :: gmfhosolatedgesp4=156
+  integer(int32), parameter :: gmfhosolattrianglesp4=157
+  integer(int32), parameter :: gmfhosolatquadrilateralsq4=158
+  integer(int32), parameter :: gmfhosolattetrahedrap4=159
+  integer(int32), parameter :: gmfhosolatpyramidsp4=160
+  integer(int32), parameter :: gmfhosolatprismsp4=161
+  integer(int32), parameter :: gmfhosolathexahedraq4=162
+  integer(int32), parameter :: gmfhosolatedgesp1nodespositions=163
+  integer(int32), parameter :: gmfhosolatedgesp2nodespositions=164
+  integer(int32), parameter :: gmfhosolatedgesp3nodespositions=165
+  integer(int32), parameter :: gmfhosolatedgesp4nodespositions=166
+  integer(int32), parameter :: gmfhosolattrianglesp1nodespositions=167
+  integer(int32), parameter :: gmfhosolattrianglesp2nodespositions=168
+  integer(int32), parameter :: gmfhosolattrianglesp3nodespositions=169
+  integer(int32), parameter :: gmfhosolattrianglesp4nodespositions=170
+  integer(int32), parameter :: gmfhosolatquadrilateralsq1nodespositions=171
+  integer(int32), parameter :: gmfhosolatquadrilateralsq2nodespositions=172
+  integer(int32), parameter :: gmfhosolatquadrilateralsq3nodespositions=173
+  integer(int32), parameter :: gmfhosolatquadrilateralsq4nodespositions=174
+  integer(int32), parameter :: gmfhosolattetrahedrap1nodespositions=175
+  integer(int32), parameter :: gmfhosolattetrahedrap2nodespositions=176
+  integer(int32), parameter :: gmfhosolattetrahedrap3nodespositions=177
+  integer(int32), parameter :: gmfhosolattetrahedrap4nodespositions=178
+  integer(int32), parameter :: gmfhosolatpyramidsp1nodespositions=179
+  integer(int32), parameter :: gmfhosolatpyramidsp2nodespositions=180
+  integer(int32), parameter :: gmfhosolatpyramidsp3nodespositions=181
+  integer(int32), parameter :: gmfhosolatpyramidsp4nodespositions=182
+  integer(int32), parameter :: gmfhosolatprismsp1nodespositions=183
+  integer(int32), parameter :: gmfhosolatprismsp2nodespositions=184
+  integer(int32), parameter :: gmfhosolatprismsp3nodespositions=185
+  integer(int32), parameter :: gmfhosolatprismsp4nodespositions=186
+  integer(int32), parameter :: gmfhosolathexahedraq1nodespositions=187
+  integer(int32), parameter :: gmfhosolathexahedraq2nodespositions=188
+  integer(int32), parameter :: gmfhosolathexahedraq3nodespositions=189
+  integer(int32), parameter :: gmfhosolathexahedraq4nodespositions=190
+  integer(int32), parameter :: gmfedgesreferenceelement=191
+  integer(int32), parameter :: gmftrianglereferenceelement=192
+  integer(int32), parameter :: gmfquadrilateralreferenceelement=193
+  integer(int32), parameter :: gmftetrahedronreferenceelement=194
+  integer(int32), parameter :: gmfpyramidreferenceelement=195
+  integer(int32), parameter :: gmfprismreferenceelement=196
+  integer(int32), parameter :: gmfhexahedronreferenceelement=197
+  integer(int32), parameter :: gmfboundarylayers=198
+  integer(int32), parameter :: gmfreferencestrings=199
+  integer(int32), parameter :: gmfprisms9=200
+  integer(int32), parameter :: gmfhexahedra12=201
+  integer(int32), parameter :: gmfquadrilaterals6=202
+  integer(int32), parameter :: gmfboundarypolygonheaders=203
+  integer(int32), parameter :: gmfboundarypolygonvertices=204
+  integer(int32), parameter :: gmfinnerpolygonheaders=205
+  integer(int32), parameter :: gmfinnerpolygonvertices=206
+  integer(int32), parameter :: gmfpolyhedraheaders=207
+  integer(int32), parameter :: gmfpolyhedrafaces=208
+  integer(int32), parameter :: gmfdomains=209
+  integer(int32), parameter :: gmfverticesgid=210
+  integer(int32), parameter :: gmfedgesgid=211
+  integer(int32), parameter :: gmftrianglesgid=212
+  integer(int32), parameter :: gmfquadrilateralsgid=213
+  integer(int32), parameter :: gmftetrahedragid=214
+  integer(int32), parameter :: gmfpyramidsgid=215
+  integer(int32), parameter :: gmfprismsgid=216
+  integer(int32), parameter :: gmfhexahedragid=217
+  integer(int32), parameter :: gmfsolatboundarypolygons=218
+  integer(int32), parameter :: gmfsolatpolyhedra=219
+  integer(int32), parameter :: gmfverticesongeometrynodes=220
+  integer(int32), parameter :: gmfverticesongeometryedges=221
+  integer(int32), parameter :: gmfedgesongeometryedges=222
+  integer(int32), parameter :: gmfverticesongeometryfaces=223
+  integer(int32), parameter :: gmfedgesongeometryfaces=224
+  integer(int32), parameter :: gmftrianglesongeometryfaces=225
+  integer(int32), parameter :: gmfquadrialteralsongeometryfaces=226
+  integer(int32), parameter :: gmfmeshongeometry=227
+  
+  interface     GmfStatKwdF90
+    module procedure GmfStatKwdF90_0 !> vertices & nodes
+    module procedure GmfStatKwdF90_1 !> solutions       
+  end interface GmfStatKwdF90
+  
+  interface     GmfSetKwdF90
+    module procedure GmfSetKwdF90_0 !> vertices & nodes
+    module procedure GmfSetKwdF90_1 !> solutions       
+  end interface GmfSetKwdF90
+  
+  interface     GmfGetLineF90
+    module procedure GmfGetLineF90_i
+    module procedure GmfGetLineF90_d
+  end interface GmfGetLineF90
+  
+  interface     GmfSetLineF90
+    module procedure GmfSetLineF90_i
+    module procedure GmfSetLineF90_d
+    module procedure GmfSetLineF90_sol_i
+    module procedure GmfSetLineF90_sol_d
+  end interface GmfSetLineF90
+  
+  interface     GmfGetBlockF90
+   !module procedure GmfGetBlockF90_00
+    module procedure GmfGetBlockF90_01    !> nodes    + ref
+    module procedure GmfGetBlockF90_01Bis !> nodes   
+    module procedure GmfGetBlockF90_02    !> vertices + ref
+    module procedure GmfGetBlockF90_02Bis !> solutions     
+  end interface GmfGetBlockF90
+  
+  interface     GmfSetBlockF90
+   !module procedure GmfGetBlockF90_00
+    module procedure GmfSetBlockF90_01    !> nodes    + ref
+    module procedure GmfSetBlockF90_02    !> vertices + ref
+    module procedure GmfSetBlockF90_02Bis !> solutions     
+  end interface GmfSetBlockF90
   
 contains
+  
+  function  GmfOpenMeshF90(name, GmfKey, ver, dim) result(unit)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    character(*)  , intent(in)    :: name
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(inout) :: ver
+    integer(int32), intent(inout) :: dim
+    integer(int64)                :: unit
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    unit = GmfOpenMeshf77(trim(name), GmfKey, ver, dim)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfOpenMeshF90
+  
+  function     GmfCloseMeshF90(unit) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: res
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res=GmfCloseMeshF77(unit)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfCloseMeshF90
+  
+  function     GmfStatKwdF90_0(unit, GmfKey) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    integer(int32) :: Nmb
+    integer(int32) :: res
+    !>
+    integer(int32) :: t(1),d,ho,s
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res = GmfStatKwdf77(unit, GmfKey, 0, 0, t(1), 0, 0)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfStatKwdF90_0
+  
+  function     GmfStatKwdF90_1(unit, GmfKey, r, s, t, d, ho) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    integer(int32) :: Nmb
+    integer(int32) :: res
+    !>
+    integer(int32) :: r,s,t(:),d,ho
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res = GmfStatKwdf77(unit, GmfKey, r, s, t(1), d, ho)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfStatKwdF90_1
+  
+  function     GmfGotoKwdF90(unit, GmfKey) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    integer(int32) :: res
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res=GmfgotokwdF77(unit, GmfKey)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfGotoKwdF90
+  
+  function    GmfSetKwdF90_0(unit, GmfKey, Nmb) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    integer(int32) :: Nmb
+    !>
+    integer(int32) :: t(1),d,ho,s
+    integer(int32) :: res
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res = GmfSetKwdF77(unit, GmfKey, Nmb, 0, t(1), 0, ho)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetKwdF90_0
+  
+  function     GmfSetKwdF90_1(unit, GmfKey, Nmb, d, t, s, ho) result(res)
+   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   integer(int64) :: unit
+   integer(int32) :: GmfKey
+   integer(int32) :: Nmb
+   integer(int32) :: t(:)
+   integer(int32) :: d,ho,s
+   integer(int32) :: res
+   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+   res = GmfSetKwdF77(unit, GmfKey, Nmb, d, t, s, ho)
+   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+   return
+  end function GmfSetKwdF90_1
+  
+  function     GmfSetHONodesOrderingF90(unit, GmfKey, BasTab, OrdTab) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    integer(int32) :: BasTab(:,:)
+    integer(int32) :: OrdTab(:,:)
+    integer(int32) :: res
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res=GmfSetHONodesOrderingF77(unit,GmfKey,BasTab,OrdTab)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetHONodesOrderingF90
+  
+  function     GmfGetLineF90_i(unit, GmfKey, Tab, Ref) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Reading Nodes and Ref
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    integer(int32) :: Tab(:)
+    integer(int32) :: Ref
+    integer(int32) :: res
+    !>
+    real(real64)   :: dTab(1)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res=GmfGetLineF77(unit, GmfKey, Tab(1), dTab(1), Ref)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfGetLineF90_i
+  
+  function     GmfGetLineF90_d(unit, GmfKey, Tab, Ref) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Reading Vertices and Ref
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    real(real64)   :: Tab(:)
+    integer(int32) :: Ref
+    integer(int32) :: res
+    !>
+    integer(int32) :: iTab(1)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res=GmfGetLineF77(unit, GmfKey, iTab(1), Tab(1), Ref)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  end function GmfGetLineF90_d
+  
+  function     GmfSetLineF90_i(unit, GmfKey, Tab, Ref) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Writting Nodes and Ref
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    integer(int32) :: Tab(:)
+    integer(int32) :: Ref
+    integer(int32) :: res
+    !>
+    real(real64)   :: dTab(1)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res=GmfSetLineF77(unit, GmfKey, Tab(1), dTab(1), Ref)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetLineF90_i
+  
+  function     GmfSetLineF90_d(unit, GmfKey, Tab, Ref) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Writting Vertices and Ref
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    real(real64)   :: Tab(:)
+    integer(int32) :: Ref
+    integer(int32) :: res
+    !>
+    integer(int32) :: iTab(1)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res=GmfSetLineF77(unit, GmfKey, iTab(1), Tab(1), Ref)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetLineF90_d
+  
+  function     GmfSetLineF90_sol_i(unit, GmfKey, iTab) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Writting Nodes and Ref
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    integer(int32) :: iTab(:)
+    integer(int32) :: iRef
+    integer(int32) :: res
+    !>
+    real(real64)   :: dTab(1)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res=GmfSetLineF77(unit, GmfKey, iTab(1), dTab(1), iRef)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetLineF90_sol_i
+  
+  function     GmfSetLineF90_sol_d(unit, GmfKey, dTab) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Writting Vertices and Ref
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    real(real64)   :: dTab(:)
+    integer(int32) :: res
+    !>
+    integer(int32) :: iRef
+    integer(int32) :: iTab(1)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res=GmfSetLineF77(unit, GmfKey, iTab(1), dTab(1), iRef)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetLineF90_sol_d
     
-!   subroutine GmfSetHONodesOrdering_f90(unit, GmfKey, BasOrd, FilOrd)
-!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!     use, intrinsic :: iso_c_binding, only: c_loc,c_int,c_long,c_ptr
-!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
-!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!     integer(8), intent(in)          :: unit
-!     integer(4), intent(in)          :: GmfKey
-!     integer(4), intent(in), pointer :: BasOrd(:,:)
-!     integer(4), intent(in), pointer :: FilOrd(:,:)
-!     !>
-!     integer(c_int)                  :: iErr
-!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!     !> Broker
-!     iErr=GmfSetHONodesOrdering_c(            & 
-!     &    InpMsh=int(unit,kind=c_long)       ,&
-!     &    GmfKey=int(GmfKey,kind=c_int)      ,&
-!     &    BasOrd=c_loc(BasOrd)               ,&
-!     &    FilOrd=c_loc(FilOrd)                )
-!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-!     
-!     return
-!   end subroutine GmfSetHONodesOrdering_f90
-!   
-!   subroutine GmfOpenMesh_f90(unit, GmfKey, BasOrd, FilOrd)
-!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!     use, intrinsic :: iso_c_binding, only: c_loc,c_int,c_long
-!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
-!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!     integej1r(8), intent(in)          :: unit
-!     !>
-!     integer(c_int)                  :: iErr
-!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!     !> Broker
-!     iErr=GmfOpenMesh_c(InpMsh=int(unit,kind=c_long)  )
-!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-!     return
-!   end subroutine GmfOpenMesh_f90
-!   
-!   subroutine GmfCloseMesh_f90(unit, GmfKey, BasOrd, FilOrd)
-!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!     use, intrinsic :: iso_c_binding, only: c_loc,c_int,c_long
-!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
-!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!     integer(8), intent(in)          :: unit
-!     !>
-!     integer(c_int)                  :: iErr
-!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-!     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!     !> Broker
-!     iErr=GmfCloseMesh_c(InpMsh=int(unit,kind=c_long)  )
-!     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-!     return
-!   end subroutine GmfCloseMesh_f90
+  function     GmfGetBlockF90_00(unit, GmfKey, ad0, ad1, iTab, dTab, Ref) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    integer(int32), intent(inout) :: iTab(:,:)
+    real(real64)  , intent(inout) :: dTab(:,:)
+    integer(int32), intent(inout) :: Ref(  :)
+    integer(int32)                :: res
+    !>
+    integer(int32)                :: Nmb
+    integer(int32), pointer       :: map(:)=>null()
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    Nmb=ad1-ad0+1
+    
+    res=GmfGetBlockF77(unit       ,&
+    &                  GmfKey     ,&
+    &                  ad0        ,&
+    &                  ad1        ,&
+    &                  int32      ,&
+    &                  map        ,&
+    &                  iTab(1,  1),&
+    &                  iTab(1,Nmb),&
+    &                  dTab(1,  1),&
+    &                  dTab(1,Nmb),&
+    &                   Ref(    1),&
+    &                   Ref(  Nmb) )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfGetBlockF90_00
   
-   
+  function     GmfGetBlockF90_01(unit, GmfKey, ad0, ad1, Tab, Ref) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    integer(int32), intent(inout) :: Tab(:,:)
+    integer(int32), intent(inout) :: Ref(  :)
+    integer(int32)                :: res
+    !>
+    integer(int32)                :: Nmb
+    real(real64)                  :: dTab(1)
+    integer(int32), pointer       :: map(:)=>null()
+
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    Nmb=ad1-ad0+1
+    
+    print '("GmfGetBlockF90_01 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfGetBlockF90_01 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    print '("GmfGetBlockF90_01 size(Ref)=  ",i0)',size(Ref)
+    
+    res=GmfGetBlockF77(unit       ,&
+    &                  GmfKey     ,&
+    &                  ad0        ,&
+    &                  ad1        ,&
+    &                  int32      ,&
+    &                  map        ,&
+    &                  Tab(1,  1) ,&
+    &                  Tab(1,Nmb) ,&
+    &                  dTab(1)    ,&
+    &                  dTab(1)    ,&
+    &                  Ref(    1) ,&
+    &                  Ref(  Nmb)  )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfGetBlockF90_01
+
+  function     GmfGetBlockF90_01Bis(unit, GmfKey, ad0, ad1, Tab) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    integer(int32), intent(inout) :: Tab(:,:)
+    integer(int32)                :: res
+    !>
+    integer(int32)                :: Nmb
+    real(real64)                  :: dTab(1)
+    integer(int32)                :: Ref(1)
+    integer(int32), pointer       :: map(:)=>null()
+
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    
+    Nmb=ad1-ad0+1
+    
+    print '("GmfGetBlockF90_01Bis (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfGetBlockF90_01Bis size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    print '("GmfGetBlockF90_01Bis size(Ref)=  ",i0)',size(Ref)
+    
+    res=GmfGetBlockF77(unit       ,&
+    &                  GmfKey     ,&
+    &                  ad0        ,&
+    &                  ad1        ,&
+    &                  int32      ,&
+    &                  map        ,&
+    &                  Tab(1,  1) ,&
+    &                  Tab(1,Nmb) ,&
+    &                  dTab(1)    ,&
+    &                  dTab(1)    ,&
+    &                  Ref(    1) ,&
+    &                  Ref(    1)  )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfGetBlockF90_01Bis  
   
+  function     GmfGetBlockF90_02(unit, GmfKey, ad0, ad1, Tab, Ref) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    real(real64)  , intent(inout) :: Tab(:,:)
+    integer(int32), intent(inout) :: Ref(  :)
+    integer(int32)                :: res
+    !>
+    integer(int32) :: iTab(1)
+    integer(int32) :: Nmb
+    integer(int32), pointer       :: map(:)=>null()
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    Nmb=ad1-ad0+1
+    
+    print '("GmfGetBlockF90_02 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfGetBlockF90_02 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    print '("GmfGetBlockF90_02 size(Ref)=  ",i0)',size(Ref)
+    
+    res=GmfGetBlockF77(unit       ,&
+    &                  GmfKey     ,&
+    &                  ad0        ,&
+    &                  ad1        ,&
+    &                  int32      ,&
+    &                  map        ,&
+    &                  iTab(1)    ,&
+    &                  iTab(1)    ,&
+    &                  Tab(1,  1) ,&
+    &                  Tab(1,Nmb) ,&
+    &                  Ref(    1) ,&
+    &                  Ref(  Nmb)  )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfGetBlockF90_02
   
+  function     GmfGetBlockF90_02Bis(unit, GmfKey, ad0, ad1, Tab) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    real(real64)  , intent(inout) :: Tab(:,:)
+    integer(int32)                :: res
+    !>
+    integer(int32) :: Ref (1)
+    integer(int32) :: iTab(1)
+    integer(int32) :: Nmb
+    integer(int32), pointer       :: map(:)=>null()
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    Nmb=ad1-ad0+1
+    
+    print '("GmfGetBlockF90_02Bis (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfGetBlockF90_02Bis size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    print '("GmfGetBlockF90_02Bis size(Ref)=  ",i0)',size(Ref)
+    
+    res=GmfGetBlockF77(unit       ,&
+    &                  GmfKey     ,&
+    &                  ad0        ,&
+    &                  ad1        ,&
+    &                  int32      ,&
+    &                  map        ,&
+    &                  iTab(1)    ,&
+    &                  iTab(1)    ,&
+    &                  Tab(1,  1) ,&
+    &                  Tab(1,Nmb) ,&
+    &                  Ref(    1) ,&
+    &                  Ref(    1)  )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfGetBlockF90_02Bis
+  
+  function     GmfSetBlockF90_01(unit, GmfKey, ad0, ad1, Tab, Ref) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    integer(int32), intent(inout) :: Tab(:,:)
+    integer(int32), intent(inout) :: Ref(  :)
+    integer(int32)                :: res
+    !>
+    integer(int32)                :: Nmb
+    real(real64)                  :: dTab(1)
+    integer(int32), pointer       :: map(:)=>null()
+
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    Nmb=ad1-ad0+1
+    
+    print '("GmfSetBlockF90_01 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfSetBlockF90_01 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    print '("GmfSetBlockF90_01 size(Ref)=  ",i0)',size(Ref)
+    
+    res=GmfSetBlockF77(unit       ,&
+    &                  GmfKey     ,&
+    &                  ad0        ,&
+    &                  ad1        ,&
+    &                  int32      ,&
+    &                  map        ,&
+    &                  Tab(1,  1) ,&
+    &                  Tab(1,Nmb) ,&
+    &                  dTab(1)    ,&
+    &                  dTab(1)    ,&
+    &                  Ref(    1) ,&
+    &                  Ref(  Nmb)  )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetBlockF90_01  
+  
+  function     GmfSetBlockF90_02(unit, GmfKey, ad0, ad1, Tab, Ref) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    real(real64)  , intent(inout) :: Tab(:,:)
+    integer(int32), intent(inout) :: Ref(  :)
+    integer(int32)                :: res
+    !>
+    integer(int32)                :: iTab(1)
+    integer(int32)                :: Nmb
+    integer(int32), pointer       :: map(:)=>null()
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    Nmb=ad1-ad0+1
+    
+    print '("GmfSetBlockF90_02 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfSetBlockF90_02 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    print '("GmfSetBlockF90_02 size(Ref)=  ",i0)',size(Ref)
+    
+    res=GmfSetBlockF77(unit       ,&
+    &                  GmfKey     ,&
+    &                  ad0        ,&
+    &                  ad1        ,&
+    &                  int32      ,&
+    &                  map        ,&
+    &                  iTab(1)    ,&
+    &                  iTab(1)    ,&
+    &                  Tab(1,  1) ,&
+    &                  Tab(1,Nmb) ,&
+    &                  Ref(    1) ,&
+    &                  Ref(  Nmb)  )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetBlockF90_02
+  
+  function     GmfSetBlockF90_02Bis(unit, GmfKey, ad0, ad1, Tab) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    real(real64)  , intent(inout) :: Tab(:,:)
+    integer(int32)                :: res
+    !>
+    integer(int32)                :: Ref(1)
+    integer(int32)                :: iTab(1)
+    integer(int32)                :: Nmb
+    integer(int32), pointer       :: map(:)=>null()
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    Nmb=ad1-ad0+1
+    
+    print '("GmfSetBlockF90_02Bis (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfSetBlockF90_02Bis size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    print '("GmfSetBlockF90_02Bis size(Ref)=  ",i0)',size(Ref)
+    
+    res=GmfSetBlockF77(unit       ,&
+    &                  GmfKey     ,&
+    &                  ad0        ,&
+    &                  ad1        ,&
+    &                  int32      ,&
+    &                  map        ,&
+    &                  iTab(   1) ,&
+    &                  iTab(   1) ,&
+    &                  Tab(1,  1) ,&
+    &                  Tab(1,Nmb) ,&
+    &                  Ref(    1) ,&
+    &                  Ref(    1)  )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetBlockF90_02Bis
+
 end module libmeshb7

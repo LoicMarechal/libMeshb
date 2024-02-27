@@ -2,51 +2,52 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.61                               */
+/*                               LIBMESHB V7.80                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  sep 27 2021                                         */
+/*    Last modification:  feb 27 2024                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
 // [Bruno] get PRINTF_INT64_MODIFIER
 // #include <geogram/third_party/pstdint.h>
 
-#include <stdint.h>
-
 #ifndef LIBMESHB7_H
 #define LIBMESHB7_H
+
+#include <stdint.h>
+
 
 /*----------------------------------------------------------------------------*/
 /* Defines                                                                    */
 /*----------------------------------------------------------------------------*/
 
-#define GmfStrSiz    1024
-#define GmfMaxTyp    1000
-#define GmfMaxKwd    GmfLastKeyword - 1
-#define GmfMshVer    1
-#define GmfRead      1
-#define GmfWrite     2
-#define GmfSca       1
-#define GmfVec       2
-#define GmfSymMat    3
-#define GmfMat       4
-#define GmfFloat     1
-#define GmfDouble    2
-#define GmfInt       3
-#define GmfLong      4
-#define GmfFloatVec  5
-#define GmfDoubleVec 6
-#define GmfIntTab    7
-#define GmfIntVec    7
-#define GmfLongTab   8
-#define GmfLongVec   8
-#define GmfArgTab    100
-#define GmfArgLst    101
+#define GmfStrSiz       1024
+#define GmfMaxTyp       1000
+#define GmfMaxKwd       GmfLastKeyword - 1
+#define GmfMshVer       1
+#define GmfRead         1
+#define GmfWrite        2
+#define GmfSca          1
+#define GmfVec          2
+#define GmfSymMat       3
+#define GmfMat          4
+#define GmfFloat        8
+#define GmfDouble       9
+#define GmfInt          10
+#define GmfLong         11
+#define GmfFloatVec     12
+#define GmfDoubleVec    13
+#define GmfIntTab       14
+#define GmfIntVec       14
+#define GmfLongTab      15
+#define GmfLongVec      15
+#define GmfArgTab       100
+#define GmfArgLst       101
 
 enum GmfKwdCod
 {
@@ -268,6 +269,16 @@ enum GmfKwdCod
    GmfPyramidsGID,
    GmfPrismsGID,
    GmfHexahedraGID,
+   GmfSolAtBoundaryPolygons,
+   GmfSolAtPolyhedra,
+   GmfVerticesOnGeometryNodes,
+   GmfVerticesOnGeometryEdges,
+   GmfEdgesOnGeometryEdges,
+   GmfVerticesOnGeometryFaces,
+   GmfEdgesOnGeometryFaces,
+   GmfTrianglesOnGeometryFaces,
+   GmfQuadrialteralsOnGeometryFaces,
+   GmfMeshOnGeometry,
    GmfLastKeyword
 };
 
