@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.79                               */
+/*                               LIBMESHB V7.80                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  feb 23 2024                                          */
+/*   Last modification:  feb 27 2024                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -469,236 +469,15 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
 int GmfMaxRefTab[ GmfMaxKwd + 1 ];
 #endif
 
-static char NmbEleNod[ GmfMaxKwd + 1 ] =
+static char F77RefFlg[ GmfMaxKwd + 1 ] =
 {
-   0,
-   0,
-   0,
-   0,
-   1,
-   2,
-   3,
-   4,
-   4,
-   6,
-   8,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   6,
-   3,
-   0,
-   9,
-   0,
-   0,
-   10,
-   0,
-   0,
-   27,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   32,
-   8,
-   0,
-   5,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   18,
-   14,
-   14,
-   25,
-   9,
-   13,
-   4,
-   5,
-   0,
-   0,
-   20,
-   35,
-   64,
-   125,
-   30,
-   55,
-   40,
-   75,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0,
-   0
+   0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,1,0,0,1,0,0,0,
+   0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0
 };
 
 
@@ -1274,8 +1053,10 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
    KwdSct      *kwd;
 
+   // Special trick: if the kwd is negative the call come from Fortran
    if(KwdCod < 0)
    {
+      // Set Fortran mode ON
       KwdCod = -KwdCod;
       kwd = &msh->KwdTab[ KwdCod ];
       typ = F77Kwd;
@@ -1416,7 +1197,7 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
                   IntVal = (int)LngVal;
                }
 
-               if(!NmbEleNod[ KwdCod ] || (i < kwd->SolSiz - 1))
+               if(!F77RefFlg[ KwdCod ] || (i < kwd->SolSiz - 1))
                   IntTab[i] = IntVal;
                else
                   *RefPtr = IntVal;
@@ -1466,8 +1247,10 @@ int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
    GmfMshSct   *msh = (GmfMshSct *)MshIdx;
    KwdSct      *kwd;
 
+   // Special trick: if the kwd is negative the call come from Fortran
    if(KwdCod < 0)
    {
+      // Set Fortran mode ON
       KwdCod = -KwdCod;
       kwd = &msh->KwdTab[ KwdCod ];
       typ = F77Kwd;
@@ -1615,13 +1398,13 @@ int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
                else if(kwd->fmt[i] == 'i')
                {
                   if(msh->ver <= 3)
-                     if(!NmbEleNod[ KwdCod ] || (i < kwd->SolSiz - 1))
+                     if(!F77RefFlg[ KwdCod ] || (i < kwd->SolSiz - 1))
                         fprintf(msh->hdl, "%d ", IntTab[i]);
                      else
                         fprintf(msh->hdl, "%d ", *RefPtr);
                   else
                   {
-                     if(!NmbEleNod[ KwdCod ] || (i < kwd->SolSiz - 1))
+                     if(!F77RefFlg[ KwdCod ] || (i < kwd->SolSiz - 1))
                         fprintf(msh->hdl, INT64_T_FMT " ", (int64_t)IntTab[i]);
                      else
                         fprintf(msh->hdl, INT64_T_FMT " ", (int64_t)*RefPtr);
@@ -1656,7 +1439,7 @@ int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
                   {
                      IntBuf = (void *)&msh->buf[ pos ];
 
-                     if(!NmbEleNod[ KwdCod ] || (i < kwd->SolSiz - 1))
+                     if(!F77RefFlg[ KwdCod ] || (i < kwd->SolSiz - 1))
                         *IntBuf = IntTab[i];
                      else
                         *IntBuf = *RefPtr;
@@ -1667,7 +1450,7 @@ int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
                   {
                      LngBuf = (void *)&msh->buf[ pos ];
 
-                     if(!NmbEleNod[ KwdCod ] || (i < kwd->SolSiz - 1))
+                     if(!F77RefFlg[ KwdCod ] || (i < kwd->SolSiz - 1))
                         *LngBuf = (int64_t)IntTab[i];
                      else
                         *LngBuf = (int64_t)*RefPtr;
@@ -3451,11 +3234,13 @@ int APIF77(gmfsethonodesorderingf77)(  int64_t *MshIdx, int *KwdCod,
 
 int APIF77(gmfgetlinef77)(int64_t *MshIdx, int *kwd, int *i, double *d, int *r)
 {
+   // Special trick: use a negative value kwd to set Fortran mode on
    return(GmfGetLin(*MshIdx, -*kwd, i, d, r));
 }
 
 int APIF77(gmfsetlinef77)(int64_t *MshIdx, int *kwd, int *i, double *d, int *r)
 {
+   // Special trick: use a negative value kwd to set Fortran mode on
    return(GmfSetLin(*MshIdx, -*kwd, i, d, r));
 }
 
@@ -3471,6 +3256,8 @@ int APIF77(gmfgetblockf77)(int64_t *MshIdx, int *KwdCod,
    GmfMshSct   *msh = (GmfMshSct *)*MshIdx;
    KwdSct      *kwd = &msh->KwdTab[ *KwdCod ];
 
+   // Fortran call to getblock uses the GmfArgTab mode where pointers are passed
+   // through tables: types[], vec sizes[], begin pointers[] and end pointers[]
    for(i=0;i<kwd->SolSiz;i++)
    {
       if(kwd->fmt[i] == 'i')
@@ -3478,7 +3265,7 @@ int APIF77(gmfgetblockf77)(int64_t *MshIdx, int *KwdCod,
          TypTab[i] = GmfInt;
          SizTab[i] = 1;
 
-         if( (NmbEleNod[ *KwdCod ]) && (i == kwd->SolSiz-1) )
+         if( (F77RefFlg[ *KwdCod ]) && (i == kwd->SolSiz-1) )
          {
             BegTab[i] = (char *)BegRef;
             EndTab[i] = (char *)EndRef;
@@ -3513,6 +3300,8 @@ int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *KwdCod,
    GmfMshSct   *msh = (GmfMshSct *)*MshIdx;
    KwdSct      *kwd = &msh->KwdTab[ *KwdCod ];
 
+   // Fortran call to setblock uses the GmfArgTab mode where pointers are passed
+   // through tables: types[], vec sizes[], begin pointers[] and end pointers[]
    for(i=0;i<kwd->SolSiz;i++)
    {
       if(kwd->fmt[i] == 'i')
@@ -3520,7 +3309,7 @@ int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *KwdCod,
          TypTab[i] = GmfInt;
          SizTab[i] = 1;
 
-         if( (NmbEleNod[ *KwdCod ]) && (i == kwd->SolSiz-1) )
+         if( (F77RefFlg[ *KwdCod ]) && (i == kwd->SolSiz-1) )
          {
             BegTab[i] = (char *)BegRef;
             EndTab[i] = (char *)EndRef;

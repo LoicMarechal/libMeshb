@@ -6,7 +6,7 @@
 
 cmake_minimum_required (VERSION 3.7.2)
 set (libMeshb_VERSION_MAJOR 7)
-set (libMeshb_VERSION_MINOR 54)
+set (libMeshb_VERSION_MINOR 80)
 project(libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
 
 option(WITH_GMF_AIO     "Use Unix low-level and asynchronous I/O for higher speed"       OFF)
