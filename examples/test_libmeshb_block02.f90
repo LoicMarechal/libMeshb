@@ -206,6 +206,14 @@ program test_libmeshb_block02_f90
   fields(1:NmbField) = [GmfSca,GmfVec,GmfSca]  
   fieldsName(1:NmbField)=['sca_1','vec_1','sca_2']
   
+  ! Write iteration number in file
+  res=GmfSetKwdF90 (unit=OutSol, GmfKey=GmfIterations, Nmb=1 )
+  res=GmfSetLineF90(unit=OutSol, GmfKey=GmfIterations, Tab=int(10,kind=int32)) ! number of iteration (example 10)  
+  
+  ! Write Time in solution file
+  res=GmfSetKwdF90 (unit=OutSol, GmfKey=GmfTime, Nmb=1)
+  res=GmfSetLineF90(unit=OutSol, GmfKey=GmfTime, Tab=real(60,kind=real64))
+  
   !nomDesChamps : block
   !  integer               :: iField,nChar
   !  character(:), pointer :: fieldName=>null()

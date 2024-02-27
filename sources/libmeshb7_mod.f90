@@ -292,17 +292,17 @@ module libmeshb7
   end interface GmfSetKwdF90
   
   interface     GmfGetLineF90
-    module procedure GmfGetLineF90_i
-    module procedure GmfGetLineF90_d
+    module procedure GmfGetLineF90_i      ! int32 (:) + int32
+    module procedure GmfGetLineF90_d      ! real64(:) + int32
   end interface GmfGetLineF90
   
   interface     GmfSetLineF90
-    module procedure GmfSetLineF90_i
-    module procedure GmfSetLineF90_d
-    module procedure GmfSetLineF90_sol_i
-    module procedure GmfSetLineF90_sol_i_
-    module procedure GmfSetLineF90_sol_d
-    module procedure GmfSetLineF90_sol_d_
+    module procedure GmfSetLineF90_i      ! int32 (:) + int32
+    module procedure GmfSetLineF90_d      ! real64(:) + int32
+    module procedure GmfSetLineF90_sol_i  ! int32 (:)
+    module procedure GmfSetLineF90_sol_i_ ! int32   
+    module procedure GmfSetLineF90_sol_d  ! real64(:)
+    module procedure GmfSetLineF90_sol_d_ ! real64   
   end interface GmfSetLineF90
   
   interface     GmfGetBlockF90
