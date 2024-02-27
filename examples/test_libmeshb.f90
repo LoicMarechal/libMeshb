@@ -38,7 +38,7 @@ program  test_libmeshb_f90
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   InpFile='../sample_meshes/quad.mesh'
   OutFile='./tri.meshb'
-  SolFile='./tri.solb'
+  SolFile='./tri.sol'
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -135,6 +135,14 @@ program  test_libmeshb_f90
   print '( "Output Solu dim     : ",i0)',dim
   if( OutSol==0 ) STOP ' OutSol = 0'
   
+  ! Write iteration number in file
+  res=GmfSetKwdF90 (unit=OutSol, GmfKey=GmfIterations, Nmb=1 )
+  res=GmfSetLineF90(unit=OutSol, GmfKey=GmfIterations, Tab=int(10,kind=int32)) ! number of iteration (example 10)  
+
+  ! Write Time in solution file
+  res=GmfSetKwdF90 (unit=OutSol, GmfKey=GmfTime, Nmb=1)
+  res=GmfSetLineF90(unit=OutSol, GmfKey=GmfTime, Tab=real(60,kind=real64))
+  
   ! Set the solution kinds
   NmbFields=3
   allocate( fields    (1:NmbFields))
@@ -158,6 +166,7 @@ program  test_libmeshb_f90
   !  enddo
   !end block nomDesChamps
   
+
   allocate(sol(1:5)) !       1+   dim+     1
   print '( "Output Solu NmbVer  : ",i0)',NmbVer
   print '( "Output Solu nFields : ",i0)',NmbFields
@@ -171,7 +180,7 @@ program  test_libmeshb_f90
     sol(  1)=VerTab(1,i)
     sol(2:4)=[VerTab(1,i),VerTab(2,i),0d0]
     sol(  5)=VerTab(2,i)
-    res=GmfSetLineF90(unit=OutMsh, GmfKey=GmfSolAtVertices, dTab=sol(:))
+    res=GmfSetLineF90(unit=OutSol, GmfKey=GmfSolAtVertices, Tab=sol(:))
   enddo
   
   ! Don't forget to close the file

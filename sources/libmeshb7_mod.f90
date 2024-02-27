@@ -300,7 +300,9 @@ module libmeshb7
     module procedure GmfSetLineF90_i
     module procedure GmfSetLineF90_d
     module procedure GmfSetLineF90_sol_i
+    module procedure GmfSetLineF90_sol_i_
     module procedure GmfSetLineF90_sol_d
+    module procedure GmfSetLineF90_sol_d_
   end interface GmfSetLineF90
   
   interface     GmfGetBlockF90
@@ -523,44 +525,86 @@ contains
     return
   end function GmfSetLineF90_d
   
-  function     GmfSetLineF90_sol_i(unit, GmfKey, iTab) result(res)
+  function     GmfSetLineF90_sol_i(unit, GmfKey, Tab) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Writting Nodes and Ref
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64) :: unit
     integer(int32) :: GmfKey
-    integer(int32) :: iTab(:)
-    integer(int32) :: iRef
+    integer(int32) :: Tab(:)
+    integer(int32) :: Ref
     integer(int32) :: res
     !>
     real(real64)   :: dTab(1)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    res=GmfSetLineF77(unit, GmfKey, iTab(1), dTab(1), iRef)
+    res=GmfSetLineF77(unit, GmfKey, Tab(1), dTab(1), Ref)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfSetLineF90_sol_i
   
-  function     GmfSetLineF90_sol_d(unit, GmfKey, dTab) result(res)
+  function     GmfSetLineF90_sol_i_(unit, GmfKey, Tab) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Writting Nodes and Ref
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    integer(int32) :: Tab
+    integer(int32) :: Ref
+    integer(int32) :: res
+    !>
+    integer(int32) :: iTab(1)
+    real(real64)   :: dTab(1)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    iTab(1)=Tab
+    res=GmfSetLineF77(unit, GmfKey, iTab(1), dTab(1), Ref)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetLineF90_sol_i_
+  
+  function     GmfSetLineF90_sol_d(unit, GmfKey, Tab) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Writting Vertices and Ref
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64) :: unit
     integer(int32) :: GmfKey
-    real(real64)   :: dTab(:)
+    real(real64)   :: Tab(:)
     integer(int32) :: res
     !>
-    integer(int32) :: iRef
+    integer(int32) :: Ref
     integer(int32) :: iTab(1)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    res=GmfSetLineF77(unit, GmfKey, iTab(1), dTab(1), iRef)
+    res=GmfSetLineF77(unit, GmfKey, iTab(1), Tab(1), Ref)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfSetLineF90_sol_d
-    
+  
+  function     GmfSetLineF90_sol_d_(unit, GmfKey, Tab) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Writting Vertices and Ref
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    real(real64)   :: Tab
+    integer(int32) :: res
+    !>
+    integer(int32) :: Ref
+    integer(int32) :: iTab(1)
+    real(real64)   :: dTab(1)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    dTab(1)=Tab
+    res=GmfSetLineF77(unit, GmfKey, iTab(1), dTab(1), Ref)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetLineF90_sol_d_
+
   function     GmfGetBlockF90_00(unit, GmfKey, ad0, ad1, iTab, dTab, Ref) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64), intent(in)    :: unit
