@@ -37,8 +37,8 @@ program  test_libmeshb_f90
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   InpFile='../sample_meshes/quad.mesh'
-  OutFile='./tri.mesh'
-  SolFile='./tri.sol'
+  OutFile='./tri.meshb'
+  SolFile='./tri.solb'
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

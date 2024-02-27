@@ -29,8 +29,8 @@ program test_libmeshb_HO_f90
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     InpFile='../sample_meshes/quad_q2.mesh'
-    OutFile='./tri_p2.mesh'
-    SolFile='./tri_p2.sol'
+    OutFile='./tri_p2.meshb'
+    SolFile='./tri_p2.solb'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -62,9 +62,9 @@ program test_libmeshb_HO_f90
     &   Tab=VerTab(:,1:NmbVer) ,&
     &   Ref=VerRef(  1:NmbVer)  )
     
-    do i=1,10
-      print '(3x,"ver",i6," xyz:",3(f12.5,1x)," ref: ",i0)',i,VerTab(1:3,i),VerRef(i)
-    enddo
+    !do i=1,10
+    !  print '(3x,"ver",i6," xyz:",3(f12.5,1x)," ref: ",i0)',i,VerTab(1:3,i),VerRef(i)
+    !enddo
     
     ! Read GmfQuadrilateralsQ2
     GmfCell=GmfQuadrilateralsQ2                 ! <=
@@ -132,10 +132,10 @@ program test_libmeshb_HO_f90
     ! Close the quadrilateral mesh
     print '("Input  Mesh Close : ",a)',trim(InpFile)
     
-    print '("Input  Mesh")'
-    do i=1,10 !NmbQad
-      print '(3x,"qad",i6," nd:",9(i6,1x)," ref: ",i0)',i,QadTab(1:9,i),QadRef(i)
-    enddo
+    !print '("Input  Mesh")'
+    !do i=1,10 !NmbQad
+    !  print '(3x,"qad",i6," nd:",9(i6,1x)," ref: ",i0)',i,QadTab(1:9,i),QadRef(i)
+    !enddo
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -179,10 +179,10 @@ program test_libmeshb_HO_f90
     
     print '(/"Output Mesh File  : ",a )',trim(OutFile)
     
-    print '("Output Mesh")'
-    do i=1,10
-      print '(3x,"tri",i6," nd:",6(i6,1x)," ref: ",i0)',i,TriTab(1:6,i),TriRef(i)
-    enddo
+    !print '("Output Mesh")'
+    !do i=1,10
+    !  print '(3x,"tri",i6," nd:",6(i6,1x)," ref: ",i0)',i,TriTab(1:6,i),TriRef(i)
+    !enddo
     
     ! Open the mesh file and check the version and dimension
     OutMsh=GmfOpenMeshF90(name=trim(OutFile),GmfKey=GmfWrite,ver=ver,dim=dim)
@@ -221,6 +221,12 @@ program test_libmeshb_HO_f90
     res=GmfCloseMeshF90(unit=OutMsh)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! Write a triangular P3 Solution on triangular mesh
+    
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Cleanning Memory
     deallocate(VerTab,VerRef)

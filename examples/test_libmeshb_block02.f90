@@ -1,7 +1,14 @@
 ! libMeshb 7.79 example: transform a quadrilateral mesh into a triangular one
 ! using fast block transfer
 
-program test_libmeshb_block_f90
+! test_libmeshb_block02_f90
+! Version with this shapes:
+!   VerTab(:,:),VerRef(:)
+!   QadTab(:,:),QadRef(:)
+!   TriTab(:,:),TriRef(:)
+!   solTab(:,:)
+
+program test_libmeshb_block02_f90
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
   use libmeshb7
@@ -12,12 +19,12 @@ program test_libmeshb_block_f90
   character(80)           :: InpFile
   character(80)           :: OutFile
   character(80)           :: SolFile
-  integer                 :: i
-  integer                 :: NmbVer,NmbQad,NmbTri,ver,dim,res
+  integer(int32)          :: i
+  integer(int32)          :: NmbVer,NmbQad,NmbTri,ver,dim,res
   real(real64)  , pointer :: VerTab(:,:)
-  integer       , pointer :: VerRef(  :)
-  integer       , pointer :: QadTab(:,:),QadRef(  :)
-  integer       , pointer :: TriTab(:,:),TriRef(  :)
+  integer(int32), pointer :: VerRef(  :)
+  integer(int32), pointer :: QadTab(:,:),QadRef(  :)
+  integer(int32), pointer :: TriTab(:,:),TriRef(  :)
   integer(int32)          :: NmbField,ho,s,d
   integer(int32), pointer :: fields(:)
   character(32) , pointer :: fieldsName(:)=>null()
@@ -25,7 +32,7 @@ program test_libmeshb_block_f90
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  print '(/"test_libmeshb_block_f90")'
+  print '(/"test_libmeshb_block02_f90")'
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -60,9 +67,9 @@ program test_libmeshb_block_f90
   &   Tab=VerTab(:,1:NmbVer) ,&
   &   Ref=VerRef(  1:NmbVer)  )
   
-  do i=1,10
-    print '(3x,"ver",i6," xyz:",3(f12.5,1x)," ref: ",i0)',i,VerTab(1:3,i),VerRef(i)
-  enddo
+  !do i=1,10
+  !  print '(3x,"ver",i6," xyz:",3(f12.5,1x)," ref: ",i0)',i,VerTab(1:3,i),VerRef(i)
+  !enddo
   
   ! Allocate QadTab
   NmbQad=GmfstatkwdF90(unit=InpMsh, GmfKey=GmfQuadrilaterals)
@@ -79,27 +86,10 @@ program test_libmeshb_block_f90
   &   Tab=QadTab(:,1:)        ,&
   &   Ref=QadRef(  1:)         )
   
-  do i=1,10
-    print '(3x,"qad",i6," nd:",4(i6,1x)," ref: ",i0)',i,QadTab(1:4,i),QadRef(i)
-  enddo
-  
-  !!> Lecture par tableau 1D sans recopie (interface à écrire en indiquand le stride)
-  !block 
-  !  use iso_c_binding, only: c_loc,c_f_pointer
-  !  integer     , pointer :: nodes(:)
-  !  
-  !  call c_f_pointer(cptr=c_loc(QadTab), fptr=nodes, shape=[4*NmbQad]) !> binding QadTab(:,:) and nodes(:)
-  !  
-  !  res=GmfGetElements(                &
-  !  &   InpMsh                        ,&
-  !  &   GmfQuadrilaterals             ,&
-  !  &   1                             ,&
-  !  &   NmbQad                        ,&
-  !  &   0, m                          ,&
-  !  &   nodes(   1), nodes(4*NmbQad-3),&
-  !  &   QadRef(  1), QadRef(NmbQad)    )
-  !end block
-  
+  !do i=1,10
+  !  print '(3x,"qad",i6," nd:",4(i6,1x)," ref: ",i0)',i,QadTab(1:4,i),QadRef(i)
+  !enddo
+    
   ! Close the quadrilateral mesh
   res=GmfCloseMeshF90(unit=InpMsh)
   print '("Input  Mesh Close   : ",a)',trim(InpFile)
@@ -271,4 +261,4 @@ program test_libmeshb_block_f90
   print '(/"Constrol"/"vizir4 -in ",a," -sol ",a,/)',trim(OutFile),trim(SolFile)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-end program test_libmeshb_block_f90
+end program test_libmeshb_block02_f90
