@@ -40,68 +40,66 @@ From Fortran you need to provide all arguments even if they are not needed.
 
 Calls C GmfSetHONodesOrdering() with the same arguments.
 
-## VERTICES
+### gmfgetlinef77(lib, kwd, IntTab, RealTab, Ref)
 
-Vertices data is split in two fields: a pointer to consecutive REAL8 to store coordinates and a pointer on an INT4 that stores the reference.
+Reads a full line of a giver keyword's data.
+Right now, the default data kinds are integer*4 and real*8.
 
+Integer fields are stored in IntTab(), floating point values are stored in DblTab() and if the keyword includes a reference (GmfVertices and all elements), it is stored in Ref.
 
-### gmfgetvertex(lib, coordinates, ref)
+Note that even though some keywords don't need all the parameters, you need to provide them all to the function call, use dummy parameters if needed.
 
-Reads a single vertex.
-Calls C GmfGetLin() with keyword GmfVertices, a pointer on a vector of 2 or 3 consecutive REAL8 and a pointer on an integer ref.
+### gmfsetlinef77(lib, kwd, IntTab, RealTab, Ref)
 
-### gmfsetvertex(lib, coordinates, ref)
+Writes a full line of a giver keyword's data.
+Right now, the default data kinds are integer*4 and real*8.
 
-Writes a single vertex.
-Calls C GmfSetLin() with keyword GmfVertices, a pointer on a vector of 2 or 3 consecutive REAL8 and the value of the integer ref.
+Integer fields are stored in IntTab(), floating point values are stored in DblTab() and if the keyword includes a reference (GmfVertices and all elements), it is stored in Ref.
 
-### gmfgetvertices(lib, start-index, end-index, map-type, map, start-coordinates, end-coordinate, start-ref, end-ref)
-
-Reads a block of vertices.
-Calls C GmfGetBlock with GmfVertices and pointers to the first vertex coordinates, last vertex coordinates, first vertex reference and last vertex reference.
-
-### gmfsetvertices(lib, start-index, end-index, map-type, map, start-coordinates, end-coordinate, start-ref, end-ref)
-
-Writes a block of vertices.
-Calls C GmfSetBlock with GmfVertices and pointers to the first vertex coordinates, last vertex coordinates, first vertex reference and last vertex reference.
+Note that even though some keywords don't need all the parameters, you need to provide them all to the function call, use dummy parameters if needed.
 
 
-## ELEMENTS
+### gmfget blockf77(lib, kwd, BegIdx, EndIdx, MapTyp, MapTab, BegInt, EndInt, BegReal, EndReal, BegRef, EndRef)
 
-Elements data is split in two fields: a pointer to consecutive INT4 to store nodes indices and a pointer on an INT4 that stores the reference.
+Reads multiple data lines in a row.
 
-### gmfgetelement(lib, element-kind, nodes, ref)
+You need to provide tables big enough to store all the data in one huge memory area.
 
-Reads a single element.
-Calls C GmfGetLin() with the provided element keyword, a pointer on a vector of several consecutive INT4 to store nodes indices and a pointer on an integer ref.
+BegIdx and EndIdx are the first and last line number to be read (1 .. NbElements reads the whole mesh).
 
-### gmfsetelement(lib, element-kind, nodes, ref)
+BegInt points to the first entity integer's data.
 
-Writes a single element.
-Calls C GmfSetLin() with the provided element keyword, a pointer on a vector of several consecutive INT4 to store nodes indices and a pointer on an integer ref.
+EndInt points to the last entity integer's data.
 
-### gmfgetelements(lib, element-kind, start-index, end-index, map-type, map, start-nodes, end-nodes, start-ref, end-ref)
+BegReal points to the first entity REAL*8's data.
 
-Reads a block of elements.
-Calls C GmfGetBlock() with the provided element keyword, a pointer on the first element's nodes, a pointer on the last element's nodes, a pointer on the first element's reference and a pointer on the last element's reference.
+EndReal points to the last entity REAL*8's data.
 
-### gmfsetelements(lib, element-kind, start-index, end-index, map-type, map, start-nodes, end-nodes, start-ref, end-ref)
+BegRef points to the first entity's reference
 
-Writes a block of elements.
-Calls C GmfSetBlock() with the provided element keyword, a pointer on the first element's nodes, a pointer on the last element's nodes, a pointer on the first element's reference and a pointer on the last element's reference.
+EndRef points to the last entity's reference
+
+Like with gmgetlinef77(), some arguments may be useless depending on the keyword but you need to provide some dummy argument instead.
 
 
-## SOLUTIONS
+### gmfset blockf77(lib, kwd, BegIdx, EndIdx, MapTyp, MapTab, BegInt, EndInt, BegReal, EndReal, BegRef, EndRef)
 
-Solution fields are stored in REAL8 into a .sol or .solb file.
-All fields must be stored in a consecutive table.
+Writes multiple data lines in a row.
 
-### gmfgetsolution(lib, solution-keyword, solutions)
+You need to provide tables big enough to store all the data in one huge memory area.
 
-Reads one line of solution fields concatenated into a single REAL8 table.
-Calls C GmfGetLin() with the provided solution keyword and a pointer on a vector of sufficent consecutive REAL8 to store a whole line of solution fields.
+BegIdx and EndIdx are the first and last line number to be read (1 .. NbElements reads the whole mesh).
 
-### gmfsetsolution(lib, solution-keyword, solutions)
+BegInt points to the first entity integer's data.
 
-Writes one line of solution fields concatenated into a single REAL8 table.
-Calls C GmfSetLin() with the provided solution keyword and a pointer on a vector of sufficient consecutive REAL8 to store a whole line of solution fields.
+EndInt points to the last entity integer's data.
+
+BegReal points to the first entity REAL*8's data.
+
+EndReal points to the last entity REAL*8's data.
+
+BegRef points to the first entity's reference
+
+EndRef points to the last entity's reference
+
+Like with gmsetlinef77(), some arguments may be useless depending on the keyword but you need to provide some dummy argument instead.
