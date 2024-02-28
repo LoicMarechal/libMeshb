@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  feb 27 2024                                          */
+/*   Last modification:  feb 28 2024                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -196,7 +196,7 @@ int my_aio_write(struct aiocb *aiocbp)
 #define WrdSiz    4
 #define FilStrSiz 64
 #define BufSiz    10000L
-#define MaxArg    20
+#define MaxArg    1000
 
 
 /*----------------------------------------------------------------------------*/
@@ -3256,6 +3256,10 @@ int APIF77(gmfgetblockf77)(int64_t *MshIdx, int *KwdCod,
    GmfMshSct   *msh = (GmfMshSct *)*MshIdx;
    KwdSct      *kwd = &msh->KwdTab[ *KwdCod ];
 
+   // Fortran mode will expand all fields as a separate scalar so we need space
+   if(kwd->SolSiz >= MaxArg)
+      return(0);
+
    // Fortran call to getblock uses the GmfArgTab mode where pointers are passed
    // through tables: types[], vec sizes[], begin pointers[] and end pointers[]
    for(i=0;i<kwd->SolSiz;i++)
@@ -3299,6 +3303,10 @@ int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *KwdCod,
    char        *BegTab[ MaxArg ], *EndTab[ MaxArg ];
    GmfMshSct   *msh = (GmfMshSct *)*MshIdx;
    KwdSct      *kwd = &msh->KwdTab[ *KwdCod ];
+
+   // Fortran mode will expand all fields as a separate scalar so we need space
+   if(kwd->SolSiz >= MaxArg)
+      return(0);
 
    // Fortran call to setblock uses the GmfArgTab mode where pointers are passed
    // through tables: types[], vec sizes[], begin pointers[] and end pointers[]

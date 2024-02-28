@@ -60,7 +60,7 @@ program test_libmeshb_HO_f90
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     InpFile='../sample_meshes/quad_q2.mesh'
     OutFile='./tri_p2.meshb'
-    SolFile='./tri_p2.sol'
+    SolFile='./tri_p2.solb'
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
