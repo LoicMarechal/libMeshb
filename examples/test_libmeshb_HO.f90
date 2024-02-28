@@ -11,7 +11,7 @@ function baseLagrangeTriangleP4(u,v) result(ai)
   implicit none
   real(real64), intent(in) :: u,v
   real(real64)             :: ai(1:15)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
   ai(01) = ((-3 + 4*(1 - u - v))*(-2 + 4*(1 - u - v))*(-1 + 4*(1 - u - v))*(1 - u - v))/6.
   ai(02) = (8*u*(-2 + 4*(1 - u - v))*(-1 + 4*(1 - u - v))*(1 - u - v))/3.
@@ -27,8 +27,8 @@ function baseLagrangeTriangleP4(u,v) result(ai)
   ai(12) = 4*u*(-1 + 4*u)*v*(-1 + 4*v)
   ai(13) = (8*(1 - u - v)*v*(-2 + 4*v)*(-1 + 4*v))/3.
   ai(14) = (8*u*v*(-2 + 4*v)*(-1 + 4*v))/3.
-  ai(15) = (v*(-3 + 4*v)*(-2 + 4*v)*(-1 + 4*v))/6.
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  ai(15) = (v*(-3 + 4*v)*(-2 + 4*v)*(-1 + 4*v))/6.  
+ !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   return
 end function baseLagrangeTriangleP4
 
@@ -46,12 +46,20 @@ program test_libmeshb_HO_f90
     integer(int32)          :: i,iTria
     integer(int32)          :: GmfCell,GmfOrd
     integer(int32)          :: NmbVer,NmbQad,NmbTri,ver,dim,res
-    real(real64)  , pointer :: VerTab(:,:)
-    integer(int32), pointer :: VerRef(  :)
-    integer(int32), pointer :: QadTab(:,:),QadRef(:)
-    integer(int32), pointer :: TriTab(:,:),TriRef(:)
+    real(real64)  , pointer :: VerTab(:,:)=>null()
+    integer(int32), pointer :: VerRef(  :)=>null()
+    integer(int32), pointer :: QadTab(:,:)=>null(),QadRef(:)=>null()
+    integer(int32), pointer :: TriTab(:,:)=>null(),TriRef(:)=>null()
     integer(int32)          :: GmfKey
-      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    interface 
+      function     baseLagrangeTriangleP4(u,v) result(ai)
+        use iso_fortran_env
+        real(real64), intent(in) :: u,v
+        real(real64)             :: ai(1:15)
+      end function baseLagrangeTriangleP4
+    end interface
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     print '(/"test_libmeshb_HO_f90")'
@@ -258,9 +266,9 @@ program test_libmeshb_HO_f90
       real(real64)  , pointer :: uvw(:,:)
       integer(int32)          :: strd
       integer(int32)          :: NmbFields
-      integer(int32), pointer :: fields(:)
+      integer(int32), pointer :: fieldsKind(:)=>null()
       character(32) , pointer :: fieldsName(:)=>null()
-      real(real64)  , pointer :: solTab(:,:)
+      real(real64)  , pointer :: solTab(:,:)=>null()
       
       print '(/"Output Solu Open    : ",a )',trim(SolFile)
       
@@ -273,9 +281,9 @@ program test_libmeshb_HO_f90
       
       ! Set the solution kinds
       NmbFields=3
-      allocate( fields    (1:NmbFields))
+      allocate( fieldsKind(1:NmbFields))
       allocate( fieldsName(1:NmbFields))
-      fields(1:NmbFields) = [GmfSca,GmfVec,GmfSca]  
+      fieldsKind(1:NmbFields)=[GmfSca ,GmfVec ,GmfSca ]
       fieldsName(1:NmbFields)=['sca_1','vec_1','sca_2']
       
       ! Write iteration number in file
@@ -289,7 +297,7 @@ program test_libmeshb_HO_f90
       ! Solution Stride
       strd=5 ! 1+3+1 (GmfSca,GmfVec,GmfSca)
       
-      ! Writing Interoplation Nodes
+      ! Writing HO Interoplation Nodes
       ord=4
       nNod=(ord+1)*(ord+2)/2
       print '( "Output Solu ord     : ",i0)', ord
@@ -297,25 +305,25 @@ program test_libmeshb_HO_f90
       
       allocate(uvw(1:3,1:nNod))
       
-      ! Triangles P2 Nodes Positions {1-u-v,u,v}  (order=4)   (Warburton)
-      uvw(1:3,01)=[0.100000000000000E+01, 0.000000000000000E+00, 0.000000000000000E+00]
-      uvw(1:3,02)=[0.827326835353989E+00, 0.172673164646011E+00, 0.000000000000000E+00]
-      uvw(1:3,03)=[0.500000000000000E+00, 0.500000000000000E+00, 0.000000000000000E+00]
-      uvw(1:3,04)=[0.172673164646011E+00, 0.827326835353989E+00, 0.000000000000000E+00]
-      uvw(1:3,05)=[0.000000000000000E+00, 0.100000000000000E+01, 0.000000000000000E+00]
-      uvw(1:3,06)=[0.827326835353989E+00, 0.000000000000000E+00, 0.172673164646011E+00]
-      uvw(1:3,07)=[0.551583507555305E+00, 0.224208246222347E+00, 0.224208246222347E+00]
-      uvw(1:3,08)=[0.224208246222347E+00, 0.551583507555305E+00, 0.224208246222347E+00]
-      uvw(1:3,09)=[0.000000000000000E+00, 0.827326835353989E+00, 0.172673164646011E+00]
-      uvw(1:3,10)=[0.500000000000000E+00, 0.000000000000000E+00, 0.500000000000000E+00]
-      uvw(1:3,11)=[0.224208246222347E+00, 0.224208246222347E+00, 0.551583507555305E+00]
-      uvw(1:3,12)=[0.000000000000000E+00, 0.500000000000000E+00, 0.500000000000000E+00]
-      uvw(1:3,13)=[0.172673164646011E+00, 0.000000000000000E+00, 0.827326835353989E+00]
-      uvw(1:3,14)=[0.000000000000000E+00, 0.172673164646011E+00, 0.827326835353989E+00]
-      uvw(1:3,15)=[0.000000000000000E+00, 0.000000000000000E+00, 0.100000000000000E+01]
+      ! Triangles P2 Nodes Positions {1-u-v,u,v}  (order=4)   (Grille régulière)
+      uvw(1:3,01)= [1.00d0, 0.00d0, 0.00d0]
+      uvw(1:3,02)= [0.75d0, 0.25d0, 0.00d0]
+      uvw(1:3,03)= [0.50d0, 0.50d0, 0.00d0]
+      uvw(1:3,04)= [0.25d0, 0.75d0, 0.00d0]
+      uvw(1:3,05)= [0.00d0, 1.00d0, 0.00d0]
+      uvw(1:3,06)= [0.75d0, 0.00d0, 0.25d0]
+      uvw(1:3,07)= [0.50d0, 0.25d0, 0.25d0]
+      uvw(1:3,08)= [0.25d0, 0.50d0, 0.25d0]
+      uvw(1:3,09)= [0.00d0, 0.75d0, 0.25d0]
+      uvw(1:3,10)= [0.50d0, 0.00d0, 0.50d0]
+      uvw(1:3,11)= [0.25d0, 0.25d0, 0.50d0]
+      uvw(1:3,12)= [0.00d0, 0.50d0, 0.50d0]
+      uvw(1:3,13)= [0.25d0, 0.00d0, 0.75d0]
+      uvw(1:3,14)= [0.00d0, 0.25d0, 0.75d0]   
+      uvw(1:3,15)= [0.00d0, 0.00d0, 1.00d0]
       
       GmfKey=GmfHOSolAtTrianglesP2NodesPositions
-
+      
       res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfKey, Nmb=nNod)
       
       res=GmfSetBlockF90(    &
@@ -325,12 +333,68 @@ program test_libmeshb_HO_f90
       &   ad1=nNod          ,&
       &   Tab=uvw(:,1:)      )
       
-      ! Write Solution (nNod solution per triangle => nTri*nNod degrees)
-      !NmbDeg=NmbTri*nNod
-      
-      allocate(solTab(1:strd*nNod,1:NmbTri)) ; solTab(:,:)=1d0
+      !NmbDeg=NmbTri*nNod      
+      allocate(solTab(1:strd*nNod,1:NmbTri))
       print '("Output Solu  size(solTab): ",i0,"x",i0)',size(solTab,1),size(solTab,2)
       
+      ! Computing HO Solu(x,y,z)
+      soluXYZ :block
+        use iso_c_binding, only: c_loc,c_f_pointer
+        real(real64)  , pointer :: uv0 (:,:)=>null()
+        real(real64)  , pointer :: li0 (:,:)=>null()
+        real(real64)  , pointer :: xyz0(:,:)=>null()
+        real(real64)  , pointer :: li  (:,:)=>null()
+        real(real64)  , pointer :: xyz (:,:)=>null()
+        real(real64)  , pointer :: sol (:,:)=>null()
+        real(real64)  , pointer :: sol1(:)  =>null()
+        
+        
+        allocate(li0(1:nNod,1:6),uv0(1:2,1:6))
+        allocate(xyz0(1:3,1:6))
+        allocate(li(1:6,1:nNod))
+        allocate(xyz(1:3,1:nNod))
+        allocate(sol(1:strd,1:nNod))
+        
+        ! Triangle P2: uv0
+        !>  03 
+        !>  06 05
+        !>  01 04 02
+        uv0(1:2,1)=[0.0d0,0.0d0]
+        uv0(1:2,2)=[1.0d0,0.0d0]
+        uv0(1:2,3)=[0.0d0,1.0d0]
+        uv0(1:2,4)=[0.5d0,0.0d0]
+        uv0(1:2,5)=[0.5d0,0.5d0]
+        uv0(1:2,6)=[0.0d0,0.5d0]
+        
+        do i=1,6
+          li0(1:nNod,i)=baseLagrangeTriangleP4(u=uv0(1,i),v=uv0(2,i))
+        enddo
+        li(1:6,1:nNod)=transpose(li0(1:nNod,1:6))
+        
+        do iTria=1,NmbTri          
+          do i=1,6
+            xyz0(1:3,i)=VerTab(1:3,TriTab(i,iTria))
+          enddo
+          xyz(1:3,1:nNod)=matmul(xyz0(1:3,1:6),li(1:6,1:nNod))
+          
+          do i=1,nNod
+            sol(  1,i)=xyz(1,i)
+            sol(2:4,i)=[xyz(1,i),xyz(2,i),0d0]
+            sol(  5,i)=xyz(2,i)
+          enddo
+          call c_f_pointer(cptr=c_loc(sol), fptr=sol1, shape=[strd*nNod]) ! bind shape (1:strd,1:nNod) to shape (1:strd*nNod)
+          solTab(:,iTria)=sol1(:)
+        enddo
+        
+        deallocate(li0,uv0)
+        deallocate(xyz0)
+        deallocate(li)
+        deallocate(xyz)
+        deallocate(sol)
+        sol1=>null() ! no memory allocated, sol1 is binded to sol
+      end block soluXYZ
+      
+      ! Write Solution strd*nNods solution per triangleP2 => strd*nNod*nTri)
       GmfKey=GmfHOSolAtTrianglesP2
       
       res=GmfSetKwdF90(                  &
@@ -338,7 +402,7 @@ program test_libmeshb_HO_f90
       &   GmfKey=GmfKey                 ,&
       &   Nmb=NmbTri                    ,&
       &   NmbFields=NmbFields           ,&
-      &   fields=fields(1:NmbFields)    ,&
+      &   fields=fieldsKind(1:NmbFields),&
       &   ord=ord                       ,&
       &   nNod=nNod                      )
       
@@ -366,7 +430,7 @@ program test_libmeshb_HO_f90
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print '(/"control:"/"vizir4 -in ",a/)',trim(OutFile)
+    print '(/"Constrol"/"vizir4 -in ",a," -sol ",a,/)',trim(OutFile),trim(SolFile)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 end program test_libmeshb_HO_f90
