@@ -282,27 +282,27 @@ module libmeshb7
   integer(int32), parameter :: gmfmeshongeometry=227
   
   interface     GmfStatKwdF90
-    module procedure GmfStatKwdF90_0 !> vertices & nodes
-    module procedure GmfStatKwdF90_1 !> solutions       
+    module procedure GmfStatKwdF90_0       !> vertices & nodes
+    module procedure GmfStatKwdF90_1       !> solutions       
   end interface GmfStatKwdF90
   
   interface     GmfSetKwdF90
-    module procedure GmfSetKwdF90_0 !> vertices & nodes
-    module procedure GmfSetKwdF90_1 !> solutions       
+    module procedure GmfSetKwdF90_0        !> vertices & nodes
+    module procedure GmfSetKwdF90_1        !> solutions       
   end interface GmfSetKwdF90
   
   interface     GmfGetLineF90
-    module procedure GmfGetLineF90_i      ! int32 (:) + int32
-    module procedure GmfGetLineF90_d      ! real64(:) + int32
+    module procedure GmfGetLineF90_i       !> int32 (:) + int32
+    module procedure GmfGetLineF90_d       !> real64(:) + int32
   end interface GmfGetLineF90
   
   interface     GmfSetLineF90
-    module procedure GmfSetLineF90_i      ! int32 (:) + int32
-    module procedure GmfSetLineF90_d      ! real64(:) + int32
-    module procedure GmfSetLineF90_sol_i  ! int32 (:)
-    module procedure GmfSetLineF90_sol_i_ ! int32   
-    module procedure GmfSetLineF90_sol_d  ! real64(:)
-    module procedure GmfSetLineF90_sol_d_ ! real64   
+    module procedure GmfSetLineF90_i       !> int32 (:) + int32
+    module procedure GmfSetLineF90_d       !> real64(:) + int32
+    module procedure GmfSetLineF90_sol_i   !> int32 (:)
+    module procedure GmfSetLineF90_sol_i_  !> int32   
+    module procedure GmfSetLineF90_sol_d   !> real64(:)
+    module procedure GmfSetLineF90_sol_d_  !> real64   
   end interface GmfSetLineF90
   
   interface     GmfGetBlockF90
@@ -604,7 +604,7 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfSetLineF90_sol_d_
-
+  
   function     GmfGetBlockF90_00(unit, GmfKey, ad0, ad1, iTab, dTab, Ref) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64), intent(in)    :: unit
@@ -870,8 +870,8 @@ contains
     integer(int32), intent(in)    :: GmfKey
     integer(int32), intent(in)    :: ad0
     integer(int32), intent(in)    :: ad1
-    integer(int32), intent(inout) :: Tab(:,:)
-    integer(int32), intent(inout) :: Ref(  :)
+    integer(int32), intent(in)    :: Tab(:,:)
+    integer(int32), intent(in)    :: Ref(  :)
     integer(int32)                :: res
     !>
     integer(int32)                :: Nmb
@@ -908,8 +908,8 @@ contains
     integer(int32), intent(in)    :: ad0
     integer(int32), intent(in)    :: ad1
     integer(int32), intent(in)    :: strd
-    integer(int32), intent(inout) :: Tab(:)
-    integer(int32), intent(inout) :: Ref(:)
+    integer(int32), intent(in)    :: Tab(:)
+    integer(int32), intent(in)    :: Ref(:)
     integer(int32)                :: res
     !>
     integer(int32)                :: Nmb
@@ -945,8 +945,8 @@ contains
     integer(int32), intent(in)    :: GmfKey
     integer(int32), intent(in)    :: ad0
     integer(int32), intent(in)    :: ad1
-    real(real64)  , intent(inout) :: Tab(:,:)
-    integer(int32), intent(inout) :: Ref(  :)
+    real(real64)  , intent(in)    :: Tab(:,:)
+    integer(int32), intent(in)    :: Ref(  :)
     integer(int32)                :: res
     !>
     integer(int32)                :: iTab(1)
@@ -983,8 +983,8 @@ contains
     integer(int32), intent(in)    :: ad0
     integer(int32), intent(in)    :: ad1
     integer(int32), intent(in)    :: strd
-    real(real64)  , intent(inout) :: Tab(:)
-    integer(int32), intent(inout) :: Ref(:)
+    real(real64)  , intent(in)    :: Tab(:)
+    integer(int32), intent(in)    :: Ref(:)
     integer(int32)                :: res
     !>
     integer(int32)                :: iTab(1)
@@ -1020,7 +1020,7 @@ contains
     integer(int32), intent(in)    :: GmfKey
     integer(int32), intent(in)    :: ad0
     integer(int32), intent(in)    :: ad1
-    real(real64)  , intent(inout) :: Tab(:,:)
+    real(real64)  , intent(in)    :: Tab(:,:)
     integer(int32)                :: res
     !>
     integer(int32)                :: Ref(1)

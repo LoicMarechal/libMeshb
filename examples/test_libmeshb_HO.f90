@@ -50,6 +50,7 @@ program test_libmeshb_HO_f90
     integer(int32), pointer :: VerRef(  :)
     integer(int32), pointer :: QadTab(:,:),QadRef(:)
     integer(int32), pointer :: TriTab(:,:),TriRef(:)
+    integer(int32)          :: GmfKey
       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -110,7 +111,7 @@ program test_libmeshb_HO_f90
         integer :: BasTab(1:2,1:9)
         integer :: OrdTab(1:2,1:9)
         integer :: ord
-        integer :: nNode
+        integer :: nNod
         !>  04 07 03 
         !>  08 09 06
         !>  01 05 02
@@ -131,14 +132,14 @@ program test_libmeshb_HO_f90
         
         !> Q2 -> ord=2
         ord=2
-        nNode=(ord+1)*(ord+1)  ! <=
+        nNod=(ord+1)*(ord+1)  ! <=
         
         res=GmfGetBlockF90(         &
         &   unit=InpMsh            ,&
         &   GmfKey=GmfOrd          ,&
         &   ad0=1                  ,&
-        &   ad1=nNode              ,&
-        &   Tab=OrdTab(:,1:nNode)   )
+        &   ad1=nNod               ,&
+        &   Tab=OrdTab(:,1:nNod)    )
         
         print '("Input  Mesh Order")'
         do i=1,size(OrdTab,2)
@@ -284,19 +285,19 @@ program test_libmeshb_HO_f90
       ! Write Time in solution file
       res=GmfSetKwdF90 (unit=OutSol, GmfKey=GmfTime, Nmb=1)
       res=GmfSetLineF90(unit=OutSol, GmfKey=GmfTime, Tab=real(60,kind=real64))
-    
+      
+      ! Solution Stride
       strd=5 ! 1+3+1 (GmfSca,GmfVec,GmfSca)
       
       ! Writing Interoplation Nodes
       ord=4
       nNod=(ord+1)*(ord+2)/2
-      print '( "Output Mesh ord   : ",i0)', ord
-      print '( "Output Mesh nNod  : ",i0)', nNod
+      print '( "Output Solu ord     : ",i0)', ord
+      print '( "Output Solu nNod    : ",i0)', nNod
       
       allocate(uvw(1:3,1:nNod))
       
-      !TrianglesNodesPositions {1-u-v,u,v}  (order=4)   (Warburton)
-       
+      ! Triangles P2 Nodes Positions {1-u-v,u,v}  (order=4)   (Warburton)
       uvw(1:3,01)=[0.100000000000000E+01, 0.000000000000000E+00, 0.000000000000000E+00]
       uvw(1:3,02)=[0.827326835353989E+00, 0.172673164646011E+00, 0.000000000000000E+00]
       uvw(1:3,03)=[0.500000000000000E+00, 0.500000000000000E+00, 0.000000000000000E+00]
@@ -313,14 +314,16 @@ program test_libmeshb_HO_f90
       uvw(1:3,14)=[0.000000000000000E+00, 0.172673164646011E+00, 0.827326835353989E+00]
       uvw(1:3,15)=[0.000000000000000E+00, 0.000000000000000E+00, 0.100000000000000E+01]
       
-      res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfHOSolAtTrianglesP2NodesPositions, Nmb=nNod)
+      GmfKey=GmfHOSolAtTrianglesP2NodesPositions
+
+      res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfKey, Nmb=nNod)
       
-      res=GmfSetBlockF90(                             &
-      &   unit=OutSol                                ,&
-      &   GmfKey=GmfHOSolAtTrianglesP2NodesPositions ,&
-      &   ad0=1                                      ,&
-      &   ad1=nNod                                   ,&
-      &   Tab=uvw(:,1:)                               )
+      res=GmfSetBlockF90(    &
+      &   unit=OutSol       ,&
+      &   GmfKey=GmfKey     ,&
+      &   ad0=1             ,&
+      &   ad1=nNod          ,&
+      &   Tab=uvw(:,1:)      )
       
       ! Write Solution (nNod solution per triangle => nTri*nNod degrees)
       !NmbDeg=NmbTri*nNod
@@ -328,9 +331,11 @@ program test_libmeshb_HO_f90
       allocate(solTab(1:strd*nNod,1:NmbTri)) ; solTab(:,:)=1d0
       print '("Output Solu  size(solTab): ",i0,"x",i0)',size(solTab,1),size(solTab,2)
       
+      GmfKey=GmfHOSolAtTrianglesP2
+      
       res=GmfSetKwdF90(                  &
       &   unit=OutSol                   ,&
-      &   GmfKey=GmfSolAtVertices       ,&
+      &   GmfKey=GmfKey                 ,&
       &   Nmb=NmbTri                    ,&
       &   NmbFields=NmbFields           ,&
       &   fields=fields(1:NmbFields)    ,&
@@ -339,7 +344,7 @@ program test_libmeshb_HO_f90
       
       res=GmfSetBlockF90(                &
       &    unit=OutSol                  ,&
-      &    GmfKey=GmfHOSolAtTrianglesP2 ,&
+      &    GmfKey=GmfKey                ,&
       &    ad0=1                        ,&
       &    ad1=NmbTri                   ,&
       &    Tab=solTab(:,1:)              )
