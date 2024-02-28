@@ -10,22 +10,25 @@ function baseLagrangeTriangleP4(u,v) result(ai)
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none
   real(real64), intent(in) :: u,v
+  real(real64)             :: w
   real(real64)             :: ai(1:15)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
-  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  
-  ai(01) = ((-3 + 4*(1 - u - v))*(-2 + 4*(1 - u - v))*(-1 + 4*(1 - u - v))*(1 - u - v))/6.
-  ai(02) = (8*u*(-2 + 4*(1 - u - v))*(-1 + 4*(1 - u - v))*(1 - u - v))/3.
-  ai(03) = 4*u*(-1 + 4*u)*(-1 + 4*(1 - u - v))*(1 - u - v)
-  ai(04) = (8*u*(-2 + 4*u)*(-1 + 4*u)*(1 - u - v))/3.
-  ai(05) = (u*(-3 + 4*u)*(-2 + 4*u)*(-1 + 4*u))/6.
-  ai(06) = (8*(-2 + 4*(1 - u - v))*(-1 + 4*(1 - u - v))*(1 - u - v)*v)/3.
-  ai(07) = 32*u*(-1 + 4*(1 - u - v))*(1 - u - v)*v
-  ai(08) = 32*u*(-1 + 4*u)*(1 - u - v)*v
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  w=1d0-u-v 
+  
+  ai(01) = ((-3 + 4*w)*(-2 + 4*w)*(-1 + 4*w)*w)/6.
+  ai(02) = (8*u*(-2 + 4*w)*(-1 + 4*w)*w)/3.
+  ai(03) = 4*u*(-1 + 4*u)*(-1 + 4*w)*w
+  ai(04) = (8*u*(-2 + 4*u)*(-1 + 4*u)*w)/3.
+  ai(05) = (u*(-3+4*u)*(-2+4*u)*(-1.+4.*u))/6.
+  ai(06) = (8*(-2 + 4*w)*(-1 + 4*w)*w*v)/3.
+  ai(07) = 32*u*(-1 + 4*w)*w*v
+  ai(08) = 32*u*(-1 + 4*u)*w*v
   ai(09) = (8*u*(-2 + 4*u)*(-1 + 4*u)*v)/3.
-  ai(10) = 4*(-1 + 4*(1 - u - v))*(1 - u - v)*v*(-1 + 4*v)
-  ai(11) = 32*u*(1 - u - v)*v*(-1 + 4*v)
+  ai(10) = 4*(-1 + 4*w)*w*v*(-1 + 4*v)
+  ai(11) = 32*u*w*v*(-1 + 4*v)
   ai(12) = 4*u*(-1 + 4*u)*v*(-1 + 4*v)
-  ai(13) = (8*(1 - u - v)*v*(-2 + 4*v)*(-1 + 4*v))/3.
+  ai(13) = (8*w*v*(-2 + 4*v)*(-1 + 4*v))/3.
   ai(14) = (8*u*v*(-2 + 4*v)*(-1 + 4*v))/3.
   ai(15) = (v*(-3 + 4*v)*(-2 + 4*v)*(-1 + 4*v))/6.  
  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -306,6 +309,14 @@ program test_libmeshb_HO_f90
       allocate(uvw(1:3,1:nNod))
       
       ! Triangles P2 Nodes Positions {1-u-v,u,v}  (order=4)   (Grille régulière)
+      
+      !> Triangle P4: solution
+      !> 15
+      !>  13 14
+      !>  10 11 12 
+      !>  06 07 08 09
+      !>  01 02 03 04 05
+      
       uvw(1:3,01)= [1.00d0, 0.00d0, 0.00d0]
       uvw(1:3,02)= [0.75d0, 0.25d0, 0.00d0]
       uvw(1:3,03)= [0.50d0, 0.50d0, 0.00d0]
@@ -348,7 +359,6 @@ program test_libmeshb_HO_f90
         real(real64)  , pointer :: sol (:,:)=>null()
         real(real64)  , pointer :: sol1(:)  =>null()
         
-        
         allocate(li0(1:nNod,1:6),uv0(1:2,1:6))
         allocate(xyz0(1:3,1:6))
         allocate(li(1:6,1:nNod))
@@ -369,9 +379,21 @@ program test_libmeshb_HO_f90
         do i=1,6
           li0(1:nNod,i)=baseLagrangeTriangleP4(u=uv0(1,i),v=uv0(2,i))
         enddo
+        
+        !print '(/"li0")'
+        !do i=1,6
+        !  print '("uv0(",i0,")=",2(f12.5)," li0(",i2.2, ")=",3(f12.5,1x))',i, uv0(1:2,i),i,li0(2,i)
+        !enddo
+        
         li(1:6,1:nNod)=transpose(li0(1:nNod,1:6))
         
-        do iTria=1,NmbTri          
+        print '(/"li")'
+        do i=1,6
+          print '("li(",i2.2, ")=",*(f5.2,1x))',i,li(i,:)
+        enddo
+        
+        
+        do iTria=1,NmbTri
           do i=1,6
             xyz0(1:3,i)=VerTab(1:3,TriTab(i,iTria))
           enddo
@@ -384,6 +406,17 @@ program test_libmeshb_HO_f90
           enddo
           call c_f_pointer(cptr=c_loc(sol), fptr=sol1, shape=[strd*nNod]) ! bind shape (1:strd,1:nNod) to shape (1:strd*nNod)
           solTab(:,iTria)=sol1(:)
+          
+          if( iTria==1 )then
+            print '(/"xyz0")'
+            do i=1,6
+              print '("xyz0(",i2.2, ")=",3(f12.5,1x))',i,xyz0(1:3,i)
+            enddo
+            print '(/"xyz")'
+            do i=1,nNod
+              print '("xyz (",i2.2, ")=",3(f12.5,1x))',i,xyz(1:3,i)
+            enddo
+          endif
         enddo
         
         deallocate(li0,uv0)

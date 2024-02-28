@@ -371,17 +371,22 @@ contains
     return
   end function GmfStatKwdF90_0
   
-  function     GmfStatKwdF90_1(unit, GmfKey, r, s, t, d, ho) result(res)
+  function     GmfStatKwdF90_1(unit,GmfKey,NmbFields, strd ,fields ,ord, nNod ) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer(int64) :: unit
-    integer(int32) :: GmfKey
-    integer(int32) :: Nmb
-    integer(int32) :: res
-    !>
-    integer(int32) :: r,s,t(:),d,ho
+    integer(int64), intent(in)           :: unit
+    integer(int32), intent(in)           :: GmfKey
+    integer(int32), intent(out)          :: NmbFields
+    integer(int32), intent(out)          :: strd
+    integer(int32), intent(out)          :: fields(:)
+    integer(int32), intent(in), optional :: ord,nNod
+    integer(int32)                       :: res
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    res = GmfStatKwdf77(unit, GmfKey, r, s, t(1), d, ho)
+    if( present(ord) .and. present(nNod) )then
+      res=GmfStatKwdf77(unit, GmfKey, NmbFields, strd, fields(1), ord, nNod)
+    else
+      res=GmfStatKwdf77(unit, GmfKey, NmbFields, strd, fields(1), 0, 0)
+    endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfStatKwdF90_1
