@@ -2,38 +2,78 @@
 ! read a Q2 quad mesh while using the automatic HO reordering feature,
 ! split it into P2 triangles and write the result back using fast block transfer
 
-
-function baseLagrangeTriangleP4(u,v) result(ai)
+subroutine baseLagrangeTriangleP2(u,v,ai)
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
+  implicit none
+  real(real64), intent(in)  :: u,v
+  real(real64), intent(out) :: ai(1:6)  
+  real(real64)              :: w
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  w=1d0-u-v
+  
+  ai(1) = w*(2*w-1d0)
+  ai(2) = u*(2*u-1d0)
+  ai(3) = v*(2*v-1d0)
+  ai(4) = 4*u*w
+  ai(5) = 4*u*v
+  ai(6) = 4*w*v
+ !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+return
+end subroutine baseLagrangeTriangleP2
+
+subroutine     nodesT3(ord, uvw,display)
+  use iso_fortran_env
+  integer(int32), intent(in)  :: ord
+  logical(int32), intent(in)  :: display
+  real(real64)  , intent(out) :: uvw(:,:)
+  !---
+  integer(int32)              :: iu,iv,iw,ad
+  integer(int32)              :: n
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  implicit none
-  real(real64), intent(in) :: u,v
-  real(real64)             :: w
-  real(real64)             :: ai(1:15)
-  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  
+  !> Total number of nodes
+  n=(ord+1)*(ord+2)/2
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  w=1d0-u-v 
+  !> Create equidistributed nodes on unity triangle
+  if( ord==0 )then
+    uvw(1:3,1)=[1d0/3d0,1d0/3d0,1d0/3d0]
+  elseif( ord==1 )then
+    uvw(1:3,1)=[0d0,0d0,1d0]
+    uvw(1:3,2)=[1d0,0d0,0d0]
+    uvw(1:3,3)=[0d0,1d0,0d0]
+  elseif( ord==2 )then
+    uvw(1:3,1)=[0.0d0, 0.0d0, 1.0d0]
+    uvw(1:3,2)=[0.5d0, 0.0d0, 0.5d0]
+    uvw(1:3,3)=[1.0d0, 0.0d0, 0.0d0]
+    uvw(1:3,4)=[0.0d0, 0.5d0, 0.5d0]
+    uvw(1:3,5)=[0.5d0, 0.5d0, 0.0d0]
+    uvw(1:3,6)=[0.0d0, 1.0d0, 0.0d0]
+  else
+    do iu=0,ord
+      do iv=0,ord-iu
+        do iw=0,ord-iu-iv
+          ad=iu+iv*(ord+1)-(iv*(iv-1))/2 +1 !> Rangement façon space            
+          uvw(1:3,ad)=[real(iu,kind=8)/real(ord,kind=8),& !> u
+          &            real(iv,kind=8)/real(ord,kind=8),& !> v
+          &            real(iw,kind=8)/real(ord,kind=8) ] !> w
+        enddo
+      enddo
+    enddo
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-  ai(01) = ((-3 + 4*w)*(-2 + 4*w)*(-1 + 4*w)*w)/6.
-  ai(02) = (8*u*(-2 + 4*w)*(-1 + 4*w)*w)/3.
-  ai(03) = 4*u*(-1 + 4*u)*(-1 + 4*w)*w
-  ai(04) = (8*u*(-2 + 4*u)*(-1 + 4*u)*w)/3.
-  ai(05) = (u*(-3+4*u)*(-2+4*u)*(-1.+4.*u))/6.
-  ai(06) = (8*(-2 + 4*w)*(-1 + 4*w)*w*v)/3.
-  ai(07) = 32*u*(-1 + 4*w)*w*v
-  ai(08) = 32*u*(-1 + 4*u)*w*v
-  ai(09) = (8*u*(-2 + 4*u)*(-1 + 4*u)*v)/3.
-  ai(10) = 4*(-1 + 4*w)*w*v*(-1 + 4*v)
-  ai(11) = 32*u*w*v*(-1 + 4*v)
-  ai(12) = 4*u*(-1 + 4*u)*v*(-1 + 4*v)
-  ai(13) = (8*w*v*(-2 + 4*v)*(-1 + 4*v))/3.
-  ai(14) = (8*u*v*(-2 + 4*v)*(-1 + 4*v))/3.
-  ai(15) = (v*(-3 + 4*v)*(-2 + 4*v)*(-1 + 4*v))/6.  
- !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  if( display )then
+    write(*,'(/"Triangle unité initial ord=",i0)')ord
+    print '("ad=",i5,2x,"u=",f19.16,2x,"v=",f19.16,2x,"w=",f19.16)',(ad,uvw(1:3,ad),ad=1,n)
+  endif
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  
   return
-end function baseLagrangeTriangleP4
+end subroutine nodesT3
+
 
 program test_libmeshb_HO_f90
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -55,12 +95,18 @@ program test_libmeshb_HO_f90
     integer(int32), pointer :: TriTab(:,:)=>null(),TriRef(:)=>null()
     integer(int32)          :: GmfKey
     
-    interface 
-      function     baseLagrangeTriangleP4(u,v) result(ai)
+    interface
+      subroutine     baseLagrangeTriangleP2(u,v,ai)
         use iso_fortran_env
-        real(real64), intent(in) :: u,v
-        real(real64)             :: ai(1:15)
-      end function baseLagrangeTriangleP4
+        real(real64), intent(in)  :: u,v
+        real(real64), intent(out) :: ai(1:6)
+      end subroutine baseLagrangeTriangleP2
+      subroutine     nodesT3(ord, uvw,display)
+        use iso_fortran_env
+        integer(int32), intent(in)  :: ord
+        logical(int32), intent(in)  :: display
+        real(real64)  , intent(out) :: uvw(:,:)
+      end subroutine nodesT3
     end interface
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -76,13 +122,13 @@ program test_libmeshb_HO_f90
     
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! Open the quadrilateral mesh file for reading
-    print '(/"Input  Mesh File  : ",a )',trim(InpFile)
+    print '(/"Input  Mesh File     : ",a )',trim(InpFile)
     
     ! Open the mesh file and check the version and dimension
     InpMsh=GmfOpenMeshF90(name=trim(InpFile),GmfKey=GmfRead,ver=ver,dim=dim)
-    print '( "Input  Mesh Idx   : ",i0)',InpMsh
-    print '( "Input  Mesh ver   : ",i0)',ver
-    print '( "Input  Mesh dim   : ",i0)',dim
+    print '( "Input  Mesh Idx      : ",i0)',InpMsh
+    print '( "Input  Mesh ver      : ",i0)',ver
+    print '( "Input  Mesh dim      : ",i0)',dim
     
     if( InpMsh==0 ) stop ' InpMsh = 0'
     if( ver<=1    ) stop ' version <= 1'
@@ -91,7 +137,7 @@ program test_libmeshb_HO_f90
     ! Read the vertices using a vector of 3 consecutive doubles to store the coordinates
     
     NmbVer = GmfstatkwdF90(unit=InpMsh, GmfKey=GmfVertices)
-    print '( "Input  Mesh NmbVer: ",i0)', NmbVer
+    print '( "Input  Mesh NmbVer   : ",i0)', NmbVer
     allocate(VerTab(1:3,1:NmbVer))
     allocate(VerRef(    1:NmbVer))
     
@@ -112,7 +158,7 @@ program test_libmeshb_HO_f90
     GmfOrd =GmfQuadrilateralsQ2Ordering         ! <=
     
     NmbQad=GmfstatkwdF90(unit=InpMsh,GmfKey=GmfCell)
-    print '( "Input  Mesh NmbQad: ",i0)', NmbQad
+    print '( "Input  Mesh NmbQad   : ",i0)', NmbQad
     allocate(QadTab(1:9,1:NmbQad))
     allocate(QadRef(    1:NmbQad))
     
@@ -171,7 +217,7 @@ program test_libmeshb_HO_f90
     &   Ref=QadRef(  1:)           )
     
     ! Close the quadrilateral mesh
-    print '("Input  Mesh Close : ",a)',trim(InpFile)
+    print '("Input  Mesh Close    : ",a)',trim(InpFile)
     
     !print '("Input  Mesh")'
     !do i=1,10 !NmbQad
@@ -218,7 +264,7 @@ program test_libmeshb_HO_f90
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! Write a triangular mesh
     
-    print '(/"Output Mesh File  : ",a )',trim(OutFile)
+    print '(/"Output Mesh File     : ",a )',trim(OutFile)
     
     !print '("Output Mesh")'
     !do i=1,10
@@ -227,14 +273,14 @@ program test_libmeshb_HO_f90
     
     ! Open the mesh file and check the version and dimension
     OutMsh=GmfOpenMeshF90(name=trim(OutFile),GmfKey=GmfWrite,ver=ver,dim=dim)
-    print '( "Output Mesh Idx   : ",i0)',InpMsh
-    print '( "Output Mesh ver   : ",i0)',ver
-    print '( "Output Mesh dim   : ",i0)',dim
+    print '( "Output Mesh Idx      : ",i0)',InpMsh
+    print '( "Output Mesh ver      : ",i0)',ver
+    print '( "Output Mesh dim      : ",i0)',dim
     if( OutMsh==0 ) STOP ' OutMsh = 0'
     
     ! Set the number of vertices
     res=GmfSetKwdF90(unit=OutMsh, GmfKey=GmfVertices, Nmb=NmbVer)
-    print '( "Output Mesh NmbVer: ",i0)', NmbVer
+    print '( "Output Mesh NmbVer   : ",i0)', NmbVer
     
     ! Write them down using separate pointers for each scalar entry    
     res=GmfSetBlockF90(        &
@@ -248,7 +294,7 @@ program test_libmeshb_HO_f90
     ! Write the triangles using 4 independant set of arguments 
     ! for each scalar entry: node1, node2, node3 and reference
     res=GmfSetKwdF90(unit=OutMsh, GmfKey=GmfTrianglesP2, Nmb=NmbTri)
-    print '( "Output Mesh NmbTri: ",i0)', NmbTri
+    print '( "Output Mesh NmbTri   : ",i0)', NmbTri
     
     res=GmfSetBlockF90(        &
     &   unit=OutMsh           ,&
@@ -259,6 +305,7 @@ program test_libmeshb_HO_f90
     &   Ref=TriRef(  1:NmbVer) )
     
     ! Don't forget to close the file
+    print '("Output Mesh Close    : ",a)',trim(OutFile)    
     res=GmfCloseMeshF90(unit=OutMsh)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
@@ -273,13 +320,13 @@ program test_libmeshb_HO_f90
       character(32) , pointer :: fieldsName(:)=>null()
       real(real64)  , pointer :: solTab(:,:)=>null()
       
-      print '(/"Output Solu Open    : ",a )',trim(SolFile)
+      print '(/"Output Solu Open     : ",a )',trim(SolFile)
       
       OutSol=GmfOpenMeshF90(name=trim(SolFile),GmfKey=GmfWrite,ver=ver,dim=dim)
       
-      print '( "Output Solu Idx     : ",i0)',OutSol
-      print '( "Output Solu ver     : ",i0)',ver
-      print '( "Output Solu dim     : ",i0)',dim
+      print '( "Output Solu Idx      : ",i0)',OutSol
+      print '( "Output Solu ver      : ",i0)',ver
+      print '( "Output Solu dim      : ",i0)',dim
       if( OutSol==0 ) STOP ' OutSol = 0'
       
       ! Set the solution kinds
@@ -301,40 +348,16 @@ program test_libmeshb_HO_f90
       strd=5 ! 1+3+1 (GmfSca,GmfVec,GmfSca)
       
       ! Writing HO Interoplation Nodes
-      ord=4
+      ord=5 ! <= on peut changer l'ordre
       nNod=(ord+1)*(ord+2)/2
-      print '( "Output Solu ord     : ",i0)', ord
-      print '( "Output Solu nNod    : ",i0)', nNod
+      print '( "Output Solu ord      : ",i0)', ord
+      print '( "Output Solu nNod     : ",i0)', nNod
       
-      allocate(uvw(1:3,1:nNod))
+      allocate(uvw(1:3,1:nNod))      
+      call nodesT3(ord=ord,uvw=uvw,display=.false.)
       
-      ! Triangles P2 Nodes Positions {1-u-v,u,v}  (order=4)   (Grille régulière)
-      
-      !> Triangle P4: solution
-      !> 15
-      !>  13 14
-      !>  10 11 12 
-      !>  06 07 08 09
-      !>  01 02 03 04 05
-      
-      uvw(1:3,01)= [1.00d0, 0.00d0, 0.00d0]
-      uvw(1:3,02)= [0.75d0, 0.25d0, 0.00d0]
-      uvw(1:3,03)= [0.50d0, 0.50d0, 0.00d0]
-      uvw(1:3,04)= [0.25d0, 0.75d0, 0.00d0]
-      uvw(1:3,05)= [0.00d0, 1.00d0, 0.00d0]
-      uvw(1:3,06)= [0.75d0, 0.00d0, 0.25d0]
-      uvw(1:3,07)= [0.50d0, 0.25d0, 0.25d0]
-      uvw(1:3,08)= [0.25d0, 0.50d0, 0.25d0]
-      uvw(1:3,09)= [0.00d0, 0.75d0, 0.25d0]
-      uvw(1:3,10)= [0.50d0, 0.00d0, 0.50d0]
-      uvw(1:3,11)= [0.25d0, 0.25d0, 0.50d0]
-      uvw(1:3,12)= [0.00d0, 0.50d0, 0.50d0]
-      uvw(1:3,13)= [0.25d0, 0.00d0, 0.75d0]
-      uvw(1:3,14)= [0.00d0, 0.25d0, 0.75d0]   
-      uvw(1:3,15)= [0.00d0, 0.00d0, 1.00d0]
       
       GmfKey=GmfHOSolAtTrianglesP2NodesPositions
-      
       res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfKey, Nmb=nNod)
       
       res=GmfSetBlockF90(    &
@@ -346,52 +369,33 @@ program test_libmeshb_HO_f90
       
       !NmbDeg=NmbTri*nNod      
       allocate(solTab(1:strd*nNod,1:NmbTri))
-      print '("Output Solu  size(solTab): ",i0,"x",i0)',size(solTab,1),size(solTab,2)
+      print '("Output Solu size(sol): ",i0,"x",i0)',size(solTab,1),size(solTab,2)
       
       ! Computing HO Solu(x,y,z)
       soluXYZ :block
         use iso_c_binding, only: c_loc,c_f_pointer
         real(real64)  , pointer :: uv0 (:,:)=>null()
-        real(real64)  , pointer :: li0 (:,:)=>null()
         real(real64)  , pointer :: xyz0(:,:)=>null()
         real(real64)  , pointer :: li  (:,:)=>null()
         real(real64)  , pointer :: xyz (:,:)=>null()
         real(real64)  , pointer :: sol (:,:)=>null()
         real(real64)  , pointer :: sol1(:)  =>null()
         
-        allocate(li0(1:nNod,1:6),uv0(1:2,1:6))
         allocate(xyz0(1:3,1:6))
         allocate(li(1:6,1:nNod))
         allocate(xyz(1:3,1:nNod))
         allocate(sol(1:strd,1:nNod))
         
-        ! Triangle P2: uv0
-        !>  03 
-        !>  06 05
-        !>  01 04 02
-        uv0(1:2,1)=[0.0d0,0.0d0]
-        uv0(1:2,2)=[1.0d0,0.0d0]
-        uv0(1:2,3)=[0.0d0,1.0d0]
-        uv0(1:2,4)=[0.5d0,0.0d0]
-        uv0(1:2,5)=[0.5d0,0.5d0]
-        uv0(1:2,6)=[0.0d0,0.5d0]
+        !> on va projeter les coordonnées des noeuds sur les degres de liberté de chaque cellule (uvw)
         
-        do i=1,6
-          li0(1:nNod,i)=baseLagrangeTriangleP4(u=uv0(1,i),v=uv0(2,i))
+        do i=1,nNod
+          call baseLagrangeTriangleP2(u=uvw(2,i),v=uvw(3,i), ai=li(1:6,i))
         enddo
         
-        !print '(/"li0")'
+        !print '(/"li")'
         !do i=1,6
-        !  print '("uv0(",i0,")=",2(f12.5)," li0(",i2.2, ")=",3(f12.5,1x))',i, uv0(1:2,i),i,li0(2,i)
+        !  print '("i=",i2.2," uv0=",2(f5.2,1x),"li0=",*(e12.5,1x))',i,uv0(1:2,i),li(:,i)
         !enddo
-        
-        li(1:6,1:nNod)=transpose(li0(1:nNod,1:6))
-        
-        print '(/"li")'
-        do i=1,6
-          print '("li(",i2.2, ")=",*(f5.2,1x))',i,li(i,:)
-        enddo
-        
         
         do iTria=1,NmbTri
           do i=1,6
@@ -407,19 +411,18 @@ program test_libmeshb_HO_f90
           call c_f_pointer(cptr=c_loc(sol), fptr=sol1, shape=[strd*nNod]) ! bind shape (1:strd,1:nNod) to shape (1:strd*nNod)
           solTab(:,iTria)=sol1(:)
           
-          if( iTria==1 )then
-            print '(/"xyz0")'
-            do i=1,6
-              print '("xyz0(",i2.2, ")=",3(f12.5,1x))',i,xyz0(1:3,i)
-            enddo
-            print '(/"xyz")'
-            do i=1,nNod
-              print '("xyz (",i2.2, ")=",3(f12.5,1x))',i,xyz(1:3,i)
-            enddo
-          endif
+          !if( iTria==1 )then
+          !  print '(/"xyz0")'
+          !  do i=1,6
+          !    print '("xyz0(",i2.2, ")=",3(f12.5,1x))',i,xyz0(1:3,i)
+          !  enddo
+          !  print '(/"xyz")'
+          !  do i=1,nNod
+          !    print '("xyz (",i2.2, ")=",3(f12.5,1x))',i,xyz(1:3,i)
+          !  enddo
+          !endif
         enddo
         
-        deallocate(li0,uv0)
         deallocate(xyz0)
         deallocate(li)
         deallocate(xyz)
@@ -448,7 +451,7 @@ program test_libmeshb_HO_f90
       
       ! Don't forget to close the file
       res=GmfCloseMeshF90(unit=OutSol)
-      print '("Output Solu Close   : ",a)',trim(SolFile)    
+      print '("Output Solu Close    : ",a)',trim(SolFile)    
       
       deallocate(uvw)
       deallocate(solTab)

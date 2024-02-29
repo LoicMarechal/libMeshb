@@ -1036,8 +1036,8 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Nmb=ad1-ad0+1
     
-    print '("GmfSetBlockF90_04 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
-    print '("GmfSetBlockF90_04 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    !print '("GmfSetBlockF90_04 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    !print '("GmfSetBlockF90_04 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
     
     res=GmfSetBlockF77(unit       ,&
     &                  GmfKey     ,&
