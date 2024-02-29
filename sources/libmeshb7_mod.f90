@@ -323,7 +323,7 @@ module libmeshb7
    !module procedure GmfGetBlockF90_00
     module procedure GmfSetBlockF90_01     !> int32 (:,:) + int32(:)
     module procedure GmfSetBlockF90_01_    !> int32 (:)   + int32(:)
-   !module procedure GmfSetBlockF90_02     !> int32 (:,:)           
+    module procedure GmfSetBlockF90_02     !> int32 (:,:)           
    !module procedure GmfSetBlockF90_02_    !> int32 (:)             
     module procedure GmfSetBlockF90_03     !> real64(:,:) + int32(:)
     module procedure GmfSetBlockF90_03_    !> real64(:)   + int32(:)
@@ -1020,7 +1020,43 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfSetBlockF90_01_
-
+  
+  function     GmfSetBlockF90_02(unit, GmfKey, ad0, ad1, Tab) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    integer(int32), intent(in)    :: Tab(:,:)
+    integer(int32)                :: res
+    !>
+    integer(int32)                :: Ref(1)
+    real(real64)                  :: dTab(1)
+    integer(int32)                :: Nmb
+    integer(int32), pointer       :: map(:)=>null()
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    Nmb=ad1-ad0+1
+    
+    !print '("GmfSetBlockF90_02 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    !print '("GmfSetBlockF90_02 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    
+    res=GmfSetBlockF77(unit       ,&
+    &                  GmfKey     ,&
+    &                  ad0        ,&
+    &                  ad1        ,&
+    &                  int32      ,&
+    &                  map        ,&
+    &                  Tab(1,  1) ,&
+    &                  Tab(1,Nmb) ,&
+    &                  dTab(1)    ,&
+    &                  dTab(1)    ,&
+    &                  Ref(1)     ,&
+    &                  Ref(1)      )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfSetBlockF90_02
+  
   function     GmfSetBlockF90_03(unit, GmfKey, ad0, ad1, Tab, Ref) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64), intent(in)    :: unit
