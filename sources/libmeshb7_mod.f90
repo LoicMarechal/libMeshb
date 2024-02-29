@@ -294,6 +294,7 @@ module libmeshb7
   interface     GmfGetLineF90
     module procedure GmfGetLineF90_i       !> int32 (:) + int32
     module procedure GmfGetLineF90_i_      !> int32 (:)
+    module procedure GmfGetLineF90_i__     !> int32
     module procedure GmfGetLineF90_d       !> real64(:) + int32
     module procedure GmfGetLineF90_d_      !> real64(:)
   end interface GmfGetLineF90
@@ -493,6 +494,25 @@ contains
     return
   end function GmfGetLineF90_i_
   
+  function     GmfGetLineF90_i__(unit, GmfKey, Tab) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    !> Reading Nodes and Ref
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: GmfKey
+    integer(int32) :: Tab
+    integer(int32) :: res
+    !>
+    real(real64)   :: dTab(1)
+    integer(int32) :: Ref
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res=GmfGetLineF77(unit, GmfKey, Tab, dTab(1), Ref)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfGetLineF90_i__
+  
   function     GmfGetLineF90_d(unit, GmfKey, Tab, Ref) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Reading Vertices and Ref
@@ -530,7 +550,7 @@ contains
     return
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   end function GmfGetLineF90_d_
-
+  
   function     GmfSetLineF90_i(unit, GmfKey, Tab, Ref) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     !> Writting Nodes and Ref
