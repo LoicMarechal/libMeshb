@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.80                               */
+/*                               LIBMESHB V7.81                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  feb 27 2024                                         */
+/*    Last modification:  mar 01 2024                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -27,6 +27,7 @@
 /*----------------------------------------------------------------------------*/
 
 #define GmfStrSiz       1024
+#define FilStrSiz       64
 #define GmfMaxTyp       1000
 #define GmfMaxKwd       GmfLastKeyword - 1
 #define GmfMshVer       1

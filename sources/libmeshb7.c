@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.80                               */
+/*                               LIBMESHB V7.81                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  feb 28 2024                                          */
+/*   Last modification:  mar 01 2024                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -194,7 +194,6 @@ int my_aio_write(struct aiocb *aiocbp)
 #define CmtKwd    4
 #define F77Kwd    5
 #define WrdSiz    4
-#define FilStrSiz 64
 #define BufSiz    10000L
 #define MaxArg    1000
 
@@ -1121,7 +1120,7 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
                }
                else if(kwd->fmt[i] == 'c')
                {
-                  safe_fscanf(msh->hdl, "%s", va_arg(VarArg, char *), msh->err);
+                  safe_fgets(va_arg(VarArg, char *), FilStrSiz, msh->hdl, msh->err);
                }
             }
          }
@@ -1239,6 +1238,7 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
 
 int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
 {
+   char        *str;
    int         i, pos, *IntBuf, err, typ, *IntTab, *RefPtr;
    int64_t     *LngBuf;
    float       *FltSolTab, *FltBuf;
@@ -1303,7 +1303,16 @@ int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
                   }
                }
                else if(kwd->fmt[i] == 'c')
-                  fprintf(msh->hdl, "%s ", va_arg(VarArg, char *));
+               {
+                  // Safety check: if the string is greater than 64 characters
+                  // truncate it with an ending 0
+                  str = va_arg(VarArg, char *);
+
+                  if(strlen(str) >= FilStrSiz)
+                     str[ FilStrSiz ] = 0;
+
+                  fputs(str, msh->hdl);
+               }
             }
          }
          else
