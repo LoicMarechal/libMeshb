@@ -129,7 +129,7 @@ program  test_libmeshb_f90
   print '(/"Output Solu Open    : ",a )',trim(SolFile)
   
   OutSol=GmfOpenMeshF90(name=trim(SolFile),GmfKey=GmfWrite,ver=ver,dim=dim)
-
+  
   print '( "Output Solu Idx     : ",i0)',OutSol
   print '( "Output Solu ver     : ",i0)',ver
   print '( "Output Solu dim     : ",i0)',dim
@@ -192,16 +192,13 @@ program  test_libmeshb_f90
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! Write an Int Map Solution on triangular mesh and Read it
-  block
+  IntMap: block
     integer(int64)          :: OutMap
     character(80)           :: MapFile
     integer(int32), pointer :: map(:),map2(:),map3(:,:)
     integer                 :: iField,nSol
-    
-    MapFile='./map.sol'
-    print '(/"Output Map  Open    : ",a )',trim(MapFile)
-    
-    NmbFields=5
+        
+    NmbFields=1
     allocate( fields(1:NmbFields)) ; fields(:)=[(GmfSca, i=1,NmbFields)]
     allocate( map   (1:NmbFields)) ; map   (:)=[(i     , i=1,NmbFields)]
     allocate( map2(1:NmbTri*NmbFields))
@@ -210,6 +207,8 @@ program  test_libmeshb_f90
     ! ---
     ! Ecriture par ligne
 
+    MapFile='./tri_map.sol'
+    print '(/"Output Map  Open    : ",a)',trim(MapFile)
     OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfWrite,ver=2,dim=3)
         
     ! Set the number of solutions (one per Tringle)
@@ -227,27 +226,29 @@ program  test_libmeshb_f90
     endif
     
     res=GmfCloseMeshF90(unit=OutMap)
+    print '( "Output Map  Close   : ",a)',trim(MapFile)
     
     ! ---
     ! lecture par ligne
     
+    print '(/"Output Map  Open    : ",a)',trim(MapFile)
     OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfRead,ver=ver,dim=dim)
     do i=1,NmbTri
       res=GmfGetLineF90(unit=OutSol, GmfKey=GmfSolAtTriangles, Tab=map(:))
       if( i<=5 )print '("map="*(i0,1x))',map(:)
     enddo
     res=GmfCloseMeshF90(unit=OutMap)
+    print '( "Output Map  Close   : ",a)',trim(MapFile)
     
     ! ---
     ! Ecriture par block 1
-    
-    MapFile='./map2.sol'
-    print '(/"Output Map  Open    : ",a )',trim(MapFile)
-    
+        
     do i=1,NmbTri*NmbFields,NmbFields
       map2(i:i+NmbFields-1)=[(iField , iField=1,NmbFields)]
     enddo
     
+    MapFile='./tri_map2.sol'
+    print '(/"Output Map  Open    : ",a )',trim(MapFile)
     OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfWrite,ver=2,dim=3)
     res=GmfSetKwdF90(unit=OutMap, GmfKey=GmfSolAtTriangles, Nmb=NmbTri, NmbFields=NmbFields, fields=fields(1:NmbFields))
     
@@ -260,12 +261,14 @@ program  test_libmeshb_f90
     &   Tab=map2(1:)             )
 
     res=GmfCloseMeshF90(unit=OutMap)
+    print '( "Output Map  Close   : ",a)',trim(MapFile)
     
     ! ---
     ! Lecture par block 1
 
     map2(:)=0
     
+    print '(/"Output Map  Open    : ",a )',trim(MapFile)
     OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfRead,ver=ver,dim=dim)
     nSol=GmfStatKwdF90(unit=OutSol,GmfKey=GmfSolAtTriangles,NmbFields=NmbFields, strd=NmbFields ,fields=fields(1:NmbFields))
     
@@ -287,7 +290,7 @@ program  test_libmeshb_f90
     ! ---
     ! Ecriture par block 2
     
-    MapFile='./map3.sol'
+    MapFile='./tri_map3.sol'
     print '(/"Output Map  Open    : ",a )',trim(MapFile)
     
     do i=1,NmbTri*NmbFields
@@ -305,10 +308,12 @@ program  test_libmeshb_f90
     &   Tab=map3(:,1:)           )
     
     res=GmfCloseMeshF90(unit=OutMap)
+    print '( "Output Map  Close   : ",a)',trim(MapFile)
     
     ! ---
     ! Lecture par block 2
     
+    print '(/"Output Map  Open    : ",a )',trim(MapFile)
     OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfRead,ver=ver,dim=dim)
     nSol=GmfStatKwdF90(unit=OutSol,GmfKey=GmfSolAtTriangles,NmbFields=NmbFields, strd=NmbFields ,fields=fields(1:NmbFields))
     
@@ -322,6 +327,7 @@ program  test_libmeshb_f90
     &   Tab=map3(:,1:)                  )
         
     res=GmfCloseMeshF90(unit=OutMap)
+    print '( "Output Map  Close   : ",a)',trim(MapFile)
 
     !do i=1,NmbFields*NmbTri,NmbFields
     do i=1,5
@@ -332,8 +338,7 @@ program  test_libmeshb_f90
     
     deallocate(fields,map,map2,map3)
 
-
-  end block
+  end block IntMap
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
