@@ -195,37 +195,142 @@ program  test_libmeshb_f90
   block
     integer(int64)          :: OutMap
     character(80)           :: MapFile
-    integer(int32)          :: map(1)
+    integer(int32), pointer :: map(:),map2(:),map3(:,:)
+    integer                 :: iField,nSol
     
     MapFile='./map.sol'
     print '(/"Output Map  Open    : ",a )',trim(MapFile)
     
+    NmbFields=5
+    allocate( fields(1:NmbFields)) ; fields(:)=[(GmfSca, i=1,NmbFields)]
+    allocate( map   (1:NmbFields)) ; map   (:)=[(i     , i=1,NmbFields)]
+    allocate( map2(1:NmbTri*NmbFields))
+    allocate( map3(1:NmbFields,1:NmbTri))
+    
+    ! ---
+    ! Ecriture par ligne
+
     OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfWrite,ver=2,dim=3)
-    
-  ! Set the solution kinds
-    NmbFields=1
-    !allocate( fields    (1:NmbFields))
-    !fields(1:NmbFields) = [GmfSca]  
-    
-    !allocate( fieldsName(1:NmbFields))
-    !fieldsName(1:NmbFields)=['cellID']
-    
+        
     ! Set the number of solutions (one per Tringle)
-    !res=GmfSetKwdF90(unit=OutSol, GmfKey=gmfsolattriangles, Nmb=NmbTri, NmbFields=NmbFields, fields=fields(1:NmbFields))
-    res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtTriangles, Nmb=NmbTri, NmbFields=NmbFields, fields=[GmfSca])
-    
-    do i=1,NmbTri
-      map(1)=1
-     !res=GmfSetLineF90(unit=OutSol, GmfKey=GmfSolAtTriangles, 1_int32     ) ! teste la fonction GmfSetLineF90_sol_i_
-     !res=GmfSetLineF90(unit=OutSol, GmfKey=GmfSolAtTriangles, Tab=map(  1)) ! teste la fonction GmfSetLineF90_sol_i_
-      res=GmfSetLineF90(unit=OutSol, GmfKey=GmfSolAtTriangles, Tab=map(1:1)) ! teste la fonction GmfSetLineF90_sol_i_
-    enddo
+    if( NmbFields==1 )then
+      res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtTriangles, Nmb=NmbTri, NmbFields=NmbFields, fields=[GmfSca])
+      do i=1,NmbTri
+        res=GmfSetLineF90(unit=OutSol, GmfKey=GmfSolAtTriangles, Tab=map(1)) ! teste la fonction GmfSetLineF90_sol_i_
+      enddo
+    else      
+      ! Set the number of solutions (one per Tringle)
+      res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtTriangles, Nmb=NmbTri, NmbFields=NmbFields, fields=fields)
+      do i=1,NmbTri
+        res=GmfSetLineF90(unit=OutSol, GmfKey=GmfSolAtTriangles, Tab=map(:)) ! teste la fonction GmfSetLineF90_sol_i
+      enddo
+    endif
     
     res=GmfCloseMeshF90(unit=OutMap)
     
+    ! ---
+    ! lecture par ligne
     
-    !OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfRead,ver=ver,dim=dim)
-    !res=GmfCloseMeshF90(unit=OutMap)
+    OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfRead,ver=ver,dim=dim)
+    do i=1,NmbTri
+      res=GmfGetLineF90(unit=OutSol, GmfKey=GmfSolAtTriangles, Tab=map(:))
+      if( i<=5 )print '("map="*(i0,1x))',map(:)
+    enddo
+    res=GmfCloseMeshF90(unit=OutMap)
+    
+    ! ---
+    ! Ecriture par block 1
+    
+    MapFile='./map2.sol'
+    print '(/"Output Map  Open    : ",a )',trim(MapFile)
+    
+    do i=1,NmbTri*NmbFields,NmbFields
+      map2(i:i+NmbFields-1)=[(iField , iField=1,NmbFields)]
+    enddo
+    
+    OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfWrite,ver=2,dim=3)
+    res=GmfSetKwdF90(unit=OutMap, GmfKey=GmfSolAtTriangles, Nmb=NmbTri, NmbFields=NmbFields, fields=fields(1:NmbFields))
+    
+    res=GmfSetBlockF90(          &
+    &   unit=OutMsh             ,&
+    &   GmfKey=GmfSolAtTriangles,&
+    &   ad0=1                   ,&
+    &   ad1=NmbTri              ,&
+    &   strd=NmbFields          ,& !<= add stride when using Tab(:)
+    &   Tab=map2(1:)             )
+
+    res=GmfCloseMeshF90(unit=OutMap)
+    
+    ! ---
+    ! Lecture par block 1
+
+    map2(:)=0
+    
+    OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfRead,ver=ver,dim=dim)
+    nSol=GmfStatKwdF90(unit=OutSol,GmfKey=GmfSolAtTriangles,NmbFields=NmbFields, strd=NmbFields ,fields=fields(1:NmbFields))
+    
+    res=GmfGetBlockF90(                 &
+    &   unit=OutSol                    ,&
+    &   GmfKey=GmfSolAtTriangles       ,&
+    &   ad0=1                          ,&
+    &   ad1=NmbTri                     ,&
+    &   strd=NmbFields                 ,& !<= add stride when using Tab(:)
+    &   Tab=map2(1:)                    )
+    
+    res=GmfCloseMeshF90(unit=OutMap)
+
+    !do i=1,NmbFields*NmbTri,NmbFields
+    do i=1,5*NmbFields,NmbFields
+        print '("map2="*(i0,1x))',map2(i:i+NmbFields-1)
+    enddo
+    
+    ! ---
+    ! Ecriture par block 2
+    
+    MapFile='./map3.sol'
+    print '(/"Output Map  Open    : ",a )',trim(MapFile)
+    
+    do i=1,NmbTri*NmbFields
+      map3(1:NmbFields,i)=[(iField , iField=1,NmbFields)]
+    enddo
+    
+    OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfWrite,ver=2,dim=3)
+    res=GmfSetKwdF90(unit=OutMap, GmfKey=GmfSolAtTriangles, Nmb=NmbTri, NmbFields=NmbFields, fields=fields(1:NmbFields))
+    
+    res=GmfSetBlockF90(          &
+    &   unit=OutMsh             ,&
+    &   GmfKey=GmfSolAtTriangles,&
+    &   ad0=1                   ,&
+    &   ad1=NmbTri              ,&
+    &   Tab=map3(:,1:)           )
+    
+    res=GmfCloseMeshF90(unit=OutMap)
+    
+    ! ---
+    ! Lecture par block 2
+    
+    OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfRead,ver=ver,dim=dim)
+    nSol=GmfStatKwdF90(unit=OutSol,GmfKey=GmfSolAtTriangles,NmbFields=NmbFields, strd=NmbFields ,fields=fields(1:NmbFields))
+    
+    map3(:,:)=0
+
+    res=GmfGetBlockF90(                 &
+    &   unit=OutSol                    ,&
+    &   GmfKey=GmfSolAtTriangles       ,&
+    &   ad0=1                          ,&
+    &   ad1=NmbTri                     ,&
+    &   Tab=map3(:,1:)                  )
+        
+    res=GmfCloseMeshF90(unit=OutMap)
+
+    !do i=1,NmbFields*NmbTri,NmbFields
+    do i=1,5
+      print '("map3="*(i0,1x))',map3(1:NmbFields,i)
+    enddo
+
+    ! ---    
+    
+    deallocate(fields,map,map2,map3)
 
 
   end block
