@@ -828,8 +828,8 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Nmb=ad1-ad0+1
     
-    !print '("GmfGetBlockF90_02_ (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
-    !print '("GmfGetBlockF90_02_ strd,size(Tab)/strd=",i0,"x",i0)',strd,size(Tab)/strd
+    print '("GmfGetBlockF90_02_ (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfGetBlockF90_02_ strd,size(Tab)/strd=",i0,"x",i0)',strd,size(Tab)/strd
     
     ! WARNING GmfGetBlockF77 lit les double
     allocate(dTab(1:size(Tab)))
@@ -1128,8 +1128,8 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Nmb=ad1-ad0+1
     
-    print '("GmfSetBlockF90_02_ (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
-    print '("GmfSetBlockF90_02_ strd size(Tab)=",i0,"x",i0)',strd,size(Tab)
+    !print '("GmfSetBlockF90_02_ (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    !print '("GmfSetBlockF90_02_ strd size(Tab)=",i0,"x",i0)',strd,size(Tab)
     
     ! WARNING GmfSetBlockF77 ecrit les doubles
     allocate(dTab(1:size(Tab)))
@@ -1147,11 +1147,12 @@ contains
     &                  dTab(strd*(Nmb-1)+1),&
     &                  Ref(1)              ,&
     &                  Ref(1)               )    
+    
+    deallocate(dTab)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfSetBlockF90_02_
-
-
+  
   function     GmfSetBlockF90_03(unit, GmfKey, ad0, ad1, Tab, Ref) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64), intent(in)    :: unit
