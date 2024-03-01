@@ -535,7 +535,6 @@ contains
   
   function     GmfGetLineF90_d_(unit, GmfKey, Tab) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64) :: unit
     integer(int32) :: GmfKey
     real(real64)   :: Tab(:)
@@ -553,9 +552,6 @@ contains
   
   function     GmfSetLineF90_i(unit, GmfKey, Tab, Ref) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Writting Nodes and Ref
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64) :: unit
     integer(int32) :: GmfKey
     integer(int32) :: Tab(:)
@@ -571,9 +567,6 @@ contains
   end function GmfSetLineF90_i
   
   function     GmfSetLineF90_d(unit, GmfKey, Tab, Ref) result(res)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Writting Vertices and Ref
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64) :: unit
     integer(int32) :: GmfKey
@@ -591,27 +584,23 @@ contains
   
   function     GmfSetLineF90_sol_i(unit, GmfKey, Tab) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Writting Nodes and Ref
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64), intent(in) :: unit
     integer(int32), intent(in) :: GmfKey
     integer(int32), intent(in) :: Tab(:)
     integer(int32)             :: res
     !>
-    real(real64)               :: dTab(1)
+    real(real64)               :: dTab(1)!=0
     integer(int32)             :: Ref
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    print '("GmfSetLineF90_sol_i_ Tab=",*(i0,1x))',Tab(:)
+    
     res=GmfSetLineF77(unit, GmfKey, Tab(1), dTab(1), Ref)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfSetLineF90_sol_i
   
   function     GmfSetLineF90_sol_i_(unit, GmfKey, Tab) result(res)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Writting Nodes and Ref
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64), intent(in) :: unit
     integer(int32), intent(in) :: GmfKey
@@ -623,16 +612,15 @@ contains
     integer(int32)             :: Ref
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    print '("GmfSetLineF90_sol_i_ Tab=",i0)',Tab
+    
     iTab(1)=Tab
-    res=GmfSetLineF77(unit, GmfKey, iTab(1), dTab(1), Ref)
+    res=GmfSetLineF77(unit, GmfKey, iTab(1), dTab, Ref)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfSetLineF90_sol_i_
   
   function     GmfSetLineF90_sol_d(unit, GmfKey, Tab) result(res)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Writting Vertices and Ref
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64) :: unit
     integer(int32) :: GmfKey
@@ -649,9 +637,6 @@ contains
   end function GmfSetLineF90_sol_d
   
   function     GmfSetLineF90_sol_d_(unit, GmfKey, Tab) result(res)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Writting Vertices and Ref
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64) :: unit
     integer(int32) :: GmfKey

@@ -138,7 +138,7 @@ program  test_libmeshb_f90
   ! Write iteration number in file
   res=GmfSetKwdF90 (unit=OutSol, GmfKey=GmfIterations, Nmb=1 )
   res=GmfSetLineF90(unit=OutSol, GmfKey=GmfIterations, Tab=int(10,kind=int32)) ! number of iteration (example 10)  
-
+  
   ! Write Time in solution file
   res=GmfSetKwdF90 (unit=OutSol, GmfKey=GmfTime, Nmb=1)
   res=GmfSetLineF90(unit=OutSol, GmfKey=GmfTime, Tab=real(60,kind=real64))
@@ -185,14 +185,56 @@ program  test_libmeshb_f90
   
   ! Don't forget to close the file
   res=GmfCloseMeshF90(unit=OutSol)
-  print '("Output Solu Close   : ",a)',trim(SolFile)    
+  print '("Output Solu Close   : ",a)',trim(SolFile)
+
+  deallocate(fields,fieldsName,sol)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! Write an Int Map Solution on triangular mesh and Read it
+  block
+    integer(int64)          :: OutMap
+    character(80)           :: MapFile
+    integer(int32)          :: map(1)
+    
+    MapFile='./map.sol'
+    print '(/"Output Map  Open    : ",a )',trim(MapFile)
+    
+    OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfWrite,ver=2,dim=3)
+    
+  ! Set the solution kinds
+    NmbFields=1
+    !allocate( fields    (1:NmbFields))
+    !fields(1:NmbFields) = [GmfSca]  
+    
+    !allocate( fieldsName(1:NmbFields))
+    !fieldsName(1:NmbFields)=['cellID']
+    
+    ! Set the number of solutions (one per Tringle)
+    !res=GmfSetKwdF90(unit=OutSol, GmfKey=gmfsolattriangles, Nmb=NmbTri, NmbFields=NmbFields, fields=fields(1:NmbFields))
+    res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtTriangles, Nmb=NmbTri, NmbFields=NmbFields, fields=[GmfSca])
+    
+    do i=1,NmbTri
+      map(1)=1
+     !res=GmfSetLineF90(unit=OutSol, GmfKey=GmfSolAtTriangles, 1_int32     ) ! teste la fonction GmfSetLineF90_sol_i_
+     !res=GmfSetLineF90(unit=OutSol, GmfKey=GmfSolAtTriangles, Tab=map(  1)) ! teste la fonction GmfSetLineF90_sol_i_
+      res=GmfSetLineF90(unit=OutSol, GmfKey=GmfSolAtTriangles, Tab=map(1:1)) ! teste la fonction GmfSetLineF90_sol_i_
+    enddo
+    
+    res=GmfCloseMeshF90(unit=OutMap)
+    
+    
+    !OutMap=GmfOpenMeshF90(name=trim(MapFile),GmfKey=GmfRead,ver=ver,dim=dim)
+    !res=GmfCloseMeshF90(unit=OutMap)
+
+
+  end block
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Cleanning Memory
   deallocate(VerTab,VerRef)
   deallocate(QadTab,QadRef)
-  deallocate(fields,fieldsName,sol)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
