@@ -294,7 +294,7 @@ module libmeshb7
   interface     GmfGetLineF90
     module procedure GmfGetLineF90_i       !> int32 (:) + int32
     module procedure GmfGetLineF90_i_      !> int32 (:)         ! WARNING
-    module procedure GmfGetLineF90_i__     !> int32
+    module procedure GmfGetLineF90_i__     !> int32             ! celui ci fonctionne ? (voir avec Loic)
     module procedure GmfGetLineF90_d       !> real64(:) + int32
     module procedure GmfGetLineF90_d_      !> real64(:)
   end interface GmfGetLineF90
@@ -477,27 +477,27 @@ contains
   
   function     GmfGetLineF90_i_(unit, GmfKey, Tab) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Reading Nodes and Ref
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64) :: unit
     integer(int32) :: GmfKey
     integer(int32) :: Tab(:)
     integer(int32) :: res
     !>
+    !real(real64), pointer :: dTab(:)
     real(real64)   :: dTab(1)
     integer(int32) :: Ref
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! celui ci fonctionne ???
+    !allocate(dTab(size(Tab)))
+    ! WARINIG GmfGetLineF77 lit les doubles
     res=GmfGetLineF77(unit, GmfKey, Tab(1), dTab(1), Ref)
+    !Tab(:)=int(dTab(:),kind=int32)
+    !deallocate(dTab)
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfGetLineF90_i_
   
   function     GmfGetLineF90_i__(unit, GmfKey, Tab) result(res)
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    !> Reading Nodes and Ref
-    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64) :: unit
     integer(int32) :: GmfKey
@@ -509,6 +509,8 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     res=GmfGetLineF77(unit, GmfKey, Tab, dTab(1), Ref)
+    !WARNING GmfGetLineF77 lit le double
+    Tab=dTab(1)
     !print '("GmfGetLineF90_i__ Tab=",*(i0,1x))',Tab
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
@@ -591,9 +593,12 @@ contains
     integer(int32)             :: res
     !>
     real(real64), pointer      :: dTab(:)
+    
+    !real(real64)               :: dTab(1)
     integer(int32)             :: Ref
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    ! WARNING GmfSetLineF77 ecrit les double dans ce cas
     !print '("GmfSetLineF90_sol_i Tab=",*(i0,1x))',Tab(:)
     
     allocate(dTab(1:size(Tab)))    
@@ -616,8 +621,10 @@ contains
     integer(int32)             :: Ref
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print '("GmfSetLineF90_sol_i_ Tab=",i0)',Tab
-    dTab=real(Tab,kind=real64) ! WARNING GmfSetLineF77 ecrit les double dans ce cas
+    ! WARNING GmfSetLineF77 ecrit les double dans ce cas
+
+    !print '("GmfSetLineF90_sol_i_ Tab=",i0)',Tab
+    dTab=real(Tab,kind=real64) 
     res=GmfSetLineF77(unit, GmfKey, Tab, dTab, Ref) ! WARNING GmfGetBlockF77 writes double
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return

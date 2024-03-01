@@ -313,7 +313,7 @@ program  test_libmeshb_f90
     nSol=GmfStatKwdF90(unit=OutSol,GmfKey=GmfSolAtTriangles,NmbFields=NmbFields, strd=NmbFields ,fields=fields(1:NmbFields))
     
     map3(:,:)=0
-
+    
     res=GmfGetBlockF90(                 &
     &   unit=OutSol                    ,&
     &   GmfKey=GmfSolAtTriangles       ,&
