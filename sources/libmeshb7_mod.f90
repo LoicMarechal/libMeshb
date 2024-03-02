@@ -421,24 +421,67 @@ contains
     return
   end function GmfSetKwdF90_0
   
-  function     GmfSetKwdF90_1(unit, GmfKey, Nmb, NmbFields, fields, ord, nNod) result(res)
-   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   integer(int64)           :: unit
-   integer(int32)           :: GmfKey
-   integer(int32)           :: Nmb
-   integer(int32)           :: NmbFields
-   integer(int32)           :: fields(:)
-   integer(int32), optional :: ord 
-   integer(int32), optional :: nNod
-   integer(int32)           :: res
+  function     GmfSetKwdF90_1(unit, GmfKey, Nmb, NmbFields, fields, ord, nNod, fieldsName, iter, time) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    use iso_c_binding, only: C_NULL_CHAR
+    integer(int64), intent(in)           :: unit
+    integer(int32), intent(in)           :: GmfKey
+    integer(int32), intent(in)           :: Nmb
+    integer(int32), intent(in)           :: NmbFields
+    integer(int32), intent(in)           :: fields(:)
+    integer(int32), intent(in), optional :: ord 
+    integer(int32), intent(in), optional :: nNod
+    character(*)  , intent(in), optional :: fieldsName(:)
+    integer(int32), intent(in), optional :: iter
+    real(real64)  , intent(in), optional :: time
+    integer(int32)                       :: res
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( present(iter) )then
+      ! Write iteration number in file
+      print '(t3,"iter: ",i0)',iter
+      res=GmfSetKwdF90 (unit=unit, GmfKey=GmfIterations, Nmb=1)
+      res=GmfSetLineF90(unit=unit, GmfKey=GmfIterations, Tab=iter)
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( present(time) )then
+      ! Write Time in solution file
+      print '(t3,"time: ",f12.5)',time
+      res=GmfSetKwdF90 (unit=unit, GmfKey=GmfTime, Nmb=1)
+      res=GmfSetLineF90(unit=unit, GmfKey=GmfTime, Tab=time)
+    endif
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   
+    if( present(fieldsName) )then
+      nomDesChamps : block
+        integer               :: iField,nChar
+        character(:), pointer :: nameC=>null()
+        !res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfReferenceStrings, Nmb=NmbFields)
+        do iField=1,NmbFields
+          !print '(t3,"fieldName: ",a)',trim(fieldsName(iField))
+          nChar=len_trim(fieldsName(iField)) ! print '("nChar: ",i0)',nChar
+          allocate(character(len=nChar+3) :: nameC)
+          write(nameC,'(a,1x,i0,a)')trim(fieldsName(iField)),iField,C_NULL_CHAR
+          print '(t3,"nameC: ",a)',trim(nameC)
+          !ress=GmfSetLin(unit=OutSol, GmfKey=GmfReferenceStrings, GmfSolAtVertices, 1, fieldName)
+          deallocate(nameC)
+        enddo
+      end block nomDesChamps
+   endif
    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
    if( present(ord) .and. present (nNod) )then
      res = GmfSetKwdF77(unit, GmfKey, Nmb, NmbFields, fields, ord, nNod)
    else
-    res = GmfSetKwdF77(unit, GmfKey, Nmb, NmbFields, fields, 0, 0)
-  endif
+     res = GmfSetKwdF77(unit, GmfKey, Nmb, NmbFields, fields, 0, 0)
+   endif
    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+ 
    return
   end function GmfSetKwdF90_1
   
@@ -853,7 +896,7 @@ contains
     !&                  dTab(1)             ,&
     !&                  Ref(1)              ,&
     !&                  Ref(1)               )
-
+    
     res=GmfGetBlockF77(unit                 ,&
     &                  GmfKey               ,&
     &                  ad0                  ,&
