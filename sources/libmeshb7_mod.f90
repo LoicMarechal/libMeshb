@@ -317,7 +317,7 @@ module libmeshb7
     module procedure GmfGetBlockF90_03     !> real64(:,:) + int32(:)
     module procedure GmfGetBlockF90_03_    !> real64(:)   + int32(:)
     module procedure GmfGetBlockF90_04     !> real64(:,:)           
-   !module procedure GmfGetBlockF90_04_    !> real64(:)             
+    module procedure GmfGetBlockF90_04_    !> real64(:)             
   end interface GmfGetBlockF90
   
   interface     GmfSetBlockF90
@@ -878,8 +878,8 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Nmb=ad1-ad0+1
     
-    print '("GmfGetBlockF90_02_ (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
-    print '("GmfGetBlockF90_02_ strd,size(Tab)/strd=",i0,"x",i0)',strd,size(Tab)/strd
+    !print '("GmfGetBlockF90_02_ (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    !print '("GmfGetBlockF90_02_ strd,size(Tab)/strd=",i0,"x",i0)',strd,size(Tab)/strd
     
     ! WARNING GmfGetBlockF77 lit les double
     allocate(dTab(1:size(Tab)))
@@ -992,7 +992,6 @@ contains
     return
   end function GmfGetBlockF90_03_
 
-
   function     GmfGetBlockF90_04(unit, GmfKey, ad0, ad1, Tab) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64), intent(in)    :: unit
@@ -1010,8 +1009,8 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Nmb=ad1-ad0+1
     
-    print '("GmfGetBlockF90_04 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
-    print '("GmfGetBlockF90_04 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    !print '("GmfGetBlockF90_04 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    !print '("GmfGetBlockF90_04 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
     
     res=GmfGetBlockF77(unit       ,&
     &                  GmfKey     ,&
@@ -1029,6 +1028,44 @@ contains
     return
   end function GmfGetBlockF90_04
   
+  function     GmfGetBlockF90_04_(unit, GmfKey, ad0, ad1, strd, Tab) result(res)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64), intent(in)    :: unit
+    integer(int32), intent(in)    :: GmfKey
+    integer(int32), intent(in)    :: ad0
+    integer(int32), intent(in)    :: ad1
+    integer(int32), intent(in)    :: strd
+    real(real64)  , intent(inout) :: Tab(:)
+    integer(int32)                :: res
+    !>
+    integer(int32) :: Ref (1)
+    integer(int32) :: iTab(1)
+    integer(int32) :: Nmb
+    integer(int32), pointer       :: map(:)=>null()
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    Nmb=ad1-ad0+1
+    
+    !print '("GmfGetBlockF90_04_ (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    !print '("GmfGetBlockF90_04_ strd,size(Tab)/strd=",i0,"x",i0)',strd,size(Tab)/strd
+    !print '("GmfGetBlockF90_04_ size(Ref)=  ",i0)',size(Ref)
+    
+    res=GmfGetBlockF77(unit                ,&
+    &                  GmfKey              ,&
+    &                  ad0                 ,&
+    &                  ad1                 ,&
+    &                  int32               ,&
+    &                  map                 ,&
+    &                  iTab(1)             ,&
+    &                  iTab(1)             ,&
+    &                  Tab(1)              ,&
+    &                  Tab(strd*(Nmb-1)+1) ,&
+    &                  Ref(1)              ,&
+    &                  Ref(1)               )
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfGetBlockF90_04_
+
   function     GmfSetBlockF90_01(unit, GmfKey, ad0, ad1, Tab, Ref) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     integer(int64), intent(in)    :: unit
@@ -1121,8 +1158,8 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Nmb=ad1-ad0+1
     
-    print '("GmfSetBlockF90_02 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
-    print '("GmfSetBlockF90_02 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+    !print '("GmfSetBlockF90_02 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    !print '("GmfSetBlockF90_02 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
     
     !res=GmfSetBlockF77(unit       ,&
     !&                  GmfKey     ,&
