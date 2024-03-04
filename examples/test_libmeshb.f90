@@ -32,7 +32,7 @@ function equal_int32(x,y) result(test)
   return
 end function equal_int32
 
-function equal_real64(x,y) result(test)
+function     equal_real64(x,y) result(test)
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
   real(real64) , intent(in)    :: x(:)
@@ -56,6 +56,7 @@ function equal_real64(x,y) result(test)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   return
 end function equal_real64
+
 
 
 program  test_libmeshb_f90
