@@ -53,7 +53,7 @@ module libmeshb7
   integer(int32), parameter :: gmfargtab=100
   integer(int32), parameter :: gmfarglst=101
   
-  ! Keywords list  
+  ! Keywords list
   integer(int32), parameter :: gmfdimension=3
   integer(int32), parameter :: gmfmeshversionformatted=1
   integer(int32), parameter :: gmfvertices=4
@@ -450,7 +450,7 @@ contains
     if( present(time) )then
       ! Write Time in solution file
       print '(t3,"time: ",f12.5)',time
-      res=GmfSetKwdF90 (unit=unit, GmfKey=GmfTime, Nmb=1)
+      res=GmfSetKwdF90 (unit=unit, GmfKey=GmfTime, Nmb=1   )
       res=GmfSetLineF90(unit=unit, GmfKey=GmfTime, Tab=time)
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -467,7 +467,10 @@ contains
           allocate(character(len=nChar+3) :: nameC)
           write(nameC,'(a,1x,i0,a)')trim(fieldsName(iField)),iField,C_NULL_CHAR
           print '(t3,"nameC: ",a)',trim(nameC)
-          !ress=GmfSetLin(unit=OutSol, GmfKey=GmfReferenceStrings, GmfSolAtVertices, 1, fieldName)
+          
+          !res=GmfSetLin(unit=OutSol, GmfKey=GmfReferenceStrings, GmfSolAtVertices, 1, fieldName)
+          !  GmfSetName
+          !  GmfGetName
           deallocate(nameC)
         enddo
       end block nomDesChamps
@@ -827,34 +830,84 @@ contains
     integer(int32)                :: res
     !>
     integer(int32)                :: Nmb
-    real(real64)  , pointer       :: dTab(:,:)
     integer(int32)                :: Ref(1)
     integer(int32), pointer       :: map(:)=>null()
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Nmb=ad1-ad0+1
     
-    !print '("GmfGetBlockF90_02 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
-    !print '("GmfGetBlockF90_02 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
-    
-    ! WARNING GmfGetBlockF77 lit les Doubles
-    allocate(dTab(size(Tab,1),1:size(Tab,2)))
+    print '("GmfGetBlockF90_02 (ad0,ad1)=(",i0,",",i0,") Nmb=",i0)',ad0,ad1,Nmb
+    print '("GmfGetBlockF90_02 size(Tab)=",i0,"x",i0)',size(Tab,1),size(Tab,2)
+        
+    if(     GmfKey==GmfEdgesP1Ordering          &
+    &  .or. GmfKey==GmfEdgesP2Ordering          &
+    &  .or. GmfKey==GmfEdgesP3Ordering          &
+    &  .or. GmfKey==GmfEdgesP4Ordering          &
+    &  .or. GmfKey==GmfTrianglesP1Ordering      &
+    &  .or. GmfKey==GmfTrianglesP2Ordering      &
+    &  .or. GmfKey==GmfTrianglesP3Ordering      &
+    &  .or. GmfKey==GmfTrianglesP4Ordering      &
+    &  .or. GmfKey==GmfQuadrilateralsQ1Ordering &
+    &  .or. GmfKey==GmfQuadrilateralsQ2Ordering &
+    &  .or. GmfKey==GmfQuadrilateralsQ3Ordering &
+    &  .or. GmfKey==GmfQuadrilateralsQ4Ordering &
+    &  .or. GmfKey==GmfTetrahedraP1Ordering     &
+    &  .or. GmfKey==GmfTetrahedraP2Ordering     &
+    &  .or. GmfKey==GmfTetrahedraP3Ordering     &
+    &  .or. GmfKey==GmfTetrahedraP4Ordering     &
+    &  .or. GmfKey==GmfPyramidsP1Ordering       &
+    &  .or. GmfKey==GmfPyramidsP2Ordering       &
+    &  .or. GmfKey==GmfPyramidsP3Ordering       &
+    &  .or. GmfKey==GmfPyramidsP4Ordering       &
+    &  .or. GmfKey==GmfPrismsP1Ordering         &
+    &  .or. GmfKey==GmfPrismsP2Ordering         &
+    &  .or. GmfKey==GmfPrismsP3Ordering         &
+    &  .or. GmfKey==GmfPrismsP4Ordering         &
+    &  .or. GmfKey==GmfHexahedraQ1Ordering      &
+    &  .or. GmfKey==GmfHexahedraQ2Ordering      &
+    &  .or. GmfKey==GmfHexahedraQ3Ordering      &
+    &  .or. GmfKey==GmfHexahedraQ4Ordering      )then
+      
+      block 
+        real(real64) :: dTab(1,1)
+        
+        res=GmfGetBlockF77(unit       ,&
+        &                  GmfKey     ,&
+        &                  ad0        ,&
+        &                  ad1        ,&
+        &                  int32      ,&
+        &                  map        ,&
+        &                  Tab(1,  1) ,&
+        &                  Tab(1,Nmb) ,&
+        &                  dTab(1,1)  ,&
+        &                  dTab(1,1)  ,&
+        &                  Ref(1)     ,&
+        &                  Ref(1)      )
+      end block
+    else
+      block 
+        real(real64)  , pointer       :: dTab(:,:)
 
-    res=GmfGetBlockF77(unit       ,&
-    &                  GmfKey     ,&
-    &                  ad0        ,&
-    &                  ad1        ,&
-    &                  int32      ,&
-    &                  map        ,&
-    &                  Tab(1,1)   ,&
-    &                  Tab(1,1)   ,&
-    &                  dTab(1,  1),&
-    &                  dTab(1,Nmb),&
-    &                  Ref(1)     ,&
-    &                  Ref(1)      )
-
-    Tab(:,:)=int(dTab(:,:),kind=int32)
-    deallocate(dTab)
+        ! WARNING GmfGetBlockF77 lit les Doubles
+        allocate(dTab(size(Tab,1),1:size(Tab,2)))
+        
+        res=GmfGetBlockF77(unit       ,&
+        &                  GmfKey     ,&
+        &                  ad0        ,&
+        &                  ad1        ,&
+        &                  int32      ,&
+        &                  map        ,&
+        &                  Tab(1,1)   ,&
+        &                  Tab(1,1)   ,&
+        &                  dTab(1,  1),&
+        &                  dTab(1,Nmb),&
+        &                  Ref(1)     ,&
+        &                  Ref(1)      )
+        
+        Tab(:,:)=int(dTab(:,:),kind=int32)
+        deallocate(dTab)
+      end block
+    endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfGetBlockF90_02
