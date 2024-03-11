@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.81                               */
+/*                               LIBMESHB V7.82                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  mar 01 2024                                          */
+/*   Last modification:  mar 11 2024                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -3347,4 +3347,44 @@ int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *KwdCod,
 
    return(GmfSetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx, *MapTyp, MatTab,
                         NULL, GmfArgTab, TypTab, SizTab, BegTab, EndTab ));
+}
+
+int APIF77(gmfgetreferencestringf77)(int64_t *MshIdx, int *kwd, int *idx, char *str, int siz)
+{
+   int   ret;
+   char *tmp = malloc(siz+1);
+
+   // Allocate a string with one extra character to store the trailing 0
+   if(!tmp)
+      return(0);
+
+   // Copy the Fortran string into the C string and add a trailing 0
+   strncpy(tmp, str, siz);
+   tmp[ siz ] = 0;
+
+   // Now call the C procedure a free the temporary string
+   ret = GmfGetLin(*MshIdx, GmfReferenceStrings, kwd, idx, tmp);
+   free(tmp);
+
+   return(ret);
+}
+
+int APIF77(gmfsetreferencestringf77)(int64_t *MshIdx, int *kwd, int *idx, char *str, int siz)
+{
+   int   ret;
+   char *tmp = malloc(siz+1);
+
+   // Allocate a string with one extra character to store the trailing 0
+   if(!tmp)
+      return(0);
+
+   // Copy the Fortran string into the C string and add a trailing 0
+   strncpy(tmp, str, siz);
+   tmp[ siz ] = 0;
+
+   // Now call the C procedure a free the temporary string
+   ret = GmfSetLin(*MshIdx, GmfReferenceStrings, *kwd, *idx, tmp);
+   free(tmp);
+
+   return(ret);
 }
