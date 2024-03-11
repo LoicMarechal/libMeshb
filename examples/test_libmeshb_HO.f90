@@ -136,7 +136,7 @@ program test_libmeshb_HO_f90
     
     ! Read the vertices using a vector of 3 consecutive doubles to store the coordinates
     
-    NmbVer = GmfstatkwdF90(unit=InpMsh, GmfKey=GmfVertices)
+    NmbVer = GmfStatkwdF90(unit=InpMsh, GmfKey=GmfVertices)
     print '( "Input  Mesh NmbVer   : ",i0)', NmbVer
     allocate(VerTab(1:3,1:NmbVer))
     allocate(VerRef(    1:NmbVer))
@@ -165,10 +165,10 @@ program test_libmeshb_HO_f90
     if( .not. GmfstatkwdF90(unit=InpMsh,GmfKey=GmfOrd)==0 )then
       print '("Input  Mesh Reordering HO Nodes")'
       block
-        integer :: BasTab(1:2,1:9)
-        integer :: OrdTab(1:2,1:9)
-        integer :: ord
-        integer :: nNod
+        integer(int32) :: BasTab(1:2,1:9)
+        integer(int32) :: OrdTab(1:2,1:9)
+        integer(int32) :: ord
+        integer(int32) :: nNod
         !>  04 07 03 
         !>  08 09 06
         !>  01 05 02
@@ -301,8 +301,8 @@ program test_libmeshb_HO_f90
     &   GmfKey=GmfTrianglesP2 ,&
     &   ad0=1                 ,&
     &   ad1=NmbTri            ,&
-    &   Tab=TriTab(:,1:NmbTri),&
-    &   Ref=TriRef(  1:NmbVer) )
+    &   Tab=TriTab(:,1:)      ,&
+    &   Ref=TriRef(  1:)       )
     
     ! Don't forget to close the file
     print '("Output Mesh Close    : ",a)',trim(OutFile)    
