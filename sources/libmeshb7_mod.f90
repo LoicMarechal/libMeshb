@@ -20,16 +20,17 @@ module libmeshb7
   implicit none
   
   ! Procedures definition
-  integer(int64) , external :: gmfopenmeshf77
-  integer(int32) , external :: gmfclosemeshf77
-  integer(int32) , external :: GmfStatKwdf77
-  integer(int32) , external :: gmfsetkwdf77
-  integer(int32) , external :: gmfgotokwdf77
-  integer(int32) , external :: gmfsethonodesorderingf77
-  integer(int32) , external :: gmfgetlinef77
-  integer(int32) , external :: gmfsetlinef77
-  integer(int32) , external :: gmfgetblockf77
-  integer(int32) , external :: gmfsetblockf77
+  integer(int64) , external :: GmfOpenMeshF77
+  integer(int32) , external :: GmfCloseMeshF77
+  integer(int32) , external :: GmfStatKwdF77
+  integer(int32) , external :: GmfSetkwdF77
+  integer(int32) , external :: GmfGotokwdF77
+  integer(int32) , external :: GmfSetHONodesorderingF77
+  integer(int32) , external :: GmfGetLineF77
+  integer(int32) , external :: GmfSetLineF77
+  integer(int32) , external :: GmfGetBlockF77
+  integer(int32) , external :: GmfSetBlockF77
+  integer(int32) , external :: GmfSetReferencestringF77
   
   ! Parameters definition
   integer(int32), parameter :: gmfmaxtyp=1000
@@ -460,19 +461,23 @@ contains
     if( present(fieldsName) )then
       nomDesChamps : block
         integer               :: iField,nChar
-        character(:), pointer :: nameC=>null()
+        !character(:), pointer :: nameC=>null()
         !res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfReferenceStrings, Nmb=NmbFields)
+        
+        res=GmfSetKwdF90 (unit=unit, GmfKey=GmfReferenceStrings, Nmb=NmbFields)
         do iField=1,NmbFields
           !print '(t3,"fieldName: ",a)',trim(fieldsName(iField))
-          nChar=len_trim(fieldsName(iField)) ! print '("nChar: ",i0)',nChar
-          allocate(character(len=nChar+3) :: nameC)
-          write(nameC,'(a,1x,i0,a)')trim(fieldsName(iField)),iField,C_NULL_CHAR
-          print '(t3,"nameC: ",a)',trim(nameC)
+          !nChar=len_trim(fieldsName(iField)) ! print '("nChar: ",i0)',nChar
+          !allocate(character(len=nChar+3) :: nameC)
+          !write(nameC,'(a,1x,i0,a)')trim(fieldsName(iField)),iField,C_NULL_CHAR
+          !print '(t3,"nameC: ",a)',trim(nameC)
+          
+          res=GmfSetReferencestringF77(unit, GmfSolAtVertices, iField, trim(fieldsName(iField)))
           
           !res=GmfSetLin(unit=OutSol, GmfKey=GmfReferenceStrings, GmfSolAtVertices, 1, fieldName)
           !  GmfSetName
           !  GmfGetName
-          deallocate(nameC)
+          !deallocate(nameC)
         enddo
       end block nomDesChamps
    endif
