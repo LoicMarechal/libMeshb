@@ -191,26 +191,6 @@ program test_libmeshb_block01_f90
   ! Write iteration number in file
   res=GmfSetKwdF90 (unit=OutSol, GmfKey=GmfIterations, Nmb=1 )
   res=GmfSetLineF90(unit=OutSol, GmfKey=GmfIterations, Tab=int(10,kind=int32)) ! number of iteration (example 10)  
-
-  ! Write Time in solution file
-  res=GmfSetKwdF90 (unit=OutSol, GmfKey=GmfTime, Nmb=1)
-  res=GmfSetLineF90(unit=OutSol, GmfKey=GmfTime, Tab=real(60,kind=real64))
-  
-  !nomDesChamps : block
-  !  integer               :: iField,nChar
-  !  character(:), pointer :: fieldName=>null()
-  !  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfReferenceStrings, Nmb=NmbFields)
-  !  do iField=1,NmbFields
-  !    nChar=len_trim(fieldsName(iField)) ! print '("nChar: ",i0)',nChar
-  !    allocate(character(len=nChar+3) :: fieldName)
-  !    write(fieldName,'(a,1x,i0,a)')trim(fieldsName(iField)),iField,C_NULL_CHAR
-  !    print '("fieldName: ",a)',fieldName
-  !    
-  !    !ress=GmfSetLin(unit=OutSol, GmfKey=GmfReferenceStrings, GmfSolAtVertices, 1, fieldName)
-  !    
-  !    deallocate(fieldName)
-  !  enddo
-  !end block nomDesChamps
   
   allocate(solTab(1:strd*NmbVer))
   print '( "Output Solu strd x NmbVer: ",i0,"x",i0)', strd, NmbVer
@@ -218,8 +198,16 @@ program test_libmeshb_block01_f90
   print '( "Output Solu fields       : ", *(i0,1x))',fields(1:NmbFields)
   
   ! Set the number of solutions (one per vertex)
-  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, NmbFields=NmbFields, fields=fields(1:NmbFields))
-  
+  res=GmfSetKwdF90(                      &
+  &   unit=OutSol                       ,&
+  &   GmfKey=GmfSolAtVertices           ,&
+  &   Nmb=NmbVer                        ,&
+  &   NmbFields=NmbFields               ,&
+  &   fields=fields(1:NmbFields)        ,&
+  &   fieldsName=fieldsName(1:NmbFields),&  ! <= optional
+  &   iter=10                           ,&  ! <= optional
+  &   time=60d0                          )  ! <= optional
+
   ! Compute the dummy solution fields
   do i=1,NmbVer
     iSol=strd*(i-1)

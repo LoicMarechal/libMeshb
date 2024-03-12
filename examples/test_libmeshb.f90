@@ -242,6 +242,5 @@ program  test_libmeshb_f90
   !> User Control
   print '(/"Control:"/"vizir4 -in ",a," -sol ",a/)',trim(OutFile),trim(SolFile)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
     
 end program test_libmeshb_f90

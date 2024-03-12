@@ -356,7 +356,6 @@ program test_libmeshb_HO_f90
       allocate(uvw(1:3,1:nNod))      
       call nodesT3(ord=ord,uvw=uvw,display=.false.)
       
-      
       GmfKey=GmfHOSolAtTrianglesP2NodesPositions
       res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfKey, Nmb=nNod)
       
@@ -433,21 +432,24 @@ program test_libmeshb_HO_f90
       ! Write Solution strd*nNods solution per triangleP2 => strd*nNod*nTri)
       GmfKey=GmfHOSolAtTrianglesP2
       
-      res=GmfSetKwdF90(                  &
-      &   unit=OutSol                   ,&
-      &   GmfKey=GmfKey                 ,&
-      &   Nmb=NmbTri                    ,&
-      &   NmbFields=NmbFields           ,&
-      &   fields=fieldsKind(1:NmbFields),&
-      &   ord=ord                       ,&
-      &   nNod=nNod                      )
-      
-      res=GmfSetBlockF90(                &
-      &    unit=OutSol                  ,&
-      &    GmfKey=GmfKey                ,&
-      &    ad0=1                        ,&
-      &    ad1=NmbTri                   ,&
-      &    Tab=solTab(:,1:)              )
+      res=GmfSetKwdF90(                      &
+      &   unit=OutSol                       ,&
+      &   GmfKey=GmfKey                     ,&
+      &   Nmb=NmbTri                        ,&
+      &   NmbFields=NmbFields               ,&
+      &   fields=fieldsKind(1:NmbFields)    ,&
+      &   ord=ord                           ,&
+      &   nNod=nNod                         ,&
+      &   fieldsName=fieldsName(1:NmbFields),&  ! <= optional
+      &   iter=10                           ,&  ! <= optional
+      &   time=60d0                          )  ! <= optional
+          
+      res=GmfSetBlockF90(                    &
+      &    unit=OutSol                      ,&
+      &    GmfKey=GmfKey                    ,&
+      &    ad0=1                            ,&
+      &    ad1=NmbTri                       ,&
+      &    Tab=solTab(:,1:)                  )
       
       ! Don't forget to close the file
       res=GmfCloseMeshF90(unit=OutSol)
