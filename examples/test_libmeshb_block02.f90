@@ -27,7 +27,7 @@ program test_libmeshb_block02_f90
   integer(int32), pointer :: TriTab(:,:),TriRef(  :)
   integer(int32)          :: NmbFields,ho,s,d
   integer(int32), pointer :: fields(:)
-  character(32) , pointer :: fieldsName(:)=>null()
+  character(32) , pointer :: fieldNames(:)=>null()
   real(real64)  , pointer :: solTab(:,:)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -154,34 +154,6 @@ program test_libmeshb_block02_f90
   &   Tab=TriTab(:,1:NmbTri),&
   &   Ref=TriRef(  1:NmbVer) )
   
-  !!> Ecriture par tableau 1D sans recopie (interface fortran à écrire)
-  !block 
-  !  use iso_c_binding, only: c_loc,c_f_pointer
-  !  integer     , pointer :: nodes(:)
-  !  
-  !  print '(/"binding TriTab(:,:) and nodes(:)")'
-  !  
-  !  call c_f_pointer(cptr=c_loc(TriTab), fptr=nodes, shape=[3*NmbTri]) !> binding TriTab(:,:) and nodes(:)
-  !  
-  !  print '(/"Triangle: ",i6)',1
-  !  print '( "TriTab:",3(i6,1x) )',TriTab(1,1),TriTab(2,1),TriTab(3,1)
-  !  print '( "nodes: ",3(i6,1x)/)',nodes(1),nodes(2),nodes(3)
-  !  print '(/"Triangle: ",i6)',NmbTri
-  !  print '( "TriTab:",3(i6,1x) )',TriTab(1,NmbTri),TriTab(2,NmbTri),TriTab(3,NmbTri)
-  !  print '( "nodes: ",3(i6,1x)/)',nodes(3*NmbTri-2),nodes(3*NmbTri-1),nodes(3*NmbTri)
-  !  
-  !  res=GmfSetElements(                &
-  !  &   InpMsh                        ,&
-  !  &   GmfTriangles                  ,&
-  !  &   1                             ,&
-  !  &   NmbTri                        ,&
-  !  !   0, m                          ,&
-  !  &   0, c_null_ptr                 ,&
-  !  &   nodes(   1), nodes(3*NmbTri-2),&
-  !  &   TriRef(  1), TriRef(NmbTri)    )
-  !  
-  !end block
-
   ! Don't forget to close the file
   res=GmfCloseMeshF90(unit=OutMsh)
   print '("Output Mesh Close   : ",a)',trim(OutFile)  
@@ -193,7 +165,7 @@ program test_libmeshb_block02_f90
   print '(/"Output Solu Open    : ",a )',trim(SolFile)
   
   OutSol=GmfOpenMeshF90(name=trim(SolFile),GmfKey=GmfWrite,ver=ver,dim=dim)
-
+  
   print '( "Output Solu Idx     : ",i0)',OutSol
   print '( "Output Solu ver     : ",i0)',ver
   print '( "Output Solu dim     : ",i0)',dim
@@ -201,15 +173,16 @@ program test_libmeshb_block02_f90
   
   ! Set the solution kinds
   NmbFields=3
-  allocate( fields    (1:NmbFields))
-  allocate( fieldsName(1:NmbFields))
+  allocate(fields    (1:NmbFields))
+  allocate(fieldNames(1:NmbFields))
   fields(1:NmbFields) = [GmfSca,GmfVec,GmfSca]  
-  fieldsName(1:NmbFields)=['sca_1','vec_1','sca_2']
-    
-  allocate(solTab(1:5,NmbVer)) !       1+   dim+     1
+  fieldNames(1:NmbFields)=['sca_1','vec_1','sca_2']
+  
+  allocate(solTab(1:5,NmbVer)) !  =1+dim+1
   print '( "Output Solu NmbVer  : ",i0)',NmbVer
   print '( "Output Solu nFields : ",i0)',NmbFields
   print '( "Output Solu fields  : ", *(i0,1x))',fields(1:NmbFields)
+  print '( "Output Solu fields  : ", *(a,1x))',fieldNames(1:NmbFields)
   
   ! Set the number of solutions (one per vertex)
   res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, NmbFields=NmbFields, fields=fields(1:NmbFields))
@@ -227,9 +200,16 @@ program test_libmeshb_block02_f90
   &   Nmb=NmbVer                        ,&
   &   NmbFields=NmbFields               ,&
   &   fields=fields(1:NmbFields)        ,&
-  &   fieldsName=fieldsName(1:NmbFields),&  ! <= optional
+  &   fieldNames=fieldNames(1:NmbFields),&  ! <= optional
   &   iter=10                           ,&  ! <= optional
   &   time=60d0                          )  ! <= optional
+
+  res=GmfSetBlockF90(                    &
+  &   unit=OutMsh                       ,&
+  &   GmfKey=GmfSolAtVertices           ,&
+  &   ad0=1                             ,&
+  &   ad1=NmbVer                        ,&
+  &   Tab=solTab(1:,:)                   )
 
 
   ! Don't forget to close the file

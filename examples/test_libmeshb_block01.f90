@@ -27,7 +27,7 @@ program test_libmeshb_block01_f90
   integer(int32), pointer :: TriTab(:),TriRef(:)
   integer(int32)          :: iSol,NmbFields,ho,s,d
   integer(int32), pointer :: fields(:)
-  character(32) , pointer :: fieldsName(:)=>null()
+  character(32) , pointer :: fieldNames(:)=>null()
   real(real64)  , pointer :: solTab(:)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
@@ -184,9 +184,9 @@ program test_libmeshb_block01_f90
   strd=5
   NmbFields=3
   allocate( fields    (1:NmbFields))
-  allocate( fieldsName(1:NmbFields))
+  allocate( fieldNames(1:NmbFields))
   fields(1:NmbFields) = [GmfSca,GmfVec,GmfSca]  
-  fieldsName(1:NmbFields)=['sca_1','vec_1','sca_2']
+  fieldNames(1:NmbFields)=['sca_1','vec_1','sca_2']
   
   ! Write iteration number in file
   res=GmfSetKwdF90 (unit=OutSol, GmfKey=GmfIterations, Nmb=1 )
@@ -204,7 +204,7 @@ program test_libmeshb_block01_f90
   &   Nmb=NmbVer                        ,&
   &   NmbFields=NmbFields               ,&
   &   fields=fields(1:NmbFields)        ,&
-  &   fieldsName=fieldsName(1:NmbFields),&  ! <= optional
+  &   fieldNames=fieldNames(1:NmbFields),&  ! <= optional
   &   iter=10                           ,&  ! <= optional
   &   time=60d0                          )  ! <= optional
 
