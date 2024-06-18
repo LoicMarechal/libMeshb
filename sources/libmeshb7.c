@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.82                               */
+/*                               LIBMESHB V7.83                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  mar 11 2024                                          */
+/*   Last modification:  jun 18 2024                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -461,7 +461,9 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"EdgeOnGeometryFace",                       "i", "iiiiiii"},
    {"TriangleOnGeometryFace",                   "i", "iiiiiii"},
    {"QuadrialteralOnGeometryFace",              "i", "iiiiiii"},
-   {"MeshOnGeometry",                           "i", "iiiiiidrdrii"}
+   {"MeshOnGeometry",                           "i", "iiiiiidrdrii"},
+   {"VerticesColour",                           "i", "i"},
+   {"VerticesGrain",                            "i", "i"}
 };
 
 #ifdef TRANSMESH
@@ -766,7 +768,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       {
          fprintf(msh->hdl, "%s %d\n\n",
                GmfKwdFmt[ GmfVersionFormatted ][0], msh->ver);
-         fprintf(msh->hdl, "%s %d\n",
+         fprintf(msh->hdl, "%s\n%d\n",
                GmfKwdFmt[ GmfDimension ][0], msh->dim);
       }
       else
