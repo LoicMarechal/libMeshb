@@ -8,7 +8,7 @@
 !   Author:              Loic MARECHAL
 !                        Christophe PEYRET (ONERA/DAAA)
 !   Creation date:       dec 08 2015
-!   Last modification:   mar 08 2024
+!   Last modification:   mar 13 2024
 !
 !----------------------------------------------------------
 
@@ -20,16 +20,17 @@ module libmeshb7
   implicit none
   
   ! Procedures definition
-  integer(int64) , external :: gmfopenmeshf77
-  integer(int32) , external :: gmfclosemeshf77
-  integer(int32) , external :: GmfStatKwdf77
-  integer(int32) , external :: gmfsetkwdf77
-  integer(int32) , external :: gmfgotokwdf77
-  integer(int32) , external :: gmfsethonodesorderingf77
-  integer(int32) , external :: gmfgetlinef77
-  integer(int32) , external :: gmfsetlinef77
-  integer(int32) , external :: gmfgetblockf77
-  integer(int32) , external :: gmfsetblockf77
+  integer(int64) , external :: GmfOpenMeshF77
+  integer(int32) , external :: GmfCloseMeshF77
+  integer(int32) , external :: GmfStatKwdF77
+  integer(int32) , external :: GmfSetkwdF77
+  integer(int32) , external :: GmfGotokwdF77
+  integer(int32) , external :: GmfSetHONodesorderingF77
+  integer(int32) , external :: GmfGetLineF77
+  integer(int32) , external :: GmfSetLineF77
+  integer(int32) , external :: GmfGetBlockF77
+  integer(int32) , external :: GmfSetBlockF77
+  integer(int32) , external :: GmfSetReferencestringF77
   
   ! Parameters definition
   integer(int32), parameter :: gmfmaxtyp=1000
@@ -422,7 +423,7 @@ contains
     return
   end function GmfSetKwdF90_0
   
-  function     GmfSetKwdF90_1(unit, GmfKey, Nmb, NmbFields, fields, ord, nNod, fieldsName, iter, time) result(res)
+  function     GmfSetKwdF90_1(unit, GmfKey, Nmb, NmbFields, fields, ord, nNod, fieldNames, iter, time) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use iso_c_binding, only: C_NULL_CHAR
     integer(int64), intent(in)           :: unit
@@ -432,7 +433,7 @@ contains
     integer(int32), intent(in)           :: fields(:)
     integer(int32), intent(in), optional :: ord 
     integer(int32), intent(in), optional :: nNod
-    character(*)  , intent(in), optional :: fieldsName(:)
+    character(*)  , intent(in), optional :: fieldNames(:)
     integer(int32), intent(in), optional :: iter
     real(real64)  , intent(in), optional :: time
     integer(int32)                       :: res
@@ -456,23 +457,14 @@ contains
     endif
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     
-    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   
-    if( present(fieldsName) )then
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    if( present(fieldNames) )then
       nomDesChamps : block
-        integer               :: iField,nChar
-        character(:), pointer :: nameC=>null()
-        !res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfReferenceStrings, Nmb=NmbFields)
+        integer(int32) :: iField
+        
+        res=GmfSetKwdF90 (unit=unit, GmfKey=GmfReferenceStrings, Nmb=NmbFields)
         do iField=1,NmbFields
-          !print '(t3,"fieldName: ",a)',trim(fieldsName(iField))
-          nChar=len_trim(fieldsName(iField)) ! print '("nChar: ",i0)',nChar
-          allocate(character(len=nChar+3) :: nameC)
-          write(nameC,'(a,1x,i0,a)')trim(fieldsName(iField)),iField,C_NULL_CHAR
-          print '(t3,"nameC: ",a)',trim(nameC)
-          
-          !res=GmfSetLin(unit=OutSol, GmfKey=GmfReferenceStrings, GmfSolAtVertices, 1, fieldName)
-          !  GmfSetName
-          !  GmfGetName
-          deallocate(nameC)
+          res=GmfSetReferencestringF77(unit, GmfKey, iField, trim(fieldNames(iField)))          
         enddo
       end block nomDesChamps
    endif
@@ -1292,17 +1284,17 @@ contains
   function     GmfSetBlockF90_d__(unit, GmfKey, ad0, ad1, Tab) result(res)
     !> real64(:,:)       
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    integer(int64), intent(in)    :: unit
-    integer(int32), intent(in)    :: GmfKey
-    integer(int32), intent(in)    :: ad0
-    integer(int32), intent(in)    :: ad1
-    real(real64)  , intent(in)    :: Tab(:,:)
-    integer(int32)                :: res
+    integer(int64), intent(in)           :: unit
+    integer(int32), intent(in)           :: GmfKey
+    integer(int32), intent(in)           :: ad0
+    integer(int32), intent(in)           :: ad1
+    real(real64)  , intent(in)           :: Tab(:,:)
+    integer(int32)                       :: res
     !>
-    integer(int32)                :: Ref(1)
-    integer(int32)                :: iTab(1)
-    integer(int32)                :: Nmb
-    integer(int32), pointer       :: map(:)=>null()
+    integer(int32)                       :: Ref(1)
+    integer(int32)                       :: iTab(1)
+    integer(int32)                       :: Nmb
+    integer(int32), pointer              :: map(:)=>null()
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     Nmb=ad1-ad0+1

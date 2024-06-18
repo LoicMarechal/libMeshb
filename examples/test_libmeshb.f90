@@ -58,7 +58,6 @@ function     equal_real64(x,y) result(test)
 end function equal_real64
 
 
-
 program  test_libmeshb_f90
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
@@ -75,7 +74,7 @@ program  test_libmeshb_f90
   integer(int32)          :: NmbVer,NmbQad,NmbTri,ver,dim,res,kwd
   integer(int32)          :: NmbFields,ho,s,d
   integer(int32), pointer :: fields(:)
-  character(32) , pointer :: fieldsName(:)=>null()
+  character(32) , pointer :: fieldNames(:)=>null()
   real(real64)  , pointer :: sol(:)
   real(real64)  , pointer :: VerTab(:,:)
   integer(int32), pointer :: VerRef(  :)
@@ -198,9 +197,9 @@ program  test_libmeshb_f90
   ! Set the solution kinds
   NmbFields=3
   allocate( fields    (1:NmbFields))
-  allocate( fieldsName(1:NmbFields))
+  allocate( fieldNames(1:NmbFields))
   fields(1:NmbFields) = [GmfSca,GmfVec,GmfSca]  
-  fieldsName(1:NmbFields)=['sca_1','vec_1','sca_2']
+  fieldNames(1:NmbFields)=['sca_1','vec_1','sca_2']
   
   allocate(sol(1:5)) !       1+   dim+     1
   print '( "Output Solu NmbVer  : ",i0)',NmbVer
@@ -214,7 +213,7 @@ program  test_libmeshb_f90
   &   Nmb=NmbVer                        ,&
   &   NmbFields=NmbFields               ,&
   &   fields=fields(1:NmbFields)        ,&
-  &   fieldsName=fieldsName(1:NmbFields),&  ! <= optional
+  &   fieldNames=fieldNames(1:NmbFields),&  ! <= optional
   &   iter=10                           ,&  ! <= optional
   &   time=60d0                          )  ! <= optional
   
@@ -230,7 +229,7 @@ program  test_libmeshb_f90
   res=GmfCloseMeshF90(unit=OutSol)
   print '("Output Solu Close   : ",a)',trim(SolFile)
   
-  deallocate(fields,fieldsName,sol)
+  deallocate(fields,fieldNames,sol)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -243,6 +242,5 @@ program  test_libmeshb_f90
   !> User Control
   print '(/"Control:"/"vizir4 -in ",a," -sol ",a/)',trim(OutFile),trim(SolFile)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
     
 end program test_libmeshb_f90
