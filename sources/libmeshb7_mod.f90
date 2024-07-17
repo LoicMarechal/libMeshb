@@ -442,7 +442,7 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( present(iter) )then
       ! Write iteration number in file
-      print '(t3,"iter: ",i0)',iter
+      !print '(t3,"iter: ",i0)',iter
       res=GmfSetKwdF90 (unit=unit, GmfKey=GmfIterations, Nmb=1)
       res=GmfSetLineF90(unit=unit, GmfKey=GmfIterations, Tab=iter)
     endif
@@ -451,7 +451,7 @@ contains
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     if( present(time) )then
       ! Write Time in solution file
-      print '(t3,"time: ",f12.5)',time
+      !print '(t3,"time: ",f12.5)',time
       res=GmfSetKwdF90 (unit=unit, GmfKey=GmfTime, Nmb=1   )
       res=GmfSetLineF90(unit=unit, GmfKey=GmfTime, Tab=time)
     endif
