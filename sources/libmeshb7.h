@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.81                               */
+/*                               LIBMESHB V7.82                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  mar 01 2024                                         */
+/*    Last modification:  jun 18 2024                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -280,6 +280,8 @@ enum GmfKwdCod
    GmfTrianglesOnGeometryFaces,
    GmfQuadrialteralsOnGeometryFaces,
    GmfMeshOnGeometry,
+   GmfVerticesColour,
+   GmfVerticesGrain,
    GmfLastKeyword
 };
 
