@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.82                               */
+/*                               LIBMESHB V7.84                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  jun 18 2024                                         */
+/*    Last modification:  oct 09 2024                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -282,6 +282,17 @@ enum GmfKwdCod
    GmfMeshOnGeometry,
    GmfVerticesColour,
    GmfVerticesGrain,
+   GmfVertexGrainPartitions,
+   GmfEdgeGrainPartitions,
+   GmfTriangleGrainPartitions,
+   GmfQuadrilateralGrainPartitions,
+   GmfTetrahedronGrainPartitions,
+   GmfPyramidGrainPartitions,
+   GmfPrismGrainPartitions,
+   GmfHexahedronGrainPartitions,
+   GmfColorPartitions,
+   GmfTetrahedraColour,
+   GmfTetrahedraGrain,
    GmfLastKeyword
 };
 

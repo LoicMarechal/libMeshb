@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.83                               */
+/*                               LIBMESHB V7.84                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jun 18 2024                                          */
+/*   Last modification:  oct 09 2024                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -39,11 +39,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <float.h>
-#include <math.h>
 #include <ctype.h>
 #include <setjmp.h>
-#include <fcntl.h>
 
  
 /*
@@ -114,6 +111,7 @@
 #ifdef WITH_GMF_AIO
 
 #include <aio.h>
+#include <fcntl.h>
 
 int    my_aio_error (const struct aiocb *aiocbp){return(aio_error (aiocbp));}
 int    my_aio_read  (      struct aiocb *aiocbp){return(aio_read  (aiocbp));}
@@ -463,7 +461,18 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"QuadrialteralOnGeometryFace",              "i", "iiiiiii"},
    {"MeshOnGeometry",                           "i", "iiiiiidrdrii"},
    {"VerticesColour",                           "i", "i"},
-   {"VerticesGrain",                            "i", "i"}
+   {"VerticesGrain",                            "i", "i"},
+   {"VertexGrainPartitions",                    "i", "ii"},
+   {"EdgeGrainPartitions",                      "i", "ii"},
+   {"TriangleGrainPartitions",                  "i", "ii"},
+   {"QuadrilateralGrainPartitions",             "i", "ii"},
+   {"TetrahedronGrainPartitions",               "i", "ii"},
+   {"PyramidGrainPartitions",                   "i", "ii"},
+   {"PrismGrainPartitions",                     "i", "ii"},
+   {"HexahedronGrainPartitions",                "i", "ii"},
+   {"ColorPartitions",                          "i", "ii"},
+   {"TetrahedraColour",                         "i", "i"},
+   {"TetrahedraGrain",                          "i", "i"}
 };
 
 #ifdef TRANSMESH
