@@ -19,3 +19,6 @@ install (TARGETS speed_test DESTINATION bin COMPONENT applications)
 add_executable(ugrid2mesh ugrid2mesh.c)
 target_link_libraries (ugrid2mesh Meshb.7 ${AIO_LIBRARIES})
 install (TARGETS ugrid2mesh DESTINATION bin COMPONENT applications)
+
+install (FILES libmeshb7_helpers.c DESTINATION helpers COMPONENT sources)
+install (FILES libmeshb7_helpers.h DESTINATION include COMPONENT headers)
