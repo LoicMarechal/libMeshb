@@ -13,14 +13,16 @@
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
+
 /*----------------------------------------------------------------------------*/
 /* Includes                                                                   */
 /*----------------------------------------------------------------------------*/
 
-#include "libmeshb7_helpers.h"
-#include "libmeshb7.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "libmeshb7_helpers.h"
+#include "libmeshb7.h"
+
 
 /*----------------------------------------------------------------------------*/
 /* Defines                                                                    */
@@ -38,6 +40,7 @@
 #define fpn double
 #endif
 
+
 /*----------------------------------------------------------------------------*/
 /* Defintion of macro commands                                                */
 /*----------------------------------------------------------------------------*/
@@ -45,6 +48,7 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define POW(a) ((a) * (a))
+
 
 /*----------------------------------------------------------------------------*/
 /* Allocate a structure to hold all polygons and polyhedra related data       */
@@ -138,6 +142,7 @@ PolMshSct *GmfAllocatePolyhedralStructure(int64_t MshIdx)
    return (pol);
 }
 
+
 /*----------------------------------------------------------------------------*/
 /* Free all polyhedral tables and the head structure itself                   */
 /*----------------------------------------------------------------------------*/
@@ -168,6 +173,7 @@ void GmfFreePolyghedralStructure(PolMshSct *pol)
    free(pol);
 }
 
+
 /*----------------------------------------------------------------------------*/
 /* Read the surface polygons from an already opened mesh file                 */
 /* and store the data in the provided polyhedral structure                    */
@@ -197,6 +203,7 @@ int GmfReadBoundaryPolygons(PolMshSct *pol)
    return (1);
 }
 
+
 /*----------------------------------------------------------------------------*/
 /* Read the polyhedra from an already opened mesh file                        */
 /* and store the data in the provided polyhedral structure                    */
@@ -206,7 +213,8 @@ int GmfReadPolyhedra(PolMshSct *pol)
 {
    int ret;
 
-   if (!pol || !pol->InrHdrTab || !pol->InrVerTab || !pol->VolHdrTab || !pol->VolFacTab)
+   if (!pol || !pol->InrHdrTab || !pol->InrVerTab
+            || !pol->VolHdrTab || !pol->VolFacTab)
    {
       return (0);
    }
@@ -242,6 +250,7 @@ int GmfReadPolyhedra(PolMshSct *pol)
    return (1);
 }
 
+
 /*----------------------------------------------------------------------------*/
 /* Copy one surface polygon list of vertices in the table and return its size */
 /*----------------------------------------------------------------------------*/
@@ -267,6 +276,7 @@ itg GmfGetBoundaryPolygon(PolMshSct *pol, itg EleIdx, itg *UsrTab)
 
    return (EndIdx - BegIdx + 1);
 }
+
 
 /*----------------------------------------------------------------------------*/
 /* Copy one inner polygon list of vertices in the table and return its size   */
@@ -304,6 +314,7 @@ itg GmfGetInnerPolygon(PolMshSct *pol, itg EleIdx, itg *UsrTab)
    return (EndIdx - BegIdx + 1);
 }
 
+
 /*----------------------------------------------------------------------------*/
 /* Copy one polyhedra list of polygonal faces in the table and return its size*/
 /*----------------------------------------------------------------------------*/
@@ -329,6 +340,7 @@ itg GmfGetPolyhedron(PolMshSct *pol, itg EleIdx, itg *UsrTab)
 
    return (EndIdx - BegIdx + 1);
 }
+
 
 /*----------------------------------------------------------------------------*/
 /* Create the tessellation in triangles of a polygon                          */
@@ -369,11 +381,6 @@ itg GmfTesselatePolygon(PolMshSct *pol, itg EleIdx, itg (*Tri)[3], itg (*VisEdg)
    VisEdg[NmbTri - 1][0] = 1;
    VisEdg[NmbTri - 1][1] = 1;
    VisEdg[NmbTri - 1][2] = 0;
-
-   // for (i = 0; i < NmbTri; i++) {
-   //   printf("GmfTesselatePolygon: Tri[%d] %d %d %d \n", i, Tri[i][0], Tri[i][1], Tri[i][2]);
-   //   printf("GmfTesselatePolygon: VisEdg[%d] %d %d %d \n", i, VisEdg[i][0], VisEdg[i][1], VisEdg[i][2]);
-   // }
 
    return NmbTri;
 }

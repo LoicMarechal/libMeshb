@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.80                               */
+/*                               LIBMESHB V7.84                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  feb 27 2024                                          */
+/*   Last modification:  oct 09 2024                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -39,11 +39,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <float.h>
-#include <math.h>
 #include <ctype.h>
 #include <setjmp.h>
-#include <fcntl.h>
 
  
 /*
@@ -114,6 +111,7 @@
 #ifdef WITH_GMF_AIO
 
 #include <aio.h>
+#include <fcntl.h>
 
 int    my_aio_error (const struct aiocb *aiocbp){return(aio_error (aiocbp));}
 int    my_aio_read  (      struct aiocb *aiocbp){return(aio_read  (aiocbp));}
@@ -194,9 +192,8 @@ int my_aio_write(struct aiocb *aiocbp)
 #define CmtKwd    4
 #define F77Kwd    5
 #define WrdSiz    4
-#define FilStrSiz 64
 #define BufSiz    10000L
-#define MaxArg    20
+#define MaxArg    1000
 
 
 /*----------------------------------------------------------------------------*/
@@ -462,7 +459,20 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"EdgeOnGeometryFace",                       "i", "iiiiiii"},
    {"TriangleOnGeometryFace",                   "i", "iiiiiii"},
    {"QuadrialteralOnGeometryFace",              "i", "iiiiiii"},
-   {"MeshOnGeometry",                           "i", "iiiiiidrdrii"}
+   {"MeshOnGeometry",                           "i", "iiiiiidrdrii"},
+   {"VerticesColour",                           "i", "i"},
+   {"VerticesGrain",                            "i", "i"},
+   {"VertexGrainPartitions",                    "i", "ii"},
+   {"EdgeGrainPartitions",                      "i", "ii"},
+   {"TriangleGrainPartitions",                  "i", "ii"},
+   {"QuadrilateralGrainPartitions",             "i", "ii"},
+   {"TetrahedronGrainPartitions",               "i", "ii"},
+   {"PyramidGrainPartitions",                   "i", "ii"},
+   {"PrismGrainPartitions",                     "i", "ii"},
+   {"HexahedronGrainPartitions",                "i", "ii"},
+   {"ColorPartitions",                          "i", "ii"},
+   {"TetrahedraColour",                         "i", "i"},
+   {"TetrahedraGrain",                          "i", "i"}
 };
 
 #ifdef TRANSMESH
@@ -767,7 +777,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       {
          fprintf(msh->hdl, "%s %d\n\n",
                GmfKwdFmt[ GmfVersionFormatted ][0], msh->ver);
-         fprintf(msh->hdl, "%s %d\n",
+         fprintf(msh->hdl, "%s\n%d\n",
                GmfKwdFmt[ GmfDimension ][0], msh->dim);
       }
       else
@@ -1121,7 +1131,7 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
                }
                else if(kwd->fmt[i] == 'c')
                {
-                  safe_fscanf(msh->hdl, "%s", va_arg(VarArg, char *), msh->err);
+                  safe_fgets(va_arg(VarArg, char *), FilStrSiz, msh->hdl, msh->err);
                }
             }
          }
@@ -1239,6 +1249,7 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
 
 int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
 {
+   char        *str;
    int         i, pos, *IntBuf, err, typ, *IntTab, *RefPtr;
    int64_t     *LngBuf;
    float       *FltSolTab, *FltBuf;
@@ -1313,7 +1324,16 @@ int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
                   }
                }
                else if(kwd->fmt[i] == 'c')
-                  fprintf(msh->hdl, "%s ", va_arg(VarArg, char *));
+               {
+                  // Safety check: if the string is greater than 64 characters
+                  // truncate it with an ending 0
+                  str = va_arg(VarArg, char *);
+
+                  if(strlen(str) >= FilStrSiz)
+                     str[ FilStrSiz ] = 0;
+
+                  fputs(str, msh->hdl);
+               }
             }
          }
          else
@@ -3266,6 +3286,10 @@ int APIF77(gmfgetblockf77)(int64_t *MshIdx, int *KwdCod,
    GmfMshSct   *msh = (GmfMshSct *)*MshIdx;
    KwdSct      *kwd = &msh->KwdTab[ *KwdCod ];
 
+   // Fortran mode will expand all fields as a separate scalar so we need space
+   if(kwd->SolSiz >= MaxArg)
+      return(0);
+
    // Fortran call to getblock uses the GmfArgTab mode where pointers are passed
    // through tables: types[], vec sizes[], begin pointers[] and end pointers[]
    for(i=0;i<kwd->SolSiz;i++)
@@ -3310,6 +3334,10 @@ int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *KwdCod,
    GmfMshSct   *msh = (GmfMshSct *)*MshIdx;
    KwdSct      *kwd = &msh->KwdTab[ *KwdCod ];
 
+   // Fortran mode will expand all fields as a separate scalar so we need space
+   if(kwd->SolSiz >= MaxArg)
+      return(0);
+
    // Fortran call to setblock uses the GmfArgTab mode where pointers are passed
    // through tables: types[], vec sizes[], begin pointers[] and end pointers[]
    for(i=0;i<kwd->SolSiz;i++)
@@ -3340,4 +3368,44 @@ int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *KwdCod,
 
    return(GmfSetBlock(  *MshIdx, *KwdCod, *BegIdx, *EndIdx, *MapTyp, MatTab,
                         NULL, GmfArgTab, TypTab, SizTab, BegTab, EndTab ));
+}
+
+int APIF77(gmfgetreferencestringf77)(int64_t *MshIdx, int *kwd, int *idx, char *str, int siz)
+{
+   int   ret;
+   char *tmp = malloc(siz+1);
+
+   // Allocate a string with one extra character to store the trailing 0
+   if(!tmp)
+      return(0);
+
+   // Copy the Fortran string into the C string and add a trailing 0
+   strncpy(tmp, str, siz);
+   tmp[ siz ] = 0;
+
+   // Now call the C procedure a free the temporary string
+   ret = GmfGetLin(*MshIdx, GmfReferenceStrings, kwd, idx, tmp);
+   free(tmp);
+
+   return(ret);
+}
+
+int APIF77(gmfsetreferencestringf77)(int64_t *MshIdx, int *kwd, int *idx, char *str, int siz)
+{
+   int   ret;
+   char *tmp = malloc(siz+1);
+
+   // Allocate a string with one extra character to store the trailing 0
+   if(!tmp)
+      return(0);
+
+   // Copy the Fortran string into the C string and add a trailing 0
+   strncpy(tmp, str, siz);
+   tmp[ siz ] = 0;
+
+   // Now call the C procedure a free the temporary string
+   ret = GmfSetLin(*MshIdx, GmfReferenceStrings, *kwd, *idx, tmp);
+   free(tmp);
+
+   return(ret);
 }

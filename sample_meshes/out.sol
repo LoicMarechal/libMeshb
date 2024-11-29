@@ -12,4 +12,10 @@ SolAtVertices
 0 4 5 6 9
 2 5 2 6 6
 
+ReferenceStrings
+3
+62 1 scalar 1
+62 2 vector
+62 3 scalar 2
+
 End

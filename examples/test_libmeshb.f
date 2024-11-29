@@ -94,6 +94,14 @@ c     ----------------------
       if(OutMsh.eq.0) STOP ' OutMsh = 0'
       print*, 'output IDX: ',OutMsh
 
+      res = gmfsetkwdf77(OutMsh, GmfReferenceStrings, 3, 0, t, 0, ho)
+      res = gmfsetreferencestringf77(OutMsh, GmfSolAtVertices,
+     +1, 'first scalar')
+      res = gmfsetreferencestringf77(OutMsh, GmfSolAtVertices,
+     +2, 'a vector')
+      res = gmfsetreferencestringf77(OutMsh, GmfSolAtVertices,
+     +3, 'second scalar')
+
 c     Set the solution kinds
       t(1) = GmfSca;
       t(2) = GmfVec;

@@ -6,10 +6,61 @@
 !> A FAIRE ajouter iteration
 !> A FAIRE ajouter nom des champs
 
+
+function equal_int32(x,y) result(test)
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  use iso_fortran_env
+  integer(int32) , intent(in)  :: x(:)
+  integer(int32) , intent(in)  :: y(:)
+  logical                      :: test
+  !>
+  integer(int32)               :: i,nx,ny
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  nx=size(x) ; ny=size(y)
+  if( .not.nx==ny )stop 'dimensions non compatibles'
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  do i=1,nx
+    if( .not.x(i)==y(i) )then
+      test=.false.
+      return
+    endif
+  enddo
+  test=.true.
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  return
+end function equal_int32
+
+function     equal_real64(x,y) result(test)
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  use iso_fortran_env
+  real(real64) , intent(in)    :: x(:)
+  real(real64) , intent(in)    :: y(:)
+  logical                      :: test
+  !>
+  integer(int32)               :: i,nx,ny
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  nx=size(x) ; ny=size(y)
+  if( .not.nx==ny )stop 'dimensions non compatibles'
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  do i=1,nx
+    if( .not.x(i)==y(i) )then
+      test=.false.
+      return
+    endif
+  enddo
+  test=.true.
+  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  return
+end function equal_real64
+
+
 program  test_libmeshb_f90
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
-  use iso_c_binding, only: C_NULL_CHAR
   use libmeshb7
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -21,9 +72,9 @@ program  test_libmeshb_f90
   character(80)           :: SolFile
   integer(int32)          :: i
   integer(int32)          :: NmbVer,NmbQad,NmbTri,ver,dim,res,kwd
-  integer(int32)          :: NmbField,ho,s,d
+  integer(int32)          :: NmbFields,ho,s,d
   integer(int32), pointer :: fields(:)
-  character(32) , pointer :: fieldsName(:)=>null()
+  character(32) , pointer :: fieldNames(:)=>null()
   real(real64)  , pointer :: sol(:)
   real(real64)  , pointer :: VerTab(:,:)
   integer(int32), pointer :: VerRef(  :)
@@ -37,8 +88,8 @@ program  test_libmeshb_f90
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   InpFile='../sample_meshes/quad.mesh'
-  OutFile='./tri.mesh'
-  SolFile='./tri.sol'
+  OutFile='./tri.meshb'
+  SolFile='./tri.solb'
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -129,66 +180,67 @@ program  test_libmeshb_f90
   print '(/"Output Solu Open    : ",a )',trim(SolFile)
   
   OutSol=GmfOpenMeshF90(name=trim(SolFile),GmfKey=GmfWrite,ver=ver,dim=dim)
-
+  
   print '( "Output Solu Idx     : ",i0)',OutSol
   print '( "Output Solu ver     : ",i0)',ver
   print '( "Output Solu dim     : ",i0)',dim
   if( OutSol==0 ) STOP ' OutSol = 0'
   
-  ! Set the solution kinds
-  NmbField=3
-  allocate( fields    (1:NmbField))
-  allocate( fieldsName(1:NmbField))
-  fields(1:NmbField) = [GmfSca,GmfVec,GmfSca]  
-  fieldsName(1:NmbField)=['sca_1','vec_1','sca_2']
+  ! Write iteration number in file
+  res=GmfSetKwdF90 (unit=OutSol, GmfKey=GmfIterations, Nmb=1 )
+  res=GmfSetLineF90(unit=OutSol, GmfKey=GmfIterations, Tab=int(10,kind=int32)) ! number of iteration (example 10)  
   
-  !nomDesChamps : block
-  !  integer               :: iField,nChar
-  !  character(:), pointer :: fieldName=>null()
-  !  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfReferenceStrings, Nmb=NmbField)
-  !  do iField=1,NmbField
-  !    nChar=len_trim(fieldsName(iField)) ! print '("nChar: ",i0)',nChar
-  !    allocate(character(len=nChar+3) :: fieldName)
-  !    write(fieldName,'(a,1x,i0,a)')trim(fieldsName(iField)),iField,C_NULL_CHAR
-  !    print '("fieldName: ",a)',fieldName
-  !    
-  !    !ress=GmfSetLin(unit=OutSol, GmfKey=GmfReferenceStrings, GmfSolAtVertices, 1, fieldName)
-  !    
-  !    deallocate(fieldName)
-  !  enddo
-  !end block nomDesChamps
+  ! Write Time in solution file
+  res=GmfSetKwdF90 (unit=OutSol, GmfKey=GmfTime, Nmb=1)
+  res=GmfSetLineF90(unit=OutSol, GmfKey=GmfTime, Tab=real(60,kind=real64))
+  
+  ! Set the solution kinds
+  NmbFields=3
+  allocate( fields    (1:NmbFields))
+  allocate( fieldNames(1:NmbFields))
+  fields(1:NmbFields) = [GmfSca,GmfVec,GmfSca]  
+  fieldNames(1:NmbFields)=['sca_1','vec_1','sca_2']
   
   allocate(sol(1:5)) !       1+   dim+     1
   print '( "Output Solu NmbVer  : ",i0)',NmbVer
-  print '( "Output Solu nFields : ",i0)',NmbField
-  print '( "Output Solu fields  : ", *(i0,1x))',fields(1:NmbField)
+  print '( "Output Solu nFields : ",i0)',NmbFields
+  print '( "Output Solu fields  : ", *(i0,1x))',fields(1:NmbFields)
   
   ! Set the number of solutions (one per vertex)
-  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, d=NmbField, t=fields(1:NmbField), s=0, ho=ho)
+  res=GmfSetKwdF90(                      &
+  &   unit=OutSol                       ,&
+  &   GmfKey=GmfSolAtVertices           ,&
+  &   Nmb=NmbVer                        ,&
+  &   NmbFields=NmbFields               ,&
+  &   fields=fields(1:NmbFields)        ,&
+  &   fieldNames=fieldNames(1:NmbFields),&  ! <= optional
+  &   iter=10                           ,&  ! <= optional
+  &   time=60d0                          )  ! <= optional
   
   ! Write the dummy solution fields
   do i=1,NmbVer
     sol(  1)=VerTab(1,i)
     sol(2:4)=[VerTab(1,i),VerTab(2,i),0d0]
     sol(  5)=VerTab(2,i)
-    res=GmfSetLineF90(unit=OutMsh, GmfKey=GmfSolAtVertices, dTab=sol(:))
+    res=GmfSetLineF90(unit=OutSol, GmfKey=GmfSolAtVertices, Tab=sol(:))
   enddo
   
   ! Don't forget to close the file
   res=GmfCloseMeshF90(unit=OutSol)
-  print '("Output Solu Close   : ",a)',trim(SolFile)    
+  print '("Output Solu Close   : ",a)',trim(SolFile)
+  
+  deallocate(fields,fieldNames,sol)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> Cleanning Memory
   deallocate(VerTab,VerRef)
   deallocate(QadTab,QadRef)
-  deallocate(fields,fieldsName,sol)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   !> User Control
   print '(/"Control:"/"vizir4 -in ",a," -sol ",a/)',trim(OutFile),trim(SolFile)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-  
+    
 end program test_libmeshb_f90

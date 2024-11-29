@@ -1,7 +1,14 @@
 ! libMeshb 7.79 example: transform a quadrilateral mesh into a triangular one
 ! using fast block transfer
 
-program test_libmeshb_block_f90
+! test_libmeshb_block02_f90
+! Version with this shapes:
+!   VerTab(:,:),VerRef(:)
+!   QadTab(:,:),QadRef(:)
+!   TriTab(:,:),TriRef(:)
+!   solTab(:,:)
+
+program test_libmeshb_block02_f90
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
   use libmeshb7
@@ -12,20 +19,20 @@ program test_libmeshb_block_f90
   character(80)           :: InpFile
   character(80)           :: OutFile
   character(80)           :: SolFile
-  integer                 :: i
-  integer                 :: NmbVer,NmbQad,NmbTri,ver,dim,res
+  integer(int32)          :: i
+  integer(int32)          :: NmbVer,NmbQad,NmbTri,ver,dim,res
   real(real64)  , pointer :: VerTab(:,:)
-  integer       , pointer :: VerRef(  :)
-  integer       , pointer :: QadTab(:,:),QadRef(  :)
-  integer       , pointer :: TriTab(:,:),TriRef(  :)
-  integer(int32)          :: NmbField,ho,s,d
+  integer(int32), pointer :: VerRef(  :)
+  integer(int32), pointer :: QadTab(:,:),QadRef(  :)
+  integer(int32), pointer :: TriTab(:,:),TriRef(  :)
+  integer(int32)          :: NmbFields,ho,s,d
   integer(int32), pointer :: fields(:)
-  character(32) , pointer :: fieldsName(:)=>null()
+  character(32) , pointer :: fieldNames(:)=>null()
   real(real64)  , pointer :: solTab(:,:)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  print '(/"test_libmeshb_block_f90")'
+  print '(/"test_libmeshb_block02_f90")'
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -60,9 +67,9 @@ program test_libmeshb_block_f90
   &   Tab=VerTab(:,1:NmbVer) ,&
   &   Ref=VerRef(  1:NmbVer)  )
   
-  do i=1,10
-    print '(3x,"ver",i6," xyz:",3(f12.5,1x)," ref: ",i0)',i,VerTab(1:3,i),VerRef(i)
-  enddo
+  !do i=1,10
+  !  print '(3x,"ver",i6," xyz:",3(f12.5,1x)," ref: ",i0)',i,VerTab(1:3,i),VerRef(i)
+  !enddo
   
   ! Allocate QadTab
   NmbQad=GmfstatkwdF90(unit=InpMsh, GmfKey=GmfQuadrilaterals)
@@ -79,27 +86,10 @@ program test_libmeshb_block_f90
   &   Tab=QadTab(:,1:)        ,&
   &   Ref=QadRef(  1:)         )
   
-  do i=1,10
-    print '(3x,"qad",i6," nd:",4(i6,1x)," ref: ",i0)',i,QadTab(1:4,i),QadRef(i)
-  enddo
-  
-  !!> Lecture par tableau 1D sans recopie (interface à écrire en indiquand le stride)
-  !block 
-  !  use iso_c_binding, only: c_loc,c_f_pointer
-  !  integer     , pointer :: nodes(:)
-  !  
-  !  call c_f_pointer(cptr=c_loc(QadTab), fptr=nodes, shape=[4*NmbQad]) !> binding QadTab(:,:) and nodes(:)
-  !  
-  !  res=GmfGetElements(                &
-  !  &   InpMsh                        ,&
-  !  &   GmfQuadrilaterals             ,&
-  !  &   1                             ,&
-  !  &   NmbQad                        ,&
-  !  &   0, m                          ,&
-  !  &   nodes(   1), nodes(4*NmbQad-3),&
-  !  &   QadRef(  1), QadRef(NmbQad)    )
-  !end block
-  
+  !do i=1,10
+  !  print '(3x,"qad",i6," nd:",4(i6,1x)," ref: ",i0)',i,QadTab(1:4,i),QadRef(i)
+  !enddo
+    
   ! Close the quadrilateral mesh
   res=GmfCloseMeshF90(unit=InpMsh)
   print '("Input  Mesh Close   : ",a)',trim(InpFile)
@@ -164,34 +154,6 @@ program test_libmeshb_block_f90
   &   Tab=TriTab(:,1:NmbTri),&
   &   Ref=TriRef(  1:NmbVer) )
   
-  !!> Ecriture par tableau 1D sans recopie (interface fortran à écrire)
-  !block 
-  !  use iso_c_binding, only: c_loc,c_f_pointer
-  !  integer     , pointer :: nodes(:)
-  !  
-  !  print '(/"binding TriTab(:,:) and nodes(:)")'
-  !  
-  !  call c_f_pointer(cptr=c_loc(TriTab), fptr=nodes, shape=[3*NmbTri]) !> binding TriTab(:,:) and nodes(:)
-  !  
-  !  print '(/"Triangle: ",i6)',1
-  !  print '( "TriTab:",3(i6,1x) )',TriTab(1,1),TriTab(2,1),TriTab(3,1)
-  !  print '( "nodes: ",3(i6,1x)/)',nodes(1),nodes(2),nodes(3)
-  !  print '(/"Triangle: ",i6)',NmbTri
-  !  print '( "TriTab:",3(i6,1x) )',TriTab(1,NmbTri),TriTab(2,NmbTri),TriTab(3,NmbTri)
-  !  print '( "nodes: ",3(i6,1x)/)',nodes(3*NmbTri-2),nodes(3*NmbTri-1),nodes(3*NmbTri)
-  !  
-  !  res=GmfSetElements(                &
-  !  &   InpMsh                        ,&
-  !  &   GmfTriangles                  ,&
-  !  &   1                             ,&
-  !  &   NmbTri                        ,&
-  !  !   0, m                          ,&
-  !  &   0, c_null_ptr                 ,&
-  !  &   nodes(   1), nodes(3*NmbTri-2),&
-  !  &   TriRef(  1), TriRef(NmbTri)    )
-  !  
-  !end block
-
   ! Don't forget to close the file
   res=GmfCloseMeshF90(unit=OutMsh)
   print '("Output Mesh Close   : ",a)',trim(OutFile)  
@@ -203,42 +165,27 @@ program test_libmeshb_block_f90
   print '(/"Output Solu Open    : ",a )',trim(SolFile)
   
   OutSol=GmfOpenMeshF90(name=trim(SolFile),GmfKey=GmfWrite,ver=ver,dim=dim)
-
+  
   print '( "Output Solu Idx     : ",i0)',OutSol
   print '( "Output Solu ver     : ",i0)',ver
   print '( "Output Solu dim     : ",i0)',dim
   if( OutSol==0 ) STOP ' OutSol = 0'
   
   ! Set the solution kinds
-  NmbField=3
-  allocate( fields    (1:NmbField))
-  allocate( fieldsName(1:NmbField))
-  fields(1:NmbField) = [GmfSca,GmfVec,GmfSca]  
-  fieldsName(1:NmbField)=['sca_1','vec_1','sca_2']
+  NmbFields=3
+  allocate(fields    (1:NmbFields))
+  allocate(fieldNames(1:NmbFields))
+  fields(1:NmbFields) = [GmfSca,GmfVec,GmfSca]  
+  fieldNames(1:NmbFields)=['sca_1','vec_1','sca_2']
   
-  !nomDesChamps : block
-  !  integer               :: iField,nChar
-  !  character(:), pointer :: fieldName=>null()
-  !  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfReferenceStrings, Nmb=NmbField)
-  !  do iField=1,NmbField
-  !    nChar=len_trim(fieldsName(iField)) ! print '("nChar: ",i0)',nChar
-  !    allocate(character(len=nChar+3) :: fieldName)
-  !    write(fieldName,'(a,1x,i0,a)')trim(fieldsName(iField)),iField,C_NULL_CHAR
-  !    print '("fieldName: ",a)',fieldName
-  !    
-  !    !ress=GmfSetLin(unit=OutSol, GmfKey=GmfReferenceStrings, GmfSolAtVertices, 1, fieldName)
-  !    
-  !    deallocate(fieldName)
-  !  enddo
-  !end block nomDesChamps
-  
-  allocate(solTab(1:5,NmbVer)) !       1+   dim+     1
+  allocate(solTab(1:5,NmbVer)) !  =1+dim+1
   print '( "Output Solu NmbVer  : ",i0)',NmbVer
-  print '( "Output Solu nFields : ",i0)',NmbField
-  print '( "Output Solu fields  : ", *(i0,1x))',fields(1:NmbField)
+  print '( "Output Solu nFields : ",i0)',NmbFields
+  print '( "Output Solu fields  : ", *(i0,1x))',fields(1:NmbFields)
+  print '( "Output Solu fields  : ", *(a,1x))',fieldNames(1:NmbFields)
   
   ! Set the number of solutions (one per vertex)
-  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, d=NmbField, t=fields(1:NmbField), s=0, ho=ho)
+  res=GmfSetKwdF90(unit=OutSol, GmfKey=GmfSolAtVertices, Nmb=NmbVer, NmbFields=NmbFields, fields=fields(1:NmbFields))
   
   ! Compute the dummy solution fields
   do i=1,NmbVer
@@ -247,13 +194,24 @@ program test_libmeshb_block_f90
     solTab(  5,i)=VerTab(2,i)
   enddo
   
-  res=GmfSetBlockF90(          &
-  &   unit=OutMsh             ,&
-  &   GmfKey=GmfSolAtVertices ,&
-  &   ad0=1                   ,&
-  &   ad1=NmbVer              ,&
-  &   Tab=solTab(:,1:NmbVer)   )
-  
+  res=GmfSetKwdF90(                      &
+  &   unit=OutSol                       ,&
+  &   GmfKey=GmfSolAtVertices           ,&
+  &   Nmb=NmbVer                        ,&
+  &   NmbFields=NmbFields               ,&
+  &   fields=fields(1:NmbFields)        ,&
+  &   fieldNames=fieldNames(1:NmbFields),&  ! <= optional
+  &   iter=10                           ,&  ! <= optional
+  &   time=60d0                          )  ! <= optional
+
+  res=GmfSetBlockF90(                    &
+  &   unit=OutMsh                       ,&
+  &   GmfKey=GmfSolAtVertices           ,&
+  &   ad0=1                             ,&
+  &   ad1=NmbVer                        ,&
+  &   Tab=solTab(1:,:)                   )
+
+
   ! Don't forget to close the file
   res=GmfCloseMeshF90(unit=OutSol)
   print '("Output Solu Close   : ",a)',trim(SolFile)    
@@ -271,4 +229,4 @@ program test_libmeshb_block_f90
   print '(/"Constrol"/"vizir4 -in ",a," -sol ",a,/)',trim(OutFile),trim(SolFile)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
-end program test_libmeshb_block_f90
+end program test_libmeshb_block02_f90
