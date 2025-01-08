@@ -4,9 +4,9 @@
 # GLOBAL CONFIGURATION VARIABLES
 ################################
 
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.18)
 set (libMeshb_VERSION_MAJOR 7)
-set (libMeshb_VERSION_MINOR 80)
+set (libMeshb_VERSION_MINOR 84)
 project(libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
 
 option(WITH_GMF_AIO     "Use Unix low-level and asynchronous I/O for higher speed"       OFF)
