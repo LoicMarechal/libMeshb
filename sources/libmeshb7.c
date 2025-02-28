@@ -2112,8 +2112,8 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
 
    // Temporarily overwright the given begin and end values
    // as arbitrary position block write is not yet implemented
-   FilBegIdx = 1;
-   FilEndIdx = kwd->NmbLin;
+   FilBegIdx = BegIdx;
+   FilEndIdx = EndIdx;
 
    // Check user's bounds
    if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > (size_t)kwd->NmbLin) )
@@ -2316,6 +2316,7 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
       aio.aio_fildes = msh->hdl;
 #endif
       aio.aio_offset = (size_t)GetFilPos(msh);
+      //aio.aio_offset = (size_t)(GetFilPos(msh) + (FilBegIdx-1) * LinSiz);
 
       NmbBlk = UsrNmbLin / BufSiz;
 
