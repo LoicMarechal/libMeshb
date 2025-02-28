@@ -2328,7 +2328,7 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
          if(b)
          {
             aio.aio_nbytes = BlkNmbLin * LinSiz;
-            
+
             if(my_aio_write(&aio) == -1)
             {
 #ifdef WITH_GMF_AIO

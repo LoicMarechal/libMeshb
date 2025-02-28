@@ -49,6 +49,11 @@ if(WITH_GMF_AIO)
    endif()
 endif()
 
+find_package(LPlib 4)
+if (LPlib_FOUND)
+   include_directories (${LPlib_INCLUDE_DIRS})
+endif ()
+
 
 #######################################
 # SET FILES AND DIRECTORIES TO BE BUILT
