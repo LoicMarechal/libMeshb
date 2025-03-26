@@ -22,7 +22,9 @@ install (EXPORT meshb-target NAMESPACE ${PROJECT_NAME}::
 
 install (TARGETS Meshb.7 EXPORT libMeshb-target DESTINATION lib COMPONENT libraries)
 
-install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/ DESTINATION include)
+if(CMAKE_Fortran_COMPILER)
+  install(DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY}/ DESTINATION include)
+endif()
 
 install (EXPORT libMeshb-target DESTINATION lib/cmake/${PROJECT_NAME})
 
