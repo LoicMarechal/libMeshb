@@ -1,3 +1,3 @@
-## Release 7.84
+## Release 8.00
 
-1. Changed the way the helpers are handled with CMake: the C sources are installed in a dedicated helpers directory that is exported as $libMeshb\_HELPERS\_DIRS
+1. First release with parallel I/O support: reading is fully functional but writing is still broken.

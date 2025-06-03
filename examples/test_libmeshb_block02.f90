@@ -1,4 +1,4 @@
-! libMeshb 7.79 example: transform a quadrilateral mesh into a triangular one
+! libMeshb 8.0 example: transform a quadrilateral mesh into a triangular one
 ! using fast block transfer
 
 ! test_libmeshb_block02_f90
@@ -11,7 +11,7 @@
 program test_libmeshb_block02_f90
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
-  use libmeshb7
+  use libmeshb8
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none

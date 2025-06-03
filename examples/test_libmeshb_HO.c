@@ -1,11 +1,11 @@
 
-// libMeshb 7 basic example:
+// libMeshb 8.0 basic example:
 // read a Q2 quad mesh while using the automatic HO reordering feature,
 // split it into P2 triangles and write the result back using fast block transfer
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <libmeshb7.h>
+#include <libmeshb8.h>
 
 #ifdef PRINTF_INT64_MODIFIER
 #define INT64_T_FMT "%" PRINTF_INT64_MODIFIER "d"

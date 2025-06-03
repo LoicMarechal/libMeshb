@@ -1,9 +1,9 @@
 
-c     libMeshb 7.79 basic example:
+c     libMeshb 8.0 basic example:
 c     read a quad mesh, split it into triangles and write the result back
 c     write an associated dummy .sol file containing some data
 
-      include 'libmeshb7.ins'
+      include 'libmeshb8.ins'
 
       integer n
       parameter (n=4000)

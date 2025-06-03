@@ -9,7 +9,7 @@
 /* Description:         convert mesh file from/to ascii/bin                   */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 08 2004                                           */
-/* Last modification:   aug 05 2021                                           */
+/* Last modification:   jun 03 2025                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -42,7 +42,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "libmeshb7.h"
+#include "libmeshb8.h"
 
 
 /*----------------------------------------------------------------------------*/

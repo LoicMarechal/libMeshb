@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## libMeshb version 7.84
+## libMeshb version 8.00
 A library to handle the *.meshb file format.
 
 ## Overview

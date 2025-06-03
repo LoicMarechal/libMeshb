@@ -4,8 +4,8 @@
 - Read and allocate the required ElementGID, then build the list of elements that do not belong to the local domain and return it to the caller.
 
 ### Distributed parallel write
-- Open a mesh file in write mode but only create the skeleton of the mesh structure to enable further concurrent write access.
-- Open an existing mesh file in write mode and enable concurrent block writes, thanks to the existing file structure.
+- Open a mesh file in append mode, create the header and close it so that other processes can reopen it and write to it in parallel.
+- Open an existing mesh file in append mode and enable concurrent block writes, thanks to the existing file structure.
 
 ## STANDARD PRIORITY
 

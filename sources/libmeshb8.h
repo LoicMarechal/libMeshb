@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.84                               */
+/*                               LIBMESHB V7.90                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  oct 09 2024                                         */
+/*    Last modification:  feb 28 2025                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -47,6 +47,7 @@
 #define GmfIntVec       14
 #define GmfLongTab      15
 #define GmfLongVec      15
+#define GmfParallelWrite 16
 #define GmfArgTab       100
 #define GmfArgLst       101
 

@@ -5,8 +5,8 @@
 ################################
 
 cmake_minimum_required (VERSION 3.18)
-set (libMeshb_VERSION_MAJOR 7)
-set (libMeshb_VERSION_MINOR 84)
+set (libMeshb_VERSION_MAJOR 8)
+set (libMeshb_VERSION_MINOR 00)
 project(libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
 
 option(WITH_GMF_AIO     "Use Unix low-level and asynchronous I/O for higher speed"       OFF)
@@ -101,8 +101,8 @@ include(\${CMAKE_CURRENT_LIST_DIR}/libMeshb-target.cmake)
 set(libMeshb_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/include)
 set(libMeshb_HELPERS_DIRS ${CMAKE_INSTALL_PREFIX}/helpers)
 set(libMeshb_LINK_DIRS ${CMAKE_INSTALL_PREFIX}/lib)
-set(libMeshb_LIBRARIES Meshb.7 ${AIO_LIBRARIES})
-set(libMeshb_Fortran_LIBRARIES Meshbf.7 ${AIO_LIBRARIES})
+set(libMeshb_LIBRARIES Meshb.8 ${AIO_LIBRARIES})
+set(libMeshb_Fortran_LIBRARIES Meshbf.8 ${AIO_LIBRARIES})
 set(libMeshb_FOUND TRUE)
 ")
 write_basic_package_version_file(

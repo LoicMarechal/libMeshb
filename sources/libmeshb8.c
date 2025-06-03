@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.84                               */
+/*                               LIBMESHB V8.00                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  oct 09 2024                                          */
+/*   Last modification:  jun 03 2025                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -58,8 +58,10 @@
 
 #define OPEN_READ_FLAGS   O_RDONLY
 #define OPEN_WRITE_FLAGS  O_CREAT | O_WRONLY | O_TRUNC
+#define OPEN_PARWRITE_FLAGS  O_RDWR
 #define OPEN_READ_MODE    0666
 #define OPEN_WRITE_MODE   0666   
+#define OPEN_PARWRITE_MODE   0666   
    
 #elif defined(_WIN32) || defined(_WIN64)
 
@@ -89,7 +91,7 @@
 
 
 #include <errno.h>
-#include <libmeshb7.h>
+#include <libmeshb8.h>
 
 // [Bruno] Using portable printf modifier from pstdint.h
 // (alternative: use "%zd" under Linux and "%Id" under Windows)
@@ -192,7 +194,8 @@ int my_aio_write(struct aiocb *aiocbp)
 #define CmtKwd    4
 #define F77Kwd    5
 #define WrdSiz    4
-#define BufSiz    10000L
+#define RecBufSiz 10000L
+#define PipBufSiz 1000000L
 #define MaxArg    1000
 
 
@@ -222,7 +225,7 @@ typedef struct
    char     *buf;
    char     FilNam[ GmfStrSiz ];
    double   DblBuf[1000/8];
-   unsigned char blk[ BufSiz + 1000L ];
+   unsigned char blk[ RecBufSiz + 1000L ];
 }GmfMshSct;
 
 
@@ -502,6 +505,7 @@ static void    RecWrd   (GmfMshSct *, const void *);
 static void    RecDblWrd(GmfMshSct *, const void *);
 static void    RecBlk   (GmfMshSct *, const void *, int);
 static void    SetPos   (GmfMshSct *, int64_t);
+static int     MovLstKwd(GmfMshSct *);
 static int     ScaKwdTab(GmfMshSct *);
 static void    ExpFmt   (GmfMshSct *, int);
 static void    ScaKwdHdr(GmfMshSct *, int);
@@ -796,6 +800,81 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
 
       return(MshIdx);
    }
+#ifdef WITH_GMF_AIO
+   else if( (msh->mod == GmfParallelWrite) && (msh->typ & Bin) )
+   {
+      /*------------------------------*/
+      /* REOPEN A FILE FOR // WRITING */
+      /*------------------------------*/
+
+      msh->cod = 1;
+
+      // Check if the user provided a valid version number and dimension
+      va_start(VarArg, mod);
+      msh->ver = va_arg(VarArg, int);
+      msh->dim = va_arg(VarArg, int);
+      va_end(VarArg);
+
+      if( (msh->ver < 1) || (msh->ver > 4) )
+         longjmp(msh->err, -18);
+
+      if( (msh->ver >= 3) && (sizeof(int64_t) != 8) )
+         longjmp(msh->err, -19);
+
+      if( (msh->dim != 2) && (msh->dim != 3) )
+         longjmp(msh->err, -20);
+
+      // Set default real numbers size
+      if(msh->ver == 1)
+         msh->FltSiz = 32;
+      else
+         msh->FltSiz = 64;
+
+      // Create the mesh file
+      msh->FilDes = open(msh->FilNam, OPEN_PARWRITE_FLAGS, OPEN_PARWRITE_MODE);
+
+      if(msh->FilDes <= 0)
+         longjmp(msh->err, -21);
+
+      // Read the endian coding tag
+      if(read(msh->FilDes, &msh->cod, WrdSiz) != WrdSiz)
+         longjmp(msh->err, -7);
+
+      // Read the mesh version and the mesh dimension (mandatory kwd)
+      if( (msh->cod != 1) && (msh->cod != 16777216) )
+         longjmp(msh->err, -9);
+
+      ScaWrd(msh, (unsigned char *)&msh->ver);
+
+      if( (msh->ver < 1) || (msh->ver > 4) )
+         longjmp(msh->err, -10);
+
+      if( (msh->ver >= 3) && (sizeof(int64_t) != 8) )
+         longjmp(msh->err, -11);
+
+      ScaWrd(msh, (unsigned char *)&KwdCod);
+
+      if(KwdCod != GmfDimension)
+         longjmp(msh->err, -12);
+
+      GetPos(msh);
+      ScaWrd(msh, (unsigned char *)&msh->dim);
+
+      // Read the list of kw present in the file
+      if(!MovLstKwd(msh))
+         return(0);
+
+      // Preset solution entities sizes
+      msh->SolTypSiz[ GmfSca    ] = 1;
+      msh->SolTypSiz[ GmfVec    ] = msh->dim;
+      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim - 1);
+      msh->SolTypSiz[ GmfMat    ] = msh->dim * msh->dim;
+
+      puts("reopen");
+
+      return(MshIdx);
+   }
+#endif
    else
    {
       free(msh);
@@ -1862,10 +1941,10 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
    else
    {
       // Allocate both front and back buffers
-      if(!(BckBuf = malloc(BufSiz * LinSiz)))
+      if(!(BckBuf = malloc(PipBufSiz * LinSiz)))
          longjmp(msh->err, -37);
 
-      if(!(FrtBuf = malloc(BufSiz * LinSiz)))
+      if(!(FrtBuf = malloc(PipBufSiz * LinSiz)))
          longjmp(msh->err, -38);
 
       // Setup the ansynchonous parameters
@@ -1879,7 +1958,7 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
 #endif
       aio.aio_offset = (size_t)(GetFilPos(msh) + (FilBegIdx-1) * LinSiz);
 
-      NmbBlk = UsrNmbLin / BufSiz;
+      NmbBlk = UsrNmbLin / PipBufSiz;
 
       // Loop over N+1 blocks
       for(b=0;b<=NmbBlk+1;b++)
@@ -1924,9 +2003,9 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
          {
             // The last block is shorter than the others
             if(b == NmbBlk)
-               BlkNmbLin = UsrNmbLin - b * BufSiz;
+               BlkNmbLin = UsrNmbLin - b * PipBufSiz;
             else
-               BlkNmbLin = BufSiz;
+               BlkNmbLin = PipBufSiz;
 
             aio.aio_nbytes = BlkNmbLin * LinSiz;
 
@@ -1953,9 +2032,9 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
          {
             // The last block is shorter than the others
             if(b-1 == NmbBlk)
-               BlkNmbLin = UsrNmbLin - (b-1) * BufSiz;
+               BlkNmbLin = UsrNmbLin - (b-1) * PipBufSiz;
             else
-               BlkNmbLin = BufSiz;
+               BlkNmbLin = PipBufSiz;
 
             BlkBegIdx = BlkEndIdx+1;
             BlkEndIdx += BlkNmbLin;
@@ -2301,10 +2380,10 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
    else
    {
       // Allocate the front and back buffers
-      if(!(BckBuf = malloc(BufSiz * LinSiz)))
+      if(!(BckBuf = malloc(PipBufSiz * LinSiz)))
          longjmp(msh->err, -43);
 
-      if(!(FrtBuf = malloc(BufSiz * LinSiz)))
+      if(!(FrtBuf = malloc(PipBufSiz * LinSiz)))
          longjmp(msh->err, -44);
 
       // Setup the asynchronous parameters
@@ -2315,10 +2394,10 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
 #else
       aio.aio_fildes = msh->hdl;
 #endif
-      aio.aio_offset = (size_t)GetFilPos(msh);
-      //aio.aio_offset = (size_t)(GetFilPos(msh) + (FilBegIdx-1) * LinSiz);
+      //aio.aio_offset = (size_t)GetFilPos(msh);
+      aio.aio_offset = (size_t)(GetFilPos(msh) + (FilBegIdx-1) * LinSiz);
 
-      NmbBlk = UsrNmbLin / BufSiz;
+      NmbBlk = UsrNmbLin / PipBufSiz;
 
       // Loop over N+1 blocks
       for(b=0;b<=NmbBlk+1;b++)
@@ -2349,9 +2428,9 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
          {
             // The last block is shorter
             if(b == NmbBlk)
-               BlkNmbLin = UsrNmbLin - b * BufSiz;
+               BlkNmbLin = UsrNmbLin - b * PipBufSiz;
             else
-               BlkNmbLin = BufSiz;
+               BlkNmbLin = PipBufSiz;
 
             FilPos = FilBuf;
             BlkBegIdx = BlkEndIdx+1;
@@ -2474,6 +2553,15 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
             aio.aio_buf = FrtBuf;
             FilBuf = BckBuf;
          }
+
+         /*
+         printf("\nset block %lld -> %lld\n", BegIdx, EndIdx);
+         printf("aio_fildes = %d\n",aio.aio_fildes);
+         printf("aio_buf    = %p\n",aio.aio_buf);
+         printf("aio_offset = " INT64_T_FMT "\n",(int64_t)aio.aio_offset);
+         printf("aio_nbytes = " INT64_T_FMT "\n",(int64_t)aio.aio_nbytes);
+*/
+
       }
 
       SetFilPos(msh, aio.aio_offset);
@@ -2700,6 +2788,50 @@ void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
    msh->FltSiz = FltSiz;
    GmfSetKwd(MshIdx, GmfFloatingPointPrecision, 1);
    GmfSetLin(MshIdx, GmfFloatingPointPrecision, FltSiz);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* Find every kw present in a meshfile                                        */
+/*----------------------------------------------------------------------------*/
+
+static int MovLstKwd(GmfMshSct *msh)
+{
+   int      KwdCod;
+   int64_t  NexPos, EndPos, LstPos;
+
+   // Get file size
+   EndPos = GetFilSiz(msh);
+   LstPos = -1;
+
+   // Jump through kwd positions in the file
+   do
+   {
+      // Get the kwd code and the next kwd position
+      ScaWrd(msh, ( char *)&KwdCod);
+      NexPos = GetPos(msh);
+
+      // Make sure the flow does not move beyond the file size
+      if(NexPos > EndPos)
+         longjmp(msh->err, -24);
+
+      // And check that it does not move back
+      if(NexPos && (NexPos <= LstPos))
+         longjmp(msh->err, -30);
+
+      LstPos = NexPos;
+
+      // Check if this kwd belongs to this mesh version
+      if( (KwdCod >= 1) && (KwdCod <= GmfMaxKwd) )
+         ScaKwdHdr(msh, KwdCod);
+
+      // Go to the next kwd
+      if(NexPos && !(SetFilPos(msh, NexPos)))
+         longjmp(msh->err, -25);
+
+   }while(NexPos && (KwdCod != GmfEnd));
+
+   return(1);
 }
 
 
@@ -3042,7 +3174,7 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
    // When the buffer is full or this procedure is APIF77ed with a 0 size,
    // flush the cache on disk
 
-   if( (msh->pos > BufSiz) || (!siz && msh->pos) )
+   if( (msh->pos > RecBufSiz) || (!siz && msh->pos) )
    {
 #ifdef GMF_WINDOWS
       /*

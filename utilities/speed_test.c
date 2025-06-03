@@ -8,7 +8,7 @@
 #include <sys/time.h>
 #endif
 
-#include <libmeshb7.h>
+#include <libmeshb8.h>
 
 
 /*----------------------------------------------------------------------------*/
@@ -46,7 +46,7 @@ int main()
 
    timer = GetWallClock();
 
-   if(!(InpMsh = GmfOpenMesh("tets.meshb", GmfRead, &ver, &dim)))
+   if(!(InpMsh = GmfOpenMesh("/tmp/tets.mesh", GmfRead, &ver, &dim)))
       return(1);
 
    printf("InpMsh : idx = %lld, version = %d, dimension = %d\n", InpMsh, ver, dim);

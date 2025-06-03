@@ -1,8 +1,8 @@
 
-c     libMeshb 7.79 example: transform a quadrilateral mesh into a triangular one
+c     libMeshb 8.0 example: transform a quadrilateral mesh into a triangular one
 c     using fast block transfer
 
-      include 'libmeshb7.ins'
+      include 'libmeshb8.ins'
 
       integer n
       parameter (n=4000)
