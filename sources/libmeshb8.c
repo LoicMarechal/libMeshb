@@ -235,8 +235,8 @@ typedef struct
 
 const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] = 
 {
-   {"Reserved",                                 "", ""},
-   {"MeshVersionFormatted",                     "", "i"},
+   {"Reserved",                                 "", ""},       // 0
+   {"MeshVersionFormatted",                     "", "i"},      // 1
    {"Reserved",                                 "", ""},
    {"Dimension",                                "", "i"},
    {"Vertices",                                 "i", "dri"},
@@ -247,7 +247,7 @@ const char *GmfKwdFmt[ GmfMaxKwd + 1 ][3] =
    {"Prisms",                                   "i", "iiiiiii"},
    {"Hexahedra",                                "i", "iiiiiiiii"},
    {"Reserved",                                 "",  ""},
-   {"Reserved",                                 "",  ""},
+   {"RequiredTetrahedra",                       "i", "i"}, // 12 as in mmg
    {"Corners",                                  "i", "i"},
    {"Ridges",                                   "i", "i"},
    {"RequiredVertices",                         "i", "i"},
