@@ -870,8 +870,6 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim - 1);
       msh->SolTypSiz[ GmfMat    ] = msh->dim * msh->dim;
 
-      puts("reopen");
-
       return(MshIdx);
    }
 #endif
@@ -2553,15 +2551,6 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
             aio.aio_buf = FrtBuf;
             FilBuf = BckBuf;
          }
-
-         /*
-         printf("\nset block %lld -> %lld\n", BegIdx, EndIdx);
-         printf("aio_fildes = %d\n",aio.aio_fildes);
-         printf("aio_buf    = %p\n",aio.aio_buf);
-         printf("aio_offset = " INT64_T_FMT "\n",(int64_t)aio.aio_offset);
-         printf("aio_nbytes = " INT64_T_FMT "\n",(int64_t)aio.aio_nbytes);
-*/
-
       }
 
       SetFilPos(msh, aio.aio_offset);

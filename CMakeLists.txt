@@ -49,7 +49,8 @@ if(WITH_GMF_AIO)
    endif()
 endif()
 
-find_package(LPlib 4)
+find_package(LPlib 4 CONFIG)
+
 if (LPlib_FOUND)
    include_directories (${LPlib_INCLUDE_DIRS})
 endif ()
