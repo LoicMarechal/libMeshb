@@ -37,6 +37,16 @@ if(LPlib_FOUND)
    install (TARGETS parallel_io DESTINATION share/libMeshb/examples COMPONENT examples)
 endif ()
 
+add_executable(test_write_multiple_block test_write_multiple_block.c)
+target_link_libraries(test_write_multiple_block Meshb.8 ${AIO_LIBRARIES})
+install (TARGETS test_write_multiple_block DESTINATION share/libMeshb/examples COMPONENT examples)
+
+
+add_executable(test_write_multiple_block_parallel test_write_multiple_block_parallel.c)
+target_link_libraries(test_write_multiple_block_parallel Meshb.8 ${AIO_LIBRARIES})
+install (TARGETS test_write_multiple_block_parallel DESTINATION share/libMeshb/examples COMPONENT examples)
+
+
 
 ########################
 # BUILD FORTRAN EXAMPLES
