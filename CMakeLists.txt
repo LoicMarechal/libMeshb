@@ -12,6 +12,13 @@ project(libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LAN
 option(WITH_GMF_AIO     "Use Unix low-level and asynchronous I/O for higher speed"       OFF)
 option(WITH_GMF_CPACK   "Enable cpack target to generate a zip file containing binaries" OFF)
 option(WITH_GMF_CTEST   "Enable ctest ti run basic validation tests"                     OFF)
+option(BUILD_DOCS       "Build the reference documentation"                              OFF)
+
+set(LIBMESHB_HOME ${PROJECT_SOURCE_DIR})
+set(LIBMESHB_SRC ${LIBMESHB_HOME}/sources)
+set(LIBMESHB_UTILS ${LIBMESHB_HOME}/utilities)
+set(LIBMESHB_EXAMPLES ${LIBMESHB_HOME}/examples)
+set(LIBMESHB_DOCS ${LIBMESHB_HOME}/docs)
 
 include (CheckLanguage)
 check_language (Fortran)
@@ -60,8 +67,8 @@ endif ()
 # SET FILES AND DIRECTORIES TO BE BUILT
 #######################################
 
-include_directories (${PROJECT_SOURCE_DIR}/sources)
-include_directories (${PROJECT_SOURCE_DIR}/utilities)
+include_directories (${LIBMESHB_SRC})
+include_directories (${LIBMESHB_UTILS})
 add_subdirectory (sources)
 add_subdirectory (examples)
 add_subdirectory (utilities)
@@ -69,6 +76,42 @@ add_subdirectory (utilities)
 install (FILES LICENSE.txt copyright.txt DESTINATION share/libMeshb)
 install (DIRECTORY sample_meshes DESTINATION share/libMeshb)
 
+
+#############################
+# BUILD THE API DOCUMENTATION
+#############################
+
+if(BUILD_DOCS)
+   find_package(Doxygen REQUIRED OPTIONAL_COMPONENTS dot)
+
+   # Input and output files
+   set(DOXYGEN_IN ${PROJECT_SOURCE_DIR}/docs/Doxyfile.in)
+   set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.out)
+
+   # Configure the file
+   configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+   message("Doxygen build started")
+
+   # https://discourse.cmake.org/t/how-to-export-environment-variables-globally/13892/2
+   add_custom_target(docs
+      COMMAND ${CMAKE_COMMAND} -E env # Environment variables are referenced in Doxyfile.in
+                                      CMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}
+                                      LIBMESHB_SRC=${LIBMESHB_SRC}
+                                      LIBMESHB_DOC=${LIBMESHB_DOCS}
+                                      LIBMESHB_EXAMPLES=${LIBMESHB_EXAMPLES}
+                                      LIBMESHB_UTILS=${LIBMESHB_UTILS}
+                                      LIBMESHB_PROJECTNAME=${CMAKE_PROJECT_NAME}
+                                      LIBMESHB_VERSION=${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR}
+                                      # Set input and output files
+                                      DOXYGEN_IN=${DOXYGEN_IN}
+                                      DOXYGEN_OUT=${DOXYGEN_OUT}
+                                      # Call Doxygen
+                                      ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      COMMENT "Generating API documentation with Doxygen"
+      VERBATIM)
+   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()
 
 ######################################
 # SET PACKAGE AND DEPLOYMENT VARIABLES
