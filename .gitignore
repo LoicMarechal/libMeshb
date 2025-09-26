@@ -1,2 +1,4 @@
 build
 sources/libmeshb7.mod
+.vscode/
+.cache/
