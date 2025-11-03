@@ -29,7 +29,7 @@
 /* Defines                                                                    */
 /*----------------------------------------------------------------------------*/
 
-#define NMBCPU 1
+#define NMBCPU 4
 #define MSHINP "../sample_meshes/tets.meshb"
 #define MSHOUT "/tmp/tets.meshb"
 
@@ -184,7 +184,7 @@ int main()
    /*-----------------------------------*/
 
    // Write the vertices
-   if(!(msh.OutMsh = GmfOpenMesh(MSHOUT, GmfWrite, msh.ver, msh.dim)))
+/*   if(!(msh.OutMsh = GmfOpenMesh(MSHOUT, GmfWrite, msh.ver, msh.dim)))
       return(1);
 
    GmfSetKwd(msh.OutMsh, GmfVertices, msh.NmbVer);
@@ -202,7 +202,7 @@ int main()
    LaunchParallel(msh.ParIdx, msh.TetTyp, 0, (void *)RecTet, (void *)&msh);
 
    printf("OutMsh : nmb Tetrahedra = %lld\n", msh.NmbTet);
-
+*/
    StopParallel(msh.ParIdx);
    free(msh.TetTab);
    free(msh.RefTab);

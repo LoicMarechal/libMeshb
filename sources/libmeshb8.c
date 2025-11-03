@@ -126,11 +126,11 @@ int    my_aio_write (      struct aiocb *aiocbp){return(aio_write (aiocbp));}
 
 struct aiocb
 {
-   FILE   *aio_fildes;         // File descriptor
-   size_t  aio_offset;          // File offset
-   void   *aio_buf;            // Location of buffer
-   size_t aio_nbytes;          // Length of transfer
-   int    aio_lio_opcode;      // Operation to be performed
+   FILE     *aio_fildes;         // File descriptor
+   size_t   aio_offset;          // File offset
+   void     *aio_buf;            // Location of buffer
+   size_t   aio_nbytes;          // Length of transfer
+   int      aio_lio_opcode;      // Operation to be performed
 };
 
 int my_aio_error(const struct aiocb *aiocbp)
@@ -551,6 +551,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
    char     str[ GmfStrSiz ];
    va_list  VarArg;
    GmfMshSct *msh;
+
 
    /*---------------------*/
    /* MESH STRUCTURE INIT */
