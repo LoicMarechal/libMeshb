@@ -222,6 +222,7 @@ program test_libmeshb_block02_f90
   deallocate(VerTab,VerRef)
   deallocate(QadTab,QadRef)
   deallocate(TriTab,TriRef)
+  deallocate(fields,fieldNames)
   deallocate(solTab)
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   
