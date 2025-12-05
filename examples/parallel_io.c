@@ -30,8 +30,8 @@
 /*----------------------------------------------------------------------------*/
 
 #define NMBCPU 4
-#define MSHINP "../sample_meshes/tets.meshb"
-#define MSHOUT "/tmp/tets.meshb"
+#define MSHINP "tets.meshb"
+#define MSHOUT "tets_out.meshb"
 
 
 /*----------------------------------------------------------------------------*/
@@ -142,6 +142,7 @@ void RecTet(int BegIdx, int EndIdx, int PthIdx, MshSct *msh)
 int main()
 {
    int i, BegIdx, EndIdx;
+   double timer;
    MshSct msh;
 
 
@@ -175,8 +176,10 @@ int main()
    // Close the tet mesh
    GmfCloseMesh(msh.InpMsh);
 
+   timer = GetWallClock();
    LaunchParallel(msh.ParIdx, msh.VerTyp, 0, (void *)ScaVer, (void *)&msh);
    LaunchParallel(msh.ParIdx, msh.TetTyp, 0, (void *)ScaTet, (void *)&msh);
+   printf("Time for reading: %g seconds\n", GetWallClock() - timer);
 
 
    /*-----------------------------------*/
@@ -184,15 +187,17 @@ int main()
    /*-----------------------------------*/
 
    // Write the vertices
-/*   if(!(msh.OutMsh = GmfOpenMesh(MSHOUT, GmfWrite, msh.ver, msh.dim)))
+   if(!(msh.OutMsh = GmfOpenMesh(MSHOUT, GmfWrite, msh.ver, msh.dim)))
       return(1);
 
    GmfSetKwd(msh.OutMsh, GmfVertices, msh.NmbVer);
    GmfCloseMesh(msh.OutMsh);
+   timer = GetWallClock();
    LaunchParallel(msh.ParIdx, msh.VerTyp, 0, (void *)RecVer, (void *)&msh);
+   printf("Time for writing: %g seconds\n", GetWallClock() - timer);
 
    // Write the Tetrahedra
-   puts("reopen to set kwd tetra");
+/*   puts("reopen to set kwd tetra");
    if(!(msh.OutMsh = GmfOpenMesh(MSHOUT, GmfParallelWrite, msh.ver, msh.dim)))
       return(1);
 

@@ -69,6 +69,7 @@ endif ()
 
 include_directories (${LIBMESHB_SRC})
 include_directories (${LIBMESHB_UTILS})
+include_directories (docs)
 add_subdirectory (sources)
 add_subdirectory (examples)
 add_subdirectory (utilities)
