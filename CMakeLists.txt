@@ -69,7 +69,6 @@ endif ()
 
 include_directories (${LIBMESHB_SRC})
 include_directories (${LIBMESHB_UTILS})
-include_directories (docs)
 add_subdirectory (sources)
 add_subdirectory (examples)
 add_subdirectory (utilities)
@@ -111,8 +110,9 @@ if(BUILD_DOCS)
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
       COMMENT "Generating API documentation with Doxygen"
       VERBATIM)
-   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs DESTINATION ${CMAKE_INSTALL_PREFIX})
+   install(DIRECTORY ${PROJECT_SOURCE_DIR}/docs DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
+
 
 ######################################
 # SET PACKAGE AND DEPLOYMENT VARIABLES
