@@ -81,6 +81,7 @@ install (DIRECTORY sample_meshes DESTINATION share/libMeshb)
 # BUILD THE API DOCUMENTATION
 #############################
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs)  # ensure that the docs directory exists
 if(BUILD_DOCS)
    find_package(Doxygen REQUIRED OPTIONAL_COMPONENTS dot)
 
@@ -110,7 +111,7 @@ if(BUILD_DOCS)
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
       COMMENT "Generating API documentation with Doxygen"
       VERBATIM)
-   install(DIRECTORY ${PROJECT_SOURCE_DIR}/docs DESTINATION ${CMAKE_INSTALL_PREFIX})
+   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
 
 
