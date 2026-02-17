@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V8.00                               */
+/*                               LIBMESHB V8.01                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jun 03 2025                                          */
+/*   Last modification:  feb 17 2026                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -716,7 +716,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       // Preset solution entities sizes
       msh->SolTypSiz[ GmfSca    ] = 1;
       msh->SolTypSiz[ GmfVec    ] = msh->dim;
-      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim - 1);
+      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim + 1) / 2;
       msh->SolTypSiz[ GmfMat    ] = msh->dim * msh->dim;
 
       return(MshIdx);
@@ -796,7 +796,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       // Preset solution entities sizes
       msh->SolTypSiz[ GmfSca    ] = 1;
       msh->SolTypSiz[ GmfVec    ] = msh->dim;
-      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim - 1);
+      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim + 1) / 2;
       msh->SolTypSiz[ GmfMat    ] = msh->dim * msh->dim;
 
       return(MshIdx);

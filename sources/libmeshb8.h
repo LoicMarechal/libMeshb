@@ -2,22 +2,22 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.90                               */
+/*                               LIBMESHB V8.01                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  feb 28 2025                                         */
+/*    Last modification:  feb 11 2026                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
 // [Bruno] get PRINTF_INT64_MODIFIER
 // #include <geogram/third_party/pstdint.h>
 
-#ifndef LIBMESHB7_H
-#define LIBMESHB7_H
+#ifndef LIBMESHB8_H
+#define LIBMESHB8_H
 
 #include <stdint.h>
 
