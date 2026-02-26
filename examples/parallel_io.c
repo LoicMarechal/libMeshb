@@ -29,7 +29,7 @@
 /* Defines                                                                    */
 /*----------------------------------------------------------------------------*/
 
-#define NMBCPU 4
+#define NMBCPU 8
 #define MSHINP "tets.meshb"
 #define MSHOUT "tets_out.meshb"
 
@@ -97,8 +97,8 @@ void RecVer(int BegIdx, int EndIdx, int PthIdx, MshSct *msh)
    int res;
    int64_t OutMsh;
 
-   puts("reopen to write vertices");
-   if(!(OutMsh = GmfOpenMesh(MSHOUT, GmfParallelWrite, msh->ver, msh->dim)))
+   printf("THREAD %3d: reopen to write vertices\n", PthIdx);
+   if(!(OutMsh = GmfOpenMesh(MSHOUT, GmfStartParallelWrite, msh->ver, msh->dim)))
       return;
 
    printf("THREAD %3d: write vertices %8d -> %8d\n", PthIdx, BegIdx, EndIdx);
@@ -106,9 +106,10 @@ void RecVer(int BegIdx, int EndIdx, int PthIdx, MshSct *msh)
                GmfDoubleVec, 3, msh->VerTab[ BegIdx ],  msh->VerTab[ EndIdx ],
                GmfInt,         &msh->RefTab[ BegIdx ], &msh->RefTab[ EndIdx ]);
 
-   printf("set ver blk = %d\n", res);
+   printf("THREAD %3d: set ver blk = %d\n", PthIdx, res);
 
-   GmfCloseMesh(OutMsh);
+   printf("THREAD %3d: close unfinished\n", PthIdx);
+   GmfCloseUnfinishedMesh(OutMsh);
 }
 
 
@@ -121,17 +122,18 @@ void RecTet(int BegIdx, int EndIdx, int PthIdx, MshSct *msh)
    int res;
    int64_t OutMsh;
 
-   puts("reopen to write tets");
-   if(!(OutMsh = GmfOpenMesh(MSHOUT, GmfParallelWrite, msh->ver, msh->dim)))
+   printf("THREAD %3d: reopen to write tets\n", PthIdx);
+   if(!(OutMsh = GmfOpenMesh(MSHOUT, GmfStartParallelWrite, msh->ver, msh->dim)))
       return;
 
    printf("THREAD %3d: write tets %8d -> %8d\n", PthIdx, BegIdx, EndIdx);
    res = GmfSetBlock(OutMsh, GmfTetrahedra, BegIdx, EndIdx, 0, NULL, NULL,
                GmfIntVec, 5, msh->TetTab[ BegIdx ], msh->TetTab[ EndIdx ]);
 
-   printf("set tet blk = %d\n", res);
+   printf("THREAD %3d: set ver blk = %d\n", PthIdx, res);
 
-   GmfCloseMesh(OutMsh);
+   printf("THREAD %3d: close unfinished\n", PthIdx);
+   GmfCloseUnfinishedMesh(OutMsh);
 }
 
 
@@ -186,28 +188,40 @@ int main()
    /* Write the tet mesh                */
    /*-----------------------------------*/
 
-   // Write the vertices
+   timer = GetWallClock();
+
+   // Create the mesh file
+   puts("SEQ: create mesh");
    if(!(msh.OutMsh = GmfOpenMesh(MSHOUT, GmfWrite, msh.ver, msh.dim)))
       return(1);
 
+   // Write the vertices
+   puts("SEQ: set kwd vertices");
    GmfSetKwd(msh.OutMsh, GmfVertices, msh.NmbVer);
-   GmfCloseMesh(msh.OutMsh);
-   timer = GetWallClock();
+   puts("SEQ: close unfinished");
+   GmfCloseUnfinishedMesh(msh.OutMsh);
    LaunchParallel(msh.ParIdx, msh.VerTyp, 0, (void *)RecVer, (void *)&msh);
-   printf("Time for writing: %g seconds\n", GetWallClock() - timer);
 
    // Write the Tetrahedra
-/*   puts("reopen to set kwd tetra");
-   if(!(msh.OutMsh = GmfOpenMesh(MSHOUT, GmfParallelWrite, msh.ver, msh.dim)))
+   puts("SEQ: reopen to set kwd tetra");
+   if(!(msh.OutMsh = GmfOpenMesh(MSHOUT, GmfStopParallelWrite, msh.ver, msh.dim)))
       return(1);
 
-   i = GmfSetKwd(msh.OutMsh, GmfTetrahedra, msh.NmbTet);
-   printf("set kwd tet : %d\n", i);
-   GmfCloseMesh(msh.OutMsh);
+   puts("SEQ: set kwd tetra");
+   GmfSetKwd(msh.OutMsh, GmfTetrahedra, msh.NmbTet);
+   puts("SEQ: close unfinished");
+   GmfCloseUnfinishedMesh(msh.OutMsh);
    LaunchParallel(msh.ParIdx, msh.TetTyp, 0, (void *)RecTet, (void *)&msh);
 
-   printf("OutMsh : nmb Tetrahedra = %lld\n", msh.NmbTet);
-*/
+   puts("SEQ: reopen to set kwd end");
+   if(!(msh.OutMsh = GmfOpenMesh(MSHOUT, GmfStopParallelWrite, msh.ver, msh.dim)))
+      return(1);
+
+   puts("SEQ: final close with GmfEnd");
+   GmfCloseMesh(msh.OutMsh);
+
+   printf("Time for writing: %g seconds\n", GetWallClock() - timer);
+
    StopParallel(msh.ParIdx);
    free(msh.TetTab);
    free(msh.RefTab);

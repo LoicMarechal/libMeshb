@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V8.01                               */
+/*                               LIBMESHB V8.02                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  feb 17 2026                                          */
+/*   Last modification:  feb 26 2026                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -802,7 +802,9 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       return(MshIdx);
    }
 #ifdef WITH_GMF_AIO
-   else if( (msh->mod == GmfParallelWrite) && (msh->typ & Bin) )
+   else if( (msh->typ & Bin)
+   && ( (msh->mod == GmfStartParallelWrite)
+   ||   (msh->mod == GmfStopParallelWrite)) )
    {
       /*------------------------------*/
       /* REOPEN A FILE FOR // WRITING */
@@ -868,7 +870,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       // Preset solution entities sizes
       msh->SolTypSiz[ GmfSca    ] = 1;
       msh->SolTypSiz[ GmfVec    ] = msh->dim;
-      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim - 1);
+      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim + 1) / 2;
       msh->SolTypSiz[ GmfMat    ] = msh->dim * msh->dim;
 
       return(MshIdx);
@@ -894,7 +896,7 @@ int GmfCloseMesh(int64_t MshIdx)
    RecBlk(msh, msh->buf, 0);
 
    // In write down the "End" kw in write mode
-   if(msh->mod == GmfWrite)
+   if(msh->mod == GmfWrite || msh->mod == GmfStopParallelWrite)
    {
       if(msh->typ & Asc)
          fprintf(msh->hdl, "\n%s\n", GmfKwdFmt[ GmfEnd ][0]);
@@ -911,6 +913,33 @@ int GmfCloseMesh(int64_t MshIdx)
 #endif
    else if(fclose(msh->hdl))
       res = 0;
+
+   // Free optional H.O. renumbering tables
+   for(i=0;i<GmfLastKeyword;i++)
+      if(msh->KwdTab[i].OrdTab)
+         free(msh->KwdTab[i].OrdTab);
+
+   free(msh);
+
+   return(res);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* Temporary close an unfinished file that will be reopen for parallel write  */
+/*----------------------------------------------------------------------------*/
+
+int GmfCloseUnfinishedMesh(int64_t MshIdx)
+{
+   int i, res = 1;
+   GmfMshSct *msh = (GmfMshSct *)MshIdx;
+
+   // Close the file and free the mesh structure
+#ifdef WITH_GMF_AIO
+      close(msh->FilDes);
+#else
+      fclose(msh->hdl);
+#endif
 
    // Free optional H.O. renumbering tables
    for(i=0;i<GmfLastKeyword;i++)
@@ -1209,7 +1238,8 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
                }
                else if(kwd->fmt[i] == 'c')
                {
-                  safe_fgets(va_arg(VarArg, char *), FilStrSiz, msh->hdl, msh->err);
+                  safe_fgets( va_arg(VarArg, char *), FilStrSiz,
+                              msh->hdl, msh->err );
                }
             }
          }
@@ -1228,7 +1258,8 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
                      ScaDblWrd(msh, (unsigned char *)va_arg(VarArg, int64_t *));
                else if(kwd->fmt[i] == 'c')
                   // [Bruno] added error control
-                  safe_fread(va_arg(VarArg, char *), WrdSiz, FilStrSiz, msh->hdl, msh->err);
+                  safe_fread(va_arg(VarArg, char *), WrdSiz,
+                                    FilStrSiz, msh->hdl, msh->err);
          }
       }break;
 
@@ -1388,7 +1419,7 @@ int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
                   else
                   {
                      // [Bruno] %ld -> INT64_T_FMT
-                     fprintf(msh->hdl, INT64_T_FMT " ", va_arg(VarArg, int64_t));
+                     fprintf(msh->hdl, INT64_T_FMT " ",va_arg(VarArg, int64_t));
                   }
                }
                else if(kwd->fmt[i] == 'c')
@@ -1443,7 +1474,8 @@ int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
                else if(kwd->fmt[i] == 'c')
                {
                   memset(&msh->buf[ pos ], 0, FilStrSiz * WrdSiz);
-                  strncpy(&msh->buf[ pos ], va_arg(VarArg, char *), FilStrSiz * WrdSiz);
+                  strncpy( &msh->buf[ pos ], va_arg(VarArg, char *),
+                           FilStrSiz * WrdSiz );
                   pos += FilStrSiz;
                }
             }
@@ -1760,8 +1792,11 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
       return(0);
 
    // Check user's bounds
-   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > (size_t)kwd->NmbLin) )
+   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx)
+   ||  (FilEndIdx > (size_t)kwd->NmbLin) )
+   {
       return(0);
+   }
 
    // Compute the number of lines to be read
    UsrNmbLin = FilEndIdx - FilBegIdx + 1;
@@ -1926,7 +1961,8 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
             else
                UsrDat[j] = UsrBas[k] + (OldIdx - 1) * UsrLen[k];
 
-            safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], UsrDat[j], msh->err);
+            safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ],
+                        UsrDat[j], msh->err);
          }
 
          if(l >= FilBegIdx)
@@ -2194,8 +2230,11 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
    FilEndIdx = EndIdx;
 
    // Check user's bounds
-   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > (size_t)kwd->NmbLin) )
+   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx)
+   ||  (FilEndIdx > (size_t)kwd->NmbLin) )
+   {
       return(0);
+   }
 
    // Compute the number of lines to be written
    UsrNmbLin = FilEndIdx - FilBegIdx + 1;
@@ -2344,7 +2383,8 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
             if(UsrTyp[j] == GmfFloat)
             {
                UsrPtrR32 = (float *)UsrDat[j];
-               fprintf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], (double)*UsrPtrR32);
+               fprintf( msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ],
+                        (double)*UsrPtrR32 );
             }
             else if(UsrTyp[j] == GmfDouble)
             {
@@ -2787,27 +2827,34 @@ void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
 
 static int MovLstKwd(GmfMshSct *msh)
 {
-   int      KwdCod;
-   int64_t  NexPos, EndPos, LstPos;
+   int      KwdCod=0, LstKwd=0;
+   int64_t  NexPos=0, EndPos, LstPos=-1, NexKwdPos;
 
    // Get file size
    EndPos = GetFilSiz(msh);
-   LstPos = -1;
 
    // Jump through kwd positions in the file
    do
    {
       // Get the kwd code and the next kwd position
       ScaWrd(msh, ( char *)&KwdCod);
+      NexKwdPos = GetFilPos(msh);
       NexPos = GetPos(msh);
+
+      if(KwdCod != GmfEnd)
+      {
+         LstKwd = KwdCod;
+         msh->NexKwdPos = NexKwdPos;
+         printf("ID %p: scan kwd: %d\n",  msh, LstKwd);
+      }
 
       // Make sure the flow does not move beyond the file size
       if(NexPos > EndPos)
-         longjmp(msh->err, -24);
+         return(0);
 
       // And check that it does not move back
       if(NexPos && (NexPos <= LstPos))
-         longjmp(msh->err, -30);
+         return(0);
 
       LstPos = NexPos;
 
@@ -2817,9 +2864,30 @@ static int MovLstKwd(GmfMshSct *msh)
 
       // Go to the next kwd
       if(NexPos && !(SetFilPos(msh, NexPos)))
-         longjmp(msh->err, -25);
+         return(0);
 
    }while(NexPos && (KwdCod != GmfEnd));
+
+   if(msh->mod == GmfStartParallelWrite)
+   {
+      if(msh->ver <= 2)
+         SetFilPos(msh, msh->NexKwdPos + 8);
+      else if(msh->ver == 3)
+         SetFilPos(msh, msh->NexKwdPos + 12);
+      else
+         SetFilPos(msh, msh->NexKwdPos + 16);
+
+      msh->NexKwdPos = 0;
+   }
+   else if(msh->mod == GmfStopParallelWrite)
+   {
+      SetFilPos(msh, EndPos);
+   }
+   else
+      return(0);
+
+   printf(  "ID %p: last kwd: %d, file pos = %lld, adr ptr next kwd: %lld\n",
+            msh, LstKwd, GetFilPos(msh), msh->NexKwdPos );
 
    return(1);
 }
@@ -3362,7 +3430,7 @@ int APIF77(gmfsetkwdf77)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
                            int *NmbTyp, int *TypTab, int *deg, int *NmbNod )
 {
    if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "hr"))
-      return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab, *deg, *NmbNod));
+      return(GmfSetKwd(*MshIdx,*KwdIdx,*NmbLin,*NmbTyp,TypTab,*deg,*NmbNod));
    else if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab));
    else
@@ -3483,7 +3551,8 @@ int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *KwdCod,
                         NULL, GmfArgTab, TypTab, SizTab, BegTab, EndTab ));
 }
 
-int APIF77(gmfgetreferencestringf77)(int64_t *MshIdx, int *kwd, int *idx, char *str, int siz)
+int APIF77(gmfgetreferencestringf77)(  int64_t *MshIdx, int *kwd,
+                                       int *idx, char *str, int siz )
 {
    int   ret;
    char *tmp = malloc(siz+1);
@@ -3503,7 +3572,8 @@ int APIF77(gmfgetreferencestringf77)(int64_t *MshIdx, int *kwd, int *idx, char *
    return(ret);
 }
 
-int APIF77(gmfsetreferencestringf77)(int64_t *MshIdx, int *kwd, int *idx, char *str, int siz)
+int APIF77(gmfsetreferencestringf77)(  int64_t *MshIdx, int *kwd,
+                                       int *idx, char *str, int siz )
 {
    int   ret;
    char *tmp = malloc(siz+1);
