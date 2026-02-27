@@ -505,7 +505,6 @@ static void    RecWrd   (GmfMshSct *, const void *);
 static void    RecDblWrd(GmfMshSct *, const void *);
 static void    RecBlk   (GmfMshSct *, const void *, int);
 static void    SetPos   (GmfMshSct *, int64_t);
-static int     MovLstKwd(GmfMshSct *);
 static int     ScaKwdTab(GmfMshSct *);
 static void    ExpFmt   (GmfMshSct *, int);
 static void    ScaKwdHdr(GmfMshSct *, int);
@@ -513,6 +512,9 @@ static void    SwpWrd   (char *, int);
 static int     SetFilPos(GmfMshSct *, int64_t);
 static int64_t GetFilPos(GmfMshSct *msh);
 static int64_t GetFilSiz(GmfMshSct *);
+#ifdef WITH_GMF_AIO
+static int     MovLstKwd(GmfMshSct *);
+#endif
 
 
 /*----------------------------------------------------------------------------*/
@@ -863,7 +865,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       GetPos(msh);
       ScaWrd(msh, (unsigned char *)&msh->dim);
 
-      // Read the list of kw present in the file
+      // Move the file position at the end and store a pointer to the last kwd
       if(!MovLstKwd(msh))
          return(0);
 
@@ -934,7 +936,8 @@ int GmfCloseUnfinishedMesh(int64_t MshIdx)
    int i, res = 1;
    GmfMshSct *msh = (GmfMshSct *)MshIdx;
 
-   // Close the file and free the mesh structure
+   // Close the file, free the mesh structure and do not add the GmfEnd kwd
+   // at the end as this file is incomplete and will be reopen
 #ifdef WITH_GMF_AIO
       close(msh->FilDes);
 #else
@@ -2822,12 +2825,13 @@ void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
 
 
 /*----------------------------------------------------------------------------*/
-/* Find every kw present in a meshfile                                        */
+/* Parallel writing kwd scan: follow the links until the EOF                  */
 /*----------------------------------------------------------------------------*/
 
+#ifdef WITH_GMF_AIO
 static int MovLstKwd(GmfMshSct *msh)
 {
-   int      KwdCod=0, LstKwd=0;
+   int      KwdCod=0;
    int64_t  NexPos=0, EndPos, LstPos=-1, NexKwdPos;
 
    // Get file size
@@ -2841,12 +2845,9 @@ static int MovLstKwd(GmfMshSct *msh)
       NexKwdPos = GetFilPos(msh);
       NexPos = GetPos(msh);
 
+      // Store each kwd pointer as we search for the last one befor GmfEnd
       if(KwdCod != GmfEnd)
-      {
-         LstKwd = KwdCod;
          msh->NexKwdPos = NexKwdPos;
-         printf("ID %p: scan kwd: %d\n",  msh, LstKwd);
-      }
 
       // Make sure the flow does not move beyond the file size
       if(NexPos > EndPos)
@@ -2868,6 +2869,8 @@ static int MovLstKwd(GmfMshSct *msh)
 
    }while(NexPos && (KwdCod != GmfEnd));
 
+   // Prepare for parallel write: move the file position right after the last
+   // kwd's data and do not update the kwd's link so we set MovLstKwd to 0
    if(msh->mod == GmfStartParallelWrite)
    {
       if(msh->ver <= 2)
@@ -2881,16 +2884,20 @@ static int MovLstKwd(GmfMshSct *msh)
    }
    else if(msh->mod == GmfStopParallelWrite)
    {
+      // Cleanup after parallel write: we can safely move the file pointer to
+      // EOF as we are running in serial and the next kwd pointer is stored
+      // as it needs to be updated before closing
       SetFilPos(msh, EndPos);
    }
    else
       return(0);
 
-   printf(  "ID %p: last kwd: %d, file pos = %lld, adr ptr next kwd: %lld\n",
-            msh, LstKwd, GetFilPos(msh), msh->NexKwdPos );
+   //printf(  "ID %p: last kwd: %d, file pos = %lld, adr ptr next kwd: %lld\n",
+   //         msh, LstKwd, GetFilPos(msh), msh->NexKwdPos );
 
    return(1);
 }
+#endif
 
 
 /*----------------------------------------------------------------------------*/
