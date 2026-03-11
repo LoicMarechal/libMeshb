@@ -933,7 +933,7 @@ int GmfCloseMesh(int64_t MshIdx)
 
 int GmfCloseUnfinishedMesh(int64_t MshIdx)
 {
-   int i, res = 1;
+   int i;
    GmfMshSct *msh = (GmfMshSct *)MshIdx;
 
    // Close the file, free the mesh structure and do not add the GmfEnd kwd
@@ -941,7 +941,7 @@ int GmfCloseUnfinishedMesh(int64_t MshIdx)
 #ifdef WITH_GMF_AIO
       close(msh->FilDes);
 #else
-      fclose(msh->hdl);
+      return(0);
 #endif
 
    // Free optional H.O. renumbering tables
@@ -951,7 +951,7 @@ int GmfCloseUnfinishedMesh(int64_t MshIdx)
 
    free(msh);
 
-   return(res);
+   return(1);
 }
 
 

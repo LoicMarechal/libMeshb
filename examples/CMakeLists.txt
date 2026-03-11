@@ -31,7 +31,7 @@ add_executable(mesh2poly mesh2poly.c)
 target_link_libraries(mesh2poly Meshb.8 ${AIO_LIBRARIES})
 install (TARGETS mesh2poly DESTINATION share/libMeshb/examples COMPONENT examples)
 
-if(LPlib_FOUND)
+if(LPlib_FOUND AND WITH_LPLIB)
    add_executable(parallel_io parallel_io.c)
    target_link_libraries(parallel_io Meshb.8 ${AIO_LIBRARIES} ${LPlib_LIBRARIES})
    install (TARGETS parallel_io DESTINATION share/libMeshb/examples COMPONENT examples)

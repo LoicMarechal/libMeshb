@@ -6,12 +6,13 @@
 
 cmake_minimum_required (VERSION 3.18)
 set (libMeshb_VERSION_MAJOR 8)
-set (libMeshb_VERSION_MINOR 00)
+set (libMeshb_VERSION_MINOR 02)
 project(libMeshb VERSION ${libMeshb_VERSION_MAJOR}.${libMeshb_VERSION_MINOR} LANGUAGES C)
 
 option(WITH_GMF_AIO     "Use Unix low-level and asynchronous I/O for higher speed"       OFF)
 option(WITH_GMF_CPACK   "Enable cpack target to generate a zip file containing binaries" OFF)
-option(WITH_GMF_CTEST   "Enable ctest ti run basic validation tests"                     OFF)
+option(WITH_GMF_CTEST   "Enable ctest to run basic validation tests"                     OFF)
+option(WITH_LPLIB       "Enable additional parallel tests with the LPlib"                OFF)
 option(BUILD_DOCS       "Build the reference documentation"                              OFF)
 
 set(LIBMESHB_HOME ${PROJECT_SOURCE_DIR})
@@ -54,12 +55,18 @@ if(WITH_GMF_AIO)
    IF(${CMAKE_SYSTEM_NAME} MATCHES Linux)
       set(AIO_LIBRARIES rt)
    endif()
+else ()
+   set (WITH_LPLIB OFF)
 endif()
 
-find_package(LPlib 4 CONFIG)
+if(WITH_LPLIB AND WITH_GMF_AIO)
+   find_package(LPlib 4 CONFIG)
 
-if (LPlib_FOUND)
-   include_directories (${LPlib_INCLUDE_DIRS})
+   if (LPlib_FOUND)
+      include_directories (${LPlib_INCLUDE_DIRS})
+   else ()
+      set (WITH_LPLIB OFF)
+   endif ()
 endif ()
 
 
@@ -169,4 +176,5 @@ message("-- Build mode            : " ${CMAKE_BUILD_TYPE})
 message("-- cpack target enabled  : " ${WITH_GMF_CPACK})
 message("-- ctest target enabled  : " ${WITH_GMF_CTEST})
 message("-- Asynchronous IO       : " ${WITH_GMF_AIO})
+message("-- Parallel tests        : " ${WITH_LPLIB})
 message("-- Install directory     : " ${CMAKE_INSTALL_PREFIX})
