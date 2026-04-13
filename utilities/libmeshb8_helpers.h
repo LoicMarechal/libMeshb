@@ -9,13 +9,13 @@
 /* Description:         libmeshb's helper functions' headers                  */
 /* Author:              Loic MARECHAL                                         */
 /* Creation date:       mar 24 2021                                           */
-/* Last modification:   nov 05 2021                                           */
+/* Last modification:   jun 03 2025                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
 
-#ifndef LIBMESHB7_HELPERS_H
-#define LIBMESHB7_HELPERS_H
+#ifndef LIBMESHB8_HELPERS_H
+#define LIBMESHB8_HELPERS_H
 
 
 /*----------------------------------------------------------------------------*/

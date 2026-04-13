@@ -1,9 +1,9 @@
 
-// libMeshb 7.5 basic example: read a high order solution file
+// libMeshb 8.0 basic example: read a high order solution file
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <libmeshb7.h>
+#include <libmeshb8.h>
 
 
 int main()

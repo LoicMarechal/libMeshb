@@ -7,7 +7,7 @@ Adrien Loseille, INRIA, 2016
 #include <stdlib.h>
 #include <string.h>
 
-#include <libmeshb7.h>
+#include <libmeshb8.h>
 
 
 #define max(a,b) ((a)>(b))?(a):(b)

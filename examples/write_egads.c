@@ -1,10 +1,10 @@
 
-// libMeshb7 basic example: write an EGADS CAD model stored as a byte flow
+// libmeshb8 basic example: write an EGADS CAD model stored as a byte flow
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <libmeshb7.h>
+#include <libmeshb8.h>
 
 int main(int argc, char **argv)
 {

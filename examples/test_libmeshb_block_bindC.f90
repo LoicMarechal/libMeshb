@@ -2,7 +2,7 @@ program test_libmeshb_block_bindC
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use, intrinsic :: iso_fortran_env
   use, intrinsic :: iso_c_binding
-  use libmeshb7
+  use libmeshb8
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none

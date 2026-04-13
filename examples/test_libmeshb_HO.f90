@@ -1,4 +1,4 @@
-! libMeshb 7 basic example:
+! libMeshb 8.0 basic example:
 ! read a Q2 quad mesh while using the automatic HO reordering feature,
 ! split it into P2 triangles and write the result back using fast block transfer
 
@@ -78,7 +78,7 @@ end subroutine nodesT3
 program test_libmeshb_HO_f90
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     use iso_fortran_env
-    use libmeshb7
+    use libmeshb8
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     implicit none

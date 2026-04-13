@@ -1,10 +1,10 @@
 
-/* libMeshb 7.2 basic example: read a quad mesh, split it into triangles
+/* libMeshb 8.0 basic example: read a quad mesh, split it into triangles
    and write the result back */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <libmeshb7.h>
+#include <libmeshb8.h>
 
 int main()
 {

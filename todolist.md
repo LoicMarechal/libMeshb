@@ -1,13 +1,9 @@
 ## HIGH PRIORITY
 
+## STANDARD PRIORITY
+
 ### Develop a helper to build the list of Ghost elements
 - Read and allocate the required ElementGID, then build the list of elements that do not belong to the local domain and return it to the caller.
-
-### Distributed parallel write
-- Open a mesh file in write mode but only create the skeleton of the mesh structure to enable further concurrent write access.
-- Open an existing mesh file in write mode and enable concurrent block writes, thanks to the existing file structure.
-
-## STANDARD PRIORITY
 
 ### Handle arbitrary degree high-order elements
 - Setup a keyword to store Pk elements.
@@ -32,6 +28,8 @@ For example:
 - Add a helper to get an edge's shell of triangles or tets
 
 ### Documentation
+
+- Describe the parallel I/O processing
 
 ## DONE
 
@@ -59,3 +57,5 @@ For example:
 - Completely rewrote the whole Fortran API because GFortran dropped support for C variable argumeents procedure.
 - H.O. tests converted to Fortran by Christophe Peyret 
 - Added a helper that cuts a polyhedron through a plane and generates the intersection's triangulated mesh in an STL-like format.
+- Open a mesh file in append mode, create the header and close it so that other processes can reopen it and write to it in parallel.
+- Open an existing mesh file in append mode and enable concurrent block writes, thanks to the existing file structure.

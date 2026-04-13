@@ -8,7 +8,7 @@
 #include <sys/time.h>
 #endif
 
-#include <libmeshb7.h>
+#include <libmeshb8.h>
 
 
 /*----------------------------------------------------------------------------*/
@@ -62,6 +62,12 @@ int main()
    printf("InpMsh : nmb tets = %d\n", NmbTet);
    TetTab = malloc((size_t)(NmbTet+1) * 5 * sizeof(int));
 
+   if(!VerTab || !RefTab || !TetTab)
+   {
+      puts("failed to allocate memory");
+      exit(1);
+   }
+
    // Read the vertices
    GmfGetBlock(InpMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL,
                GmfDoubleVec, 3, &VerTab[1][0], &VerTab[ NmbVer ][0],
@@ -83,16 +89,18 @@ int main()
 
    timer = GetWallClock();
 
-   if(!(OutMsh = GmfOpenMesh("tets_out.meshb", GmfWrite, ver, dim)))
+   if(!(OutMsh = GmfOpenMesh("tets_out.meshb", GmfWrite, 3, dim)))
       return(1);
 
    // Write the vertices
+   puts("write ver");
    GmfSetKwd(OutMsh, GmfVertices, NmbVer);
    GmfSetBlock(OutMsh, GmfVertices, 1, NmbVer, 0, NULL, NULL,
                GmfDoubleVec, 3, &VerTab[1][0], &VerTab[ NmbVer ][0],
-               GmfInt,         &RefTab[1],    &RefTab[ NmbVer ] );
+               GmfInt,          &RefTab[1],    &RefTab[ NmbVer ] );
 
    // Write the tets
+   puts("write tet");
    GmfSetKwd(OutMsh, GmfTetrahedra, NmbTet);
    GmfSetBlock(InpMsh, GmfTetrahedra, 1, NmbTet, 0, NULL, NULL,
                GmfIntVec, 5, &TetTab[1][0], &TetTab[ NmbTet ][0]);

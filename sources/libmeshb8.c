@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V7.84                               */
+/*                               LIBMESHB V8.02                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  oct 09 2024                                          */
+/*   Last modification:  mar 12 2026                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -56,10 +56,12 @@
 
 #include <unistd.h>
 
-#define OPEN_READ_FLAGS   O_RDONLY
-#define OPEN_WRITE_FLAGS  O_CREAT | O_WRONLY | O_TRUNC
-#define OPEN_READ_MODE    0666
-#define OPEN_WRITE_MODE   0666   
+#define OPEN_READ_FLAGS       O_RDONLY
+#define OPEN_WRITE_FLAGS      O_CREAT | O_WRONLY | O_TRUNC
+#define OPEN_PARWRITE_FLAGS   O_RDWR
+#define OPEN_READ_MODE        0666
+#define OPEN_WRITE_MODE       0666   
+#define OPEN_PARWRITE_MODE    0666   
    
 #elif defined(_WIN32) || defined(_WIN64)
 
@@ -89,7 +91,7 @@
 
 
 #include <errno.h>
-#include <libmeshb7.h>
+#include <libmeshb8.h>
 
 // [Bruno] Using portable printf modifier from pstdint.h
 // (alternative: use "%zd" under Linux and "%Id" under Windows)
@@ -124,11 +126,11 @@ int    my_aio_write (      struct aiocb *aiocbp){return(aio_write (aiocbp));}
 
 struct aiocb
 {
-   FILE   *aio_fildes;         // File descriptor
-   size_t  aio_offset;          // File offset
-   void   *aio_buf;            // Location of buffer
-   size_t aio_nbytes;          // Length of transfer
-   int    aio_lio_opcode;      // Operation to be performed
+   FILE     *aio_fildes;         // File descriptor
+   size_t   aio_offset;          // File offset
+   void     *aio_buf;            // Location of buffer
+   size_t   aio_nbytes;          // Length of transfer
+   int      aio_lio_opcode;      // Operation to be performed
 };
 
 int my_aio_error(const struct aiocb *aiocbp)
@@ -192,7 +194,8 @@ int my_aio_write(struct aiocb *aiocbp)
 #define CmtKwd    4
 #define F77Kwd    5
 #define WrdSiz    4
-#define BufSiz    10000L
+#define RecBufSiz 10000L
+#define PipBufSiz 10000000L
 #define MaxArg    1000
 
 
@@ -222,7 +225,7 @@ typedef struct
    char     *buf;
    char     FilNam[ GmfStrSiz ];
    double   DblBuf[1000/8];
-   unsigned char blk[ BufSiz + 1000L ];
+   unsigned char blk[ RecBufSiz + 1000L ];
 }GmfMshSct;
 
 
@@ -509,6 +512,9 @@ static void    SwpWrd   (char *, int);
 static int     SetFilPos(GmfMshSct *, int64_t);
 static int64_t GetFilPos(GmfMshSct *msh);
 static int64_t GetFilSiz(GmfMshSct *);
+#ifdef WITH_GMF_AIO
+static int     MovLstKwd(GmfMshSct *);
+#endif
 
 
 /*----------------------------------------------------------------------------*/
@@ -547,6 +553,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
    char     str[ GmfStrSiz ];
    va_list  VarArg;
    GmfMshSct *msh;
+
 
    /*---------------------*/
    /* MESH STRUCTURE INIT */
@@ -711,7 +718,7 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       // Preset solution entities sizes
       msh->SolTypSiz[ GmfSca    ] = 1;
       msh->SolTypSiz[ GmfVec    ] = msh->dim;
-      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim - 1);
+      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim + 1) / 2;
       msh->SolTypSiz[ GmfMat    ] = msh->dim * msh->dim;
 
       return(MshIdx);
@@ -791,11 +798,86 @@ int64_t GmfOpenMesh(const char *FilNam, int mod, ...)
       // Preset solution entities sizes
       msh->SolTypSiz[ GmfSca    ] = 1;
       msh->SolTypSiz[ GmfVec    ] = msh->dim;
-      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim - 1);
+      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim + 1) / 2;
       msh->SolTypSiz[ GmfMat    ] = msh->dim * msh->dim;
 
       return(MshIdx);
    }
+#ifdef WITH_GMF_AIO
+   else if( (msh->typ & Bin)
+   && ( (msh->mod == GmfStartParallelWrite)
+   ||   (msh->mod == GmfStopParallelWrite)) )
+   {
+      /*------------------------------*/
+      /* REOPEN A FILE FOR // WRITING */
+      /*------------------------------*/
+
+      msh->cod = 1;
+
+      // Check if the user provided a valid version number and dimension
+      va_start(VarArg, mod);
+      msh->ver = va_arg(VarArg, int);
+      msh->dim = va_arg(VarArg, int);
+      va_end(VarArg);
+
+      if( (msh->ver < 1) || (msh->ver > 4) )
+         longjmp(msh->err, -18);
+
+      if( (msh->ver >= 3) && (sizeof(int64_t) != 8) )
+         longjmp(msh->err, -19);
+
+      if( (msh->dim != 2) && (msh->dim != 3) )
+         longjmp(msh->err, -20);
+
+      // Set default real numbers size
+      if(msh->ver == 1)
+         msh->FltSiz = 32;
+      else
+         msh->FltSiz = 64;
+
+      // Create the mesh file
+      msh->FilDes = open(msh->FilNam, OPEN_PARWRITE_FLAGS, OPEN_PARWRITE_MODE);
+
+      if(msh->FilDes <= 0)
+         longjmp(msh->err, -21);
+
+      // Read the endian coding tag
+      if(read(msh->FilDes, &msh->cod, WrdSiz) != WrdSiz)
+         longjmp(msh->err, -7);
+
+      // Read the mesh version and the mesh dimension (mandatory kwd)
+      if( (msh->cod != 1) && (msh->cod != 16777216) )
+         longjmp(msh->err, -9);
+
+      ScaWrd(msh, (unsigned char *)&msh->ver);
+
+      if( (msh->ver < 1) || (msh->ver > 4) )
+         longjmp(msh->err, -10);
+
+      if( (msh->ver >= 3) && (sizeof(int64_t) != 8) )
+         longjmp(msh->err, -11);
+
+      ScaWrd(msh, (unsigned char *)&KwdCod);
+
+      if(KwdCod != GmfDimension)
+         longjmp(msh->err, -12);
+
+      GetPos(msh);
+      ScaWrd(msh, (unsigned char *)&msh->dim);
+
+      // Move the file position at the end and store a pointer to the last kwd
+      if(!MovLstKwd(msh))
+         return(0);
+
+      // Preset solution entities sizes
+      msh->SolTypSiz[ GmfSca    ] = 1;
+      msh->SolTypSiz[ GmfVec    ] = msh->dim;
+      msh->SolTypSiz[ GmfSymMat ] = msh->dim * (msh->dim + 1) / 2;
+      msh->SolTypSiz[ GmfMat    ] = msh->dim * msh->dim;
+
+      return(MshIdx);
+   }
+#endif
    else
    {
       free(msh);
@@ -816,7 +898,7 @@ int GmfCloseMesh(int64_t MshIdx)
    RecBlk(msh, msh->buf, 0);
 
    // In write down the "End" kw in write mode
-   if(msh->mod == GmfWrite)
+   if(msh->mod == GmfWrite || msh->mod == GmfStopParallelWrite)
    {
       if(msh->typ & Asc)
          fprintf(msh->hdl, "\n%s\n", GmfKwdFmt[ GmfEnd ][0]);
@@ -842,6 +924,34 @@ int GmfCloseMesh(int64_t MshIdx)
    free(msh);
 
    return(res);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* Temporary close an unfinished file that will be reopen for parallel write  */
+/*----------------------------------------------------------------------------*/
+
+int GmfCloseUnfinishedMesh(int64_t MshIdx)
+{
+   int i;
+   GmfMshSct *msh = (GmfMshSct *)MshIdx;
+
+   // Close the file, free the mesh structure and do not add the GmfEnd kwd
+   // at the end as this file is incomplete and will be reopen
+#ifdef WITH_GMF_AIO
+      close(msh->FilDes);
+#else
+      return(0);
+#endif
+
+   // Free optional H.O. renumbering tables
+   for(i=0;i<GmfLastKeyword;i++)
+      if(msh->KwdTab[i].OrdTab)
+         free(msh->KwdTab[i].OrdTab);
+
+   free(msh);
+
+   return(1);
 }
 
 
@@ -1131,7 +1241,8 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
                }
                else if(kwd->fmt[i] == 'c')
                {
-                  safe_fgets(va_arg(VarArg, char *), FilStrSiz, msh->hdl, msh->err);
+                  safe_fgets( va_arg(VarArg, char *), FilStrSiz,
+                              msh->hdl, msh->err );
                }
             }
          }
@@ -1150,7 +1261,8 @@ int GmfGetLin(int64_t MshIdx, int KwdCod, ...)
                      ScaDblWrd(msh, (unsigned char *)va_arg(VarArg, int64_t *));
                else if(kwd->fmt[i] == 'c')
                   // [Bruno] added error control
-                  safe_fread(va_arg(VarArg, char *), WrdSiz, FilStrSiz, msh->hdl, msh->err);
+                  safe_fread(va_arg(VarArg, char *), WrdSiz,
+                                    FilStrSiz, msh->hdl, msh->err);
          }
       }break;
 
@@ -1320,7 +1432,7 @@ int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
                   else
                   {
                      // [Bruno] %ld -> INT64_T_FMT
-                     fprintf(msh->hdl, INT64_T_FMT " ", va_arg(VarArg, int64_t));
+                     fprintf(msh->hdl, INT64_T_FMT " ",va_arg(VarArg, int64_t));
                   }
                }
                else if(kwd->fmt[i] == 'c')
@@ -1375,7 +1487,8 @@ int GmfSetLin(int64_t MshIdx, int KwdCod, ...)
                else if(kwd->fmt[i] == 'c')
                {
                   memset(&msh->buf[ pos ], 0, FilStrSiz * WrdSiz);
-                  strncpy(&msh->buf[ pos ], va_arg(VarArg, char *), FilStrSiz * WrdSiz);
+                  strncpy( &msh->buf[ pos ], va_arg(VarArg, char *),
+                           FilStrSiz * WrdSiz );
                   pos += FilStrSiz;
                }
             }
@@ -1692,8 +1805,11 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
       return(0);
 
    // Check user's bounds
-   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > (size_t)kwd->NmbLin) )
+   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx)
+   ||  (FilEndIdx > (size_t)kwd->NmbLin) )
+   {
       return(0);
+   }
 
    // Compute the number of lines to be read
    UsrNmbLin = FilEndIdx - FilBegIdx + 1;
@@ -1858,7 +1974,8 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
             else
                UsrDat[j] = UsrBas[k] + (OldIdx - 1) * UsrLen[k];
 
-            safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], UsrDat[j], msh->err);
+            safe_fscanf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ],
+                        UsrDat[j], msh->err);
          }
 
          if(l >= FilBegIdx)
@@ -1872,10 +1989,10 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
    else
    {
       // Allocate both front and back buffers
-      if(!(BckBuf = malloc(BufSiz * LinSiz)))
+      if(!(BckBuf = malloc(PipBufSiz * LinSiz)))
          longjmp(msh->err, -37);
 
-      if(!(FrtBuf = malloc(BufSiz * LinSiz)))
+      if(!(FrtBuf = malloc(PipBufSiz * LinSiz)))
          longjmp(msh->err, -38);
 
       // Setup the ansynchonous parameters
@@ -1889,7 +2006,7 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
 #endif
       aio.aio_offset = (size_t)(GetFilPos(msh) + (FilBegIdx-1) * LinSiz);
 
-      NmbBlk = UsrNmbLin / BufSiz;
+      NmbBlk = UsrNmbLin / PipBufSiz;
 
       // Loop over N+1 blocks
       for(b=0;b<=NmbBlk+1;b++)
@@ -1934,9 +2051,9 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
          {
             // The last block is shorter than the others
             if(b == NmbBlk)
-               BlkNmbLin = UsrNmbLin - b * BufSiz;
+               BlkNmbLin = UsrNmbLin - b * PipBufSiz;
             else
-               BlkNmbLin = BufSiz;
+               BlkNmbLin = PipBufSiz;
 
             aio.aio_nbytes = BlkNmbLin * LinSiz;
 
@@ -1963,9 +2080,9 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
          {
             // The last block is shorter than the others
             if(b-1 == NmbBlk)
-               BlkNmbLin = UsrNmbLin - (b-1) * BufSiz;
+               BlkNmbLin = UsrNmbLin - (b-1) * PipBufSiz;
             else
-               BlkNmbLin = BufSiz;
+               BlkNmbLin = PipBufSiz;
 
             BlkBegIdx = BlkEndIdx+1;
             BlkEndIdx += BlkNmbLin;
@@ -2122,12 +2239,15 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
 
    // Temporarily overwright the given begin and end values
    // as arbitrary position block write is not yet implemented
-   FilBegIdx = 1;
-   FilEndIdx = kwd->NmbLin;
+   FilBegIdx = BegIdx;
+   FilEndIdx = EndIdx;
 
    // Check user's bounds
-   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx) || (FilEndIdx > (size_t)kwd->NmbLin) )
+   if( (FilBegIdx < 1) || (FilBegIdx > FilEndIdx)
+   ||  (FilEndIdx > (size_t)kwd->NmbLin) )
+   {
       return(0);
+   }
 
    // Compute the number of lines to be written
    UsrNmbLin = FilEndIdx - FilBegIdx + 1;
@@ -2276,7 +2396,8 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
             if(UsrTyp[j] == GmfFloat)
             {
                UsrPtrR32 = (float *)UsrDat[j];
-               fprintf(msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ], (double)*UsrPtrR32);
+               fprintf( msh->hdl, StrTab[ UsrTyp[j] - GmfFloat ],
+                        (double)*UsrPtrR32 );
             }
             else if(UsrTyp[j] == GmfDouble)
             {
@@ -2311,10 +2432,10 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
    else
    {
       // Allocate the front and back buffers
-      if(!(BckBuf = malloc(BufSiz * LinSiz)))
+      if(!(BckBuf = malloc(PipBufSiz * LinSiz)))
          longjmp(msh->err, -43);
 
-      if(!(FrtBuf = malloc(BufSiz * LinSiz)))
+      if(!(FrtBuf = malloc(PipBufSiz * LinSiz)))
          longjmp(msh->err, -44);
 
       // Setup the asynchronous parameters
@@ -2325,9 +2446,10 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
 #else
       aio.aio_fildes = msh->hdl;
 #endif
-      aio.aio_offset = (size_t)GetFilPos(msh);
+      //aio.aio_offset = (size_t)GetFilPos(msh);
+      aio.aio_offset = (size_t)(GetFilPos(msh) + (FilBegIdx-1) * LinSiz);
 
-      NmbBlk = UsrNmbLin / BufSiz;
+      NmbBlk = UsrNmbLin / PipBufSiz;
 
       // Loop over N+1 blocks
       for(b=0;b<=NmbBlk+1;b++)
@@ -2337,7 +2459,7 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
          if(b)
          {
             aio.aio_nbytes = BlkNmbLin * LinSiz;
-            
+
             if(my_aio_write(&aio) == -1)
             {
 #ifdef WITH_GMF_AIO
@@ -2358,9 +2480,9 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
          {
             // The last block is shorter
             if(b == NmbBlk)
-               BlkNmbLin = UsrNmbLin - b * BufSiz;
+               BlkNmbLin = UsrNmbLin - b * PipBufSiz;
             else
-               BlkNmbLin = BufSiz;
+               BlkNmbLin = PipBufSiz;
 
             FilPos = FilBuf;
             BlkBegIdx = BlkEndIdx+1;
@@ -2713,6 +2835,82 @@ void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
 
 
 /*----------------------------------------------------------------------------*/
+/* Parallel writing kwd scan: follow the links until the EOF                  */
+/*----------------------------------------------------------------------------*/
+
+#ifdef WITH_GMF_AIO
+static int MovLstKwd(GmfMshSct *msh)
+{
+   int      KwdCod=0;
+   int64_t  NexPos=0, EndPos, LstPos=-1, NexKwdPos;
+
+   // Get file size
+   EndPos = GetFilSiz(msh);
+
+   // Jump through kwd positions in the file
+   do
+   {
+      // Get the kwd code and the next kwd position
+      ScaWrd(msh, ( char *)&KwdCod);
+      NexKwdPos = GetFilPos(msh);
+      NexPos = GetPos(msh);
+
+      // Store each kwd pointer as we search for the last one befor GmfEnd
+      if(KwdCod != GmfEnd)
+         msh->NexKwdPos = NexKwdPos;
+
+      // Make sure the flow does not move beyond the file size
+      if(NexPos > EndPos)
+         return(0);
+
+      // And check that it does not move back
+      if(NexPos && (NexPos <= LstPos))
+         return(0);
+
+      LstPos = NexPos;
+
+      // Check if this kwd belongs to this mesh version
+      if( (KwdCod >= 1) && (KwdCod <= GmfMaxKwd) )
+         ScaKwdHdr(msh, KwdCod);
+
+      // Go to the next kwd
+      if(NexPos && !(SetFilPos(msh, NexPos)))
+         return(0);
+
+   }while(NexPos && (KwdCod != GmfEnd));
+
+   // Prepare for parallel write: move the file position right after the last
+   // kwd's data and do not update the kwd's link so we set MovLstKwd to 0
+   if(msh->mod == GmfStartParallelWrite)
+   {
+      if(msh->ver <= 2)
+         SetFilPos(msh, msh->NexKwdPos + 8);
+      else if(msh->ver == 3)
+         SetFilPos(msh, msh->NexKwdPos + 12);
+      else
+         SetFilPos(msh, msh->NexKwdPos + 16);
+
+      msh->NexKwdPos = 0;
+   }
+   else if(msh->mod == GmfStopParallelWrite)
+   {
+      // Cleanup after parallel write: we can safely move the file pointer to
+      // EOF as we are running in serial and the next kwd pointer is stored
+      // as it needs to be updated before closing
+      SetFilPos(msh, EndPos);
+   }
+   else
+      return(0);
+
+   //printf(  "ID %p: last kwd: %d, file pos = %lld, adr ptr next kwd: %lld\n",
+   //         msh, LstKwd, GetFilPos(msh), msh->NexKwdPos );
+
+   return(1);
+}
+#endif
+
+
+/*----------------------------------------------------------------------------*/
 /* Find every kw present in a meshfile                                        */
 /*----------------------------------------------------------------------------*/
 
@@ -3051,7 +3249,7 @@ static void RecBlk(GmfMshSct *msh, const void *blk, int siz)
    // When the buffer is full or this procedure is APIF77ed with a 0 size,
    // flush the cache on disk
 
-   if( (msh->pos > BufSiz) || (!siz && msh->pos) )
+   if( (msh->pos > RecBufSiz) || (!siz && msh->pos) )
    {
 #ifdef GMF_WINDOWS
       /*
@@ -3249,7 +3447,7 @@ int APIF77(gmfsetkwdf77)(  int64_t *MshIdx, int *KwdIdx, int *NmbLin,
                            int *NmbTyp, int *TypTab, int *deg, int *NmbNod )
 {
    if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "hr"))
-      return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab, *deg, *NmbNod));
+      return(GmfSetKwd(*MshIdx,*KwdIdx,*NmbLin,*NmbTyp,TypTab,*deg,*NmbNod));
    else if(!strcmp(GmfKwdFmt[ *KwdIdx ][2], "sr"))
       return(GmfSetKwd(*MshIdx, *KwdIdx, *NmbLin, *NmbTyp, TypTab));
    else
@@ -3370,7 +3568,8 @@ int APIF77(gmfsetblockf77)(int64_t *MshIdx, int *KwdCod,
                         NULL, GmfArgTab, TypTab, SizTab, BegTab, EndTab ));
 }
 
-int APIF77(gmfgetreferencestringf77)(int64_t *MshIdx, int *kwd, int *idx, char *str, int siz)
+int APIF77(gmfgetreferencestringf77)(  int64_t *MshIdx, int *kwd,
+                                       int *idx, char *str, int siz )
 {
    int   ret;
    char *tmp = malloc(siz+1);
@@ -3390,7 +3589,8 @@ int APIF77(gmfgetreferencestringf77)(int64_t *MshIdx, int *kwd, int *idx, char *
    return(ret);
 }
 
-int APIF77(gmfsetreferencestringf77)(int64_t *MshIdx, int *kwd, int *idx, char *str, int siz)
+int APIF77(gmfsetreferencestringf77)(  int64_t *MshIdx, int *kwd,
+                                       int *idx, char *str, int siz )
 {
    int   ret;
    char *tmp = malloc(siz+1);

@@ -1,4 +1,4 @@
-! libMeshb 7.79 basic example:
+! libMeshb 8.0 basic example:
 ! read a quad mesh, split it into triangles and write the result back
 ! write an associated dummy .sol file containing some data
 
@@ -61,7 +61,7 @@ end function equal_real64
 program  test_libmeshb_f90
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   use iso_fortran_env
-  use libmeshb7
+  use libmeshb8
   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   implicit none

@@ -1,11 +1,11 @@
 
-// libMeshb 7.5 basic example:
+// libMeshb 8.0 basic example:
 // read a Q2 hex mesh while using the automatic HO reordering feature,
 // and print the renumbered coordinates
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <libmeshb7.h>
+#include <libmeshb8.h>
 
 int main()
 {
