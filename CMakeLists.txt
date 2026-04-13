@@ -74,8 +74,8 @@ endif ()
 # SET FILES AND DIRECTORIES TO BE BUILT
 #######################################
 
-include_directories (${LIBMESHB_SRC})
-include_directories (${LIBMESHB_UTILS})
+include_directories (BEFORE ${LIBMESHB_SRC})
+include_directories (BEFORE ${LIBMESHB_UTILS})
 add_subdirectory (sources)
 add_subdirectory (examples)
 add_subdirectory (utilities)

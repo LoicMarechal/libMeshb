@@ -9,7 +9,7 @@
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  feb 26 2026                                          */
+/*   Last modification:  mar 12 2026                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -56,12 +56,12 @@
 
 #include <unistd.h>
 
-#define OPEN_READ_FLAGS   O_RDONLY
-#define OPEN_WRITE_FLAGS  O_CREAT | O_WRONLY | O_TRUNC
-#define OPEN_PARWRITE_FLAGS  O_RDWR
-#define OPEN_READ_MODE    0666
-#define OPEN_WRITE_MODE   0666   
-#define OPEN_PARWRITE_MODE   0666   
+#define OPEN_READ_FLAGS       O_RDONLY
+#define OPEN_WRITE_FLAGS      O_CREAT | O_WRONLY | O_TRUNC
+#define OPEN_PARWRITE_FLAGS   O_RDWR
+#define OPEN_READ_MODE        0666
+#define OPEN_WRITE_MODE       0666   
+#define OPEN_PARWRITE_MODE    0666   
    
 #elif defined(_WIN32) || defined(_WIN64)
 
@@ -195,7 +195,7 @@ int my_aio_write(struct aiocb *aiocbp)
 #define F77Kwd    5
 #define WrdSiz    4
 #define RecBufSiz 10000L
-#define PipBufSiz 1000000L
+#define PipBufSiz 10000000L
 #define MaxArg    1000
 
 

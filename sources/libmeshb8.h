@@ -9,7 +9,7 @@
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  feb 26 2026                                         */
+/*    Last modification:  mar 12 2026                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -26,31 +26,31 @@
 /* Defines                                                                    */
 /*----------------------------------------------------------------------------*/
 
-#define GmfStrSiz       1024
-#define FilStrSiz       64
-#define GmfMaxTyp       1000
-#define GmfMaxKwd       GmfLastKeyword - 1
-#define GmfMshVer       1
-#define GmfRead         1
-#define GmfWrite        2
-#define GmfSca          1
-#define GmfVec          2
-#define GmfSymMat       3
-#define GmfMat          4
-#define GmfFloat        8
-#define GmfDouble       9
-#define GmfInt          10
-#define GmfLong         11
-#define GmfFloatVec     12
-#define GmfDoubleVec    13
-#define GmfIntTab       14
-#define GmfIntVec       14
-#define GmfLongTab      15
-#define GmfLongVec      15
+#define GmfStrSiz             1024
+#define FilStrSiz             64
+#define GmfMaxTyp             1000
+#define GmfMaxKwd             GmfLastKeyword - 1
+#define GmfMshVer             1
+#define GmfRead               1
+#define GmfWrite              2
+#define GmfSca                1
+#define GmfVec                2
+#define GmfSymMat             3
+#define GmfMat                4
+#define GmfFloat              8
+#define GmfDouble             9
+#define GmfInt                10
+#define GmfLong               11
+#define GmfFloatVec           12
+#define GmfDoubleVec          13
+#define GmfIntTab             14
+#define GmfIntVec             14
+#define GmfLongTab            15
+#define GmfLongVec            15
 #define GmfStartParallelWrite 16
-#define GmfStopParallelWrite 17
-#define GmfArgTab       100
-#define GmfArgLst       101
+#define GmfStopParallelWrite  17
+#define GmfArgTab             100
+#define GmfArgLst             101
 
 enum GmfKwdCod
 {
@@ -309,7 +309,7 @@ extern "C" {
 
 extern int64_t GmfOpenMesh             (const char *, int, ...);
 extern int     GmfCloseMesh            (int64_t);
-extern int     GmfCloseUnfinishedMesh  (int64_t );
+extern int     GmfCloseUnfinishedMesh  (int64_t);
 extern int64_t GmfStatKwd              (int64_t, int, ...);
 extern int     GmfSetKwd               (int64_t, int, int64_t, ...);
 extern int     GmfGotoKwd              (int64_t, int);
