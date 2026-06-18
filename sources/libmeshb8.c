@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V8.02                               */
+/*                               LIBMESHB V8.04                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  mar 12 2026                                          */
+/*   Last modification:  jun 18 2026                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -215,7 +215,7 @@ typedef struct
 typedef struct
 {
    int      dim, ver, mod, typ, cod, FilDes, FltSiz, SolTypSiz[5];
-   int64_t  NexKwdPos, siz;
+   int64_t  NexKwdPos, siz, BytCnt;
    size_t   pos;
    jmp_buf  err;
    KwdSct   KwdTab[ GmfMaxKwd + 1 ];
@@ -1762,7 +1762,7 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
    double      *FilPtrR64, *UsrPtrR64;
    int64_t     BlkNmbLin, *FilPtrI64, *UsrPtrI64, BlkBegIdx, BlkEndIdx = 0;
    int64_t     *LngMapTab = NULL, OldIdx = 0, UsrNmbLin, VecLen;
-   size_t      FilBegIdx = BegIdx, FilEndIdx = EndIdx;
+   size_t      FilBegIdx = BegIdx, FilEndIdx = EndIdx, CurPos;
    void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
    size_t      UsrLen[ GmfMaxTyp ], ret, LinSiz, b, l, NmbBlk;
    va_list     VarArg;
@@ -1942,6 +1942,7 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
    // Read the whole kwd data
    if(msh->typ & Asc)
    {
+      CurPos = GetFilPos(msh);
       OldIdx = 1;
 
       for(l=1;l<=FilEndIdx;l++)
@@ -1975,6 +1976,8 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
          if(UsrPrc)
             UsrPrc(1, kwd->NmbLin, UsrArg);
       }
+
+      msh->BytCnt += GetFilPos(msh) - CurPos;
    }
    else
    {
@@ -2175,6 +2178,9 @@ int GmfGetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
       free(FrtBuf);
    }
 
+   // Update the number bytes read since the file opening
+   msh->BytCnt += (EndIdx - BegIdx + 1) * kwd->NmbWrd * WrdSiz;
+
    return(1);
 }
 
@@ -2198,7 +2204,7 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
    double      *FilPtrR64, *UsrPtrR64;
    int64_t     UsrNmbLin, BlkNmbLin = 0, BlkBegIdx, BlkEndIdx = 0;
    int64_t     *FilPtrI64, *UsrPtrI64, *LngMapTab = NULL, OldIdx = 0;
-   size_t      FilBegIdx = BegIdx, FilEndIdx = EndIdx;
+   size_t      FilBegIdx = BegIdx, FilEndIdx = EndIdx, CurPos;
    void        (*UsrPrc)(int64_t, int64_t, void *) = NULL;
    size_t      UsrLen[ GmfMaxTyp ], ret, LinSiz, VecLen, s, b, NmbBlk;
    va_list     VarArg;
@@ -2377,6 +2383,8 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
    // Write the whole kwd data
    if(msh->typ & Asc)
    {
+      CurPos = GetFilPos(msh);
+
       if(UsrPrc)
          UsrPrc(1, kwd->NmbLin, UsrArg);
 
@@ -2418,6 +2426,8 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
             else
                UsrDat[j] = UsrBas[j] + s * UsrLen[j];
          }
+
+      msh->BytCnt += GetFilPos(msh) - CurPos;
    }
    else
    {
@@ -2601,6 +2611,9 @@ int GmfSetBlock(  int64_t MshIdx, int KwdCod, int64_t BegIdx, int64_t EndIdx,
       free(BckBuf);
       free(FrtBuf);
    }
+
+   // Update the number bytes read since the file opening
+   msh->BytCnt += (EndIdx - BegIdx + 1) * kwd->NmbWrd * WrdSiz;
 
    return(1);
 }
@@ -2831,7 +2844,7 @@ void GmfSetFloatPrecision(int64_t MshIdx , int FltSiz)
 #ifdef WITH_GMF_AIO
 static int MovLstKwd(GmfMshSct *msh)
 {
-   int      KwdCod=0;
+   int      KwdCod=0, LstKwd=0, NmbTyp;
    int64_t  NexPos=0, EndPos, LstPos=-1, NexKwdPos;
 
    // Get file size
@@ -2847,7 +2860,10 @@ static int MovLstKwd(GmfMshSct *msh)
 
       // Store each kwd pointer as we search for the last one befor GmfEnd
       if(KwdCod != GmfEnd)
+      {
          msh->NexKwdPos = NexKwdPos;
+         LstKwd = KwdCod;
+      }
 
       // Make sure the flow does not move beyond the file size
       if(NexPos > EndPos)
@@ -2873,12 +2889,18 @@ static int MovLstKwd(GmfMshSct *msh)
    // kwd's data and do not update the kwd's link so we set MovLstKwd to 0
    if(msh->mod == GmfStartParallelWrite)
    {
-      if(msh->ver <= 2)
-         SetFilPos(msh, msh->NexKwdPos + 8);
-      else if(msh->ver == 3)
-         SetFilPos(msh, msh->NexKwdPos + 12);
+      // Add the solution header if needed
+      if(msh->KwdTab[ LstKwd ].NmbTyp)
+         NmbTyp = msh->KwdTab[ LstKwd ].NmbTyp + 1;
       else
-         SetFilPos(msh, msh->NexKwdPos + 16);
+         NmbTyp = 0;
+
+      if(msh->ver <= 2)
+         SetFilPos(msh, msh->NexKwdPos + 8 + NmbTyp * 4);
+      else if(msh->ver == 3)
+         SetFilPos(msh, msh->NexKwdPos + 12+ NmbTyp * 4);
+      else
+         SetFilPos(msh, msh->NexKwdPos + 16+ NmbTyp * 8);
 
       msh->NexKwdPos = 0;
    }
@@ -3381,6 +3403,18 @@ static int64_t GetFilSiz(GmfMshSct *msh)
    }
 
    return(EndPos);
+}
+
+
+/*----------------------------------------------------------------------------*/
+/* return the number of bytes read or written in block mode                   */
+/*----------------------------------------------------------------------------*/
+
+int64_t GmfGetBytesCount(int64_t MshIdx)
+{
+   GmfMshSct *msh = (GmfMshSct *)MshIdx;
+
+   return(msh->BytCnt);
 }
 
 

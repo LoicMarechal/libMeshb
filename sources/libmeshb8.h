@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V8.02                               */
+/*                               LIBMESHB V8.03                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Description:        handle .meshb file format I/O                       */
 /*    Author:             Loic MARECHAL                                       */
 /*    Creation date:      dec 09 1999                                         */
-/*    Last modification:  mar 12 2026                                         */
+/*    Last modification:  jun 04 2026                                         */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -324,6 +324,7 @@ extern int     GmfWriteByteFlow        (int64_t, char *, int);
 extern int     GmfSetHONodesOrdering   (int64_t, int, int *, int *);
 extern int     GmfGetFloatPrecision    (int64_t);
 extern void    GmfSetFloatPrecision    (int64_t, int);
+extern int64_t GmfGetBytesCount        (int64_t);
 
 
 /*----------------------------------------------------------------------------*/
