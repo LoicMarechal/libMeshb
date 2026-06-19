@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V8.04                               */
+/*                               LIBMESHB V8.05                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jun 18 2026                                          */
+/*   Last modification:  jun 19 2026                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -2896,11 +2896,11 @@ static int MovLstKwd(GmfMshSct *msh)
          NmbTyp = 0;
 
       if(msh->ver <= 2)
-         SetFilPos(msh, msh->NexKwdPos + 8 + NmbTyp * 4);
+         SetFilPos(msh, msh->NexKwdPos +  8 + NmbTyp * 4);
       else if(msh->ver == 3)
-         SetFilPos(msh, msh->NexKwdPos + 12+ NmbTyp * 4);
+         SetFilPos(msh, msh->NexKwdPos + 12 + NmbTyp * 4);
       else
-         SetFilPos(msh, msh->NexKwdPos + 16+ NmbTyp * 8);
+         SetFilPos(msh, msh->NexKwdPos + 16 + NmbTyp * 4);
 
       msh->NexKwdPos = 0;
    }

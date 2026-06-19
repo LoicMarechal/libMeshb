@@ -11,7 +11,7 @@
 /*                      associated solb in parallel                           */
 /*   Author:            Loic MARECHAL                                         */
 /*   Creation date:     feb 25 2025                                           */
-/*   Last modification: jun 18 2026                                           */
+/*   Last modification: jun 19 2026                                           */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -249,9 +249,9 @@ int main(int ArgCnt, char **ArgVec)
 
    printf("InpMsh : idx = %lld, version = %d, dimension = %d\n", msh.InpMsh, msh.ver, msh.dim);
 
-   if(msh.dim != 3 || msh.ver < 2)
+   if(msh.dim != 3)
    {
-      puts("Dimension must 3 and file version must be >= 2");
+      puts("Dimension must 3");
       exit(1);
    }
 
