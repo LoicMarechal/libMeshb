@@ -37,7 +37,7 @@ int main()
    int   i, NmbVer, NmbTet, ver, dim, *RefTab, (*TetTab)[5];
    int64_t InpMsh, OutMsh;
    double (*VerTab)[3];
-   double timer;
+   double timer, TotTim, BytCnt;
 
 
    /*-----------------------------------*/
@@ -78,9 +78,12 @@ int main()
                GmfIntVec, 5, &TetTab[1][0], &TetTab[ NmbTet ][0]);
 
    // Close the tet mesh
+   BytCnt = GmfGetBytesCount(InpMsh) * 1.E-9;
    GmfCloseMesh(InpMsh);
 
-   printf("Time for reading: %g seconds\n", GetWallClock() - timer);
+   TotTim = GetWallClock() - timer;
+   printf(  "Time for reading: %g seconds, %g GB, throughput: %g GB/s\n",
+            TotTim, BytCnt, BytCnt / TotTim);
 
 
    /*-----------------------------------*/
@@ -106,9 +109,12 @@ int main()
                GmfIntVec, 5, &TetTab[1][0], &TetTab[ NmbTet ][0]);
 
    // Do not forget to close the mesh file
+   BytCnt = GmfGetBytesCount(OutMsh) * 1.E-9;
    GmfCloseMesh(OutMsh);
+   TotTim = GetWallClock() - timer;
 
-   printf("Time for writing: %g seconds\n", GetWallClock() - timer);
+   printf(  "Time for writing: %g seconds, %g GB, throughput: %g GB/s\n",
+            TotTim, BytCnt, BytCnt / TotTim);
 
    free(TetTab);
    free(RefTab);
