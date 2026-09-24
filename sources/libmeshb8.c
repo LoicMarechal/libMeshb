@@ -2,14 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*                               LIBMESHB V8.05                               */
+/*                               LIBMESHB V8.06                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*   Description:        handles .meshb file format I/O                       */
 /*   Author:             Loic MARECHAL                                        */
 /*   Creation date:      dec 09 1999                                          */
-/*   Last modification:  jun 19 2026                                          */
+/*   Last modification:  sep 24 2026                                          */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -3449,6 +3449,11 @@ int64_t APIF77(gmfopenmeshf77)(  char *FilNam, int *mod,
 int APIF77(gmfclosemeshf77)(int64_t *idx)
 {
    return(GmfCloseMesh(*idx));
+}
+
+int APIF77(gmfcloseunfinishedmeshf77)(int64_t *idx)
+{
+   return(GmfCloseUnfinishedMesh(*idx));
 }
 
 int APIF77(gmfgotokwdf77)(int64_t *MshIdx, int *KwdIdx)
