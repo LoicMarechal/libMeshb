@@ -8,7 +8,7 @@
 !   Author:              Loic MARECHAL
 !                        Christophe PEYRET (ONERA/DAAA)
 !   Creation date:       dec 08 2015
-!   Last modification:   mar 13 2024
+!   Last modification:   sep 25 2026
 !
 !----------------------------------------------------------
 
@@ -31,6 +31,7 @@ module libmeshb8
   integer(int32) , external :: GmfGetBlockF77
   integer(int32) , external :: GmfSetBlockF77
   integer(int32) , external :: GmfSetReferencestringF77
+  integer(int32) , external :: gmfcloseunfinishedmeshf77
   
   ! Parameters definition
   integer(int32), parameter :: gmfmaxtyp=1000
@@ -53,6 +54,8 @@ module libmeshb8
   integer(int32), parameter :: gmflongvec=15
   integer(int32), parameter :: gmfargtab=100
   integer(int32), parameter :: gmfarglst=101
+  integer(int32), parameter :: gmfstartparallelwrite=16
+  integer(int32), parameter :: gmfstopparallelwrite=17
   
   ! Keywords list
   integer(int32), parameter :: gmfdimension=3
@@ -360,6 +363,20 @@ contains
     !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     return
   end function GmfCloseMeshF90
+
+  function     GmfCloseUnfinishedMeshF90(unit) result(res)
+    !> Close a mesh opened in write or parallel-write mode without writing
+    !> the final "End" keyword, so that it can be reopened with
+    !> GmfStartParallelWrite / GmfStopParallelWrite (requires WITH_GMF_AIO)
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    integer(int64) :: unit
+    integer(int32) :: res
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    res=GmfCloseUnfinishedMeshF77(unit)
+    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    return
+  end function GmfCloseUnfinishedMeshF90
   
   function     GmfStatKwdF90_0(unit, GmfKey) result(res)
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

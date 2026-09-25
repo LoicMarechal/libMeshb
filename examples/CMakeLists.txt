@@ -69,9 +69,18 @@ if (CMAKE_Fortran_COMPILER)
    target_link_libraries(test_libmeshb_HO_f90 Meshb.8 ${AIO_LIBRARIES})
    install (TARGETS test_libmeshb_HO_f90 DESTINATION share/libMeshb/examples COMPONENT examples)
 
-
+   
    #add_executable(test_libmeshb_block_bindC test_libmeshb_block_bindC.f90)
    #target_link_libraries(test_libmeshb_block_bindC Meshb.8 ${AIO_LIBRARIES})
    #install (TARGETS test_libmeshb_block_bindC DESTINATION share/libMeshb/examples COMPONENT examples)
-
+   
+   if(WITH_GMF_AIO)
+      find_package(OpenMP COMPONENTS Fortran)
+      if(OpenMP_Fortran_FOUND)
+         add_executable(test_parallel_io_omp_f90 test_parallel_io_omp.f90)
+         target_link_libraries(test_parallel_io_omp_f90 Meshb.8 ${AIO_LIBRARIES} OpenMP::OpenMP_Fortran)
+         install (TARGETS test_parallel_io_omp_f90 DESTINATION share/libMeshb/examples COMPONENT examples)
+      endif ()
+   endif ()
+   
 endif ()

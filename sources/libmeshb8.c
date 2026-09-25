@@ -3439,11 +3439,13 @@ int64_t APIF77(gmfopenmeshf77)(  char *FilNam, int *mod,
       TmpNam[i] = FilNam[i];
 
    TmpNam[ StrSiz ] = 0;
-
+   
    if(*mod == GmfRead)
       return(GmfOpenMesh(TmpNam, GmfRead, ver, dim));
    else
-      return(GmfOpenMesh(TmpNam, GmfWrite, *ver, *dim));
+      // *mod is forwarded as-is (GmfWrite, GmfStartParallelWrite or
+      // GmfStopParallelWrite all take ver/dim by value)
+      return(GmfOpenMesh(TmpNam, *mod, *ver, *dim));
 }
 
 int APIF77(gmfclosemeshf77)(int64_t *idx)
