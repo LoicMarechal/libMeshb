@@ -152,7 +152,7 @@ program test_libmeshb_block02_f90
   &   ad0=1                 ,&
   &   ad1=NmbTri            ,&
   &   Tab=TriTab(:,1:NmbTri),&
-  &   Ref=TriRef(  1:NmbVer) )
+  &   Ref=TriRef(  1:NmbTri) )
   
   ! Don't forget to close the file
   res=GmfCloseMeshF90(unit=OutMsh)
@@ -203,7 +203,7 @@ program test_libmeshb_block02_f90
   &   fieldNames=fieldNames(1:NmbFields),&  ! <= optional
   &   iter=10                           ,&  ! <= optional
   &   time=60d0                          )  ! <= optional
-
+  
   res=GmfSetBlockF90(                    &
   &   unit=OutMsh                       ,&
   &   GmfKey=GmfSolAtVertices           ,&
