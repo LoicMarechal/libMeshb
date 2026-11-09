@@ -2,3 +2,9 @@ build
 sources/libmeshb7.mod
 .vscode/
 .cache/
+
+python/build/
+python/pymeshb/*.so
+python/pymeshb/*.pyd
+python/*.egg-info/
+python/**/__pycache__/
