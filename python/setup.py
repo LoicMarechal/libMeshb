@@ -6,6 +6,7 @@ import shutil
 import numpy
 from Cython.Build import cythonize
 from setuptools import Extension, setup
+from setuptools.command.build_ext import build_ext
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "..", "sources")
@@ -56,11 +57,29 @@ ext = Extension(
     extra_compile_args=["-O2"],
 )
 
+
+class BuildExt(build_ext):
+    """Retire des options heritees de la configuration de Python (sysconfig)
+    que le compilateur Intel oneAPI (icx/icpx) ne connait plus, comme -ip :
+    elles declenchent le warning #10430 a chaque fichier compile."""
+
+    UNSUPPORTED_ICX = {"-ip"}
+
+    def build_extension(self, ext):
+        cc = self.compiler
+        for attr in ("compiler", "compiler_so", "compiler_cxx", "linker_so", "linker_exe"):
+            cmd = getattr(cc, attr, None)
+            if cmd and os.path.basename(cmd[0]).startswith(("icx", "icpx")):
+                setattr(cc, attr, [a for a in cmd if a not in self.UNSUPPORTED_ICX])
+        super().build_extension(ext)
+
+
 setup(
     name="pymeshb",
     version="0.1.0",
     description="Interface Python (Cython) pour libMeshb 8 (formats Inria .mesh/.meshb/.sol/.solb)",
     packages=["pymeshb"],
     ext_modules=cythonize([ext], language_level=3, build_dir=os.path.join(BUILD, "cython")),
+    cmdclass={"build_ext": BuildExt},
     install_requires=["numpy"],
 )
